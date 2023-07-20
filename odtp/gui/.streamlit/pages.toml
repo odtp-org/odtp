@@ -1,0 +1,10 @@
+[[pages]]
+path = "app.py"
+name = "ODTP"
+icon = ":world:"
+
+[[pages]]
+path = "job.py"
+name = "JOB"
+icon = ":world:"
+
