@@ -1,10 +1,47 @@
 [[pages]]
 path = "app.py"
 name = "ODTP"
-icon = ":world:"
+icon = "🌍"
 
 [[pages]]
-path = "job.py"
-name = "JOB"
-icon = ":world:"
+path = "users.py"
+name = "Users"
+icon = "🌍"
+
+[[pages]]
+path = "digitaltwins.py"
+name = "Digital Twins"
+icon = "🌍"
+
+[[pages]]
+path = "components.py"
+name = "Components"
+icon = "🌍"
+
+[[pages]]
+path = "workflow.py"
+name = "Workflow Designer"
+icon = "🌍"
+
+[[pages]]
+path = "logs.py"
+name = "Logs"
+icon = "🌍"
+
+[[pages]]
+path = "snapshots.py"
+name = "Snapshots"
+icon = "🌍"
+
+[[pages]]
+path = "semantics.py"
+name = "Semantics"
+icon = "🌍"
+
+
+[[pages]]
+path = "init.py"
+name = "Init"
+icon = "🌍"
+
 
