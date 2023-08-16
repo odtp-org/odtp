@@ -67,13 +67,13 @@ def checkCollections(mongoString):
     client.close()
 
 mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
-collectionsText = st.text_input("Introduce collections to create", value=str(['logs', 'users', 'components', 'snapshots', 'digitalTwins']))
+collectionsText = st.text_input("Introduce collections to create", value=['logs', 'users', 'components', 'snapshots', 'digitalTwins'])
 create = st.button("Create Collections on MongoDB")
 delete = st.button("Delete Collections on MongoDB")
 check = st.button("Check Collections on MongoDB")
 
 if create:
-    createCollections(mongoString)
+    createCollections(mongoString, collectionsText)
     st.write("Collections Created")
 
 if delete:
@@ -138,7 +138,7 @@ folderStructure = [
 s3ClientString = st.text_input("clientString", value="https://s3.epfl.ch")
 bucketName=st.text_input("bucketName", value="13301-6bcec4f9e8e75c799891ee1a336725ec")
 accessKey=st.text_input("accessKey", value="Q0ISQFAAKTVB9J3VAQJF")
-secretKey=st.text_input("secretKey")
+secretKey=st.text_input("secretKey", type="password")
 structure=st.text_area("structure", value=folderStructure)
 
 createBucketStructure = st.button("createBucketStructure")

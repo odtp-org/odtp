@@ -38,6 +38,11 @@ path = "semantics.py"
 name = "Semantics"
 icon = "🌍"
 
+[[pages]]
+path = "datavis.py"
+name = "Data Visualization"
+icon = "🌍"
+
 
 [[pages]]
 path = "init.py"
