@@ -13,14 +13,14 @@ st.set_page_config(
 st.title("Data Visualization")
 
 
-uploaded_file = st.sidebar.file_uploader("Choose a CSV file", type="csv")
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
 if uploaded_file is not None:
     try:
         df = pd.read_csv(uploaded_file)
-        st.sidebar.write("Loaded")
+        st.write("Loaded")
     except Exception as e:
-        st.sidebar.write("Oops! There was an error: ", e)
+        st.write("Oops! There was an error: ", e)
  
 
 loadB = st.button("Load")

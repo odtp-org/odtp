@@ -4,10 +4,21 @@ from pymongo.server_api import ServerApi
 import boto3
 import ast
 
+st.set_page_config(
+    page_title="ODPT",
+    page_icon="🧊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://www.extremelycoolapp.com/help',
+        'Report a bug': "https://www.extremelycoolapp.com/bug",
+        'About': "# This is a header. This is an *extremely* cool app!"
+    }
+)
 
 st.write("# Init section")
 
-st.markdown("## MongoDB")
+col1, col2 = st.columns(2)
 
 # This is to provide an easy configuration and reseting of MONGODB and the S3 Enviroment
 
@@ -66,29 +77,30 @@ def checkCollections(mongoString):
     # Close the connection.
     client.close()
 
-mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
-collectionsText = st.text_input("Introduce collections to create", value=['logs', 'users', 'components', 'snapshots', 'digitalTwins'])
-create = st.button("Create Collections on MongoDB")
-delete = st.button("Delete Collections on MongoDB")
-check = st.button("Check Collections on MongoDB")
+with col1: 
+    st.markdown("## MongoDB")
 
-if create:
-    createCollections(mongoString, collectionsText)
-    st.write("Collections Created")
+    mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
+    collectionsText = st.text_input("Introduce collections to create", value=['logs', 'users', 'components', 'snapshots', 'digitalTwins'])
+    create = st.button("Create Collections on MongoDB")
+    delete = st.button("Delete Collections on MongoDB")
+    check = st.button("Check Collections on MongoDB")
 
-if delete:
-    deleteCollections(mongoString)
-    st.write("Collections Deleted")
+    if create:
+        createCollections(mongoString, collectionsText)
+        st.write("Collections Created")
 
-if check:
-    coll = checkCollections(mongoString)
-    st.write("Collections Check")
-    st.json(coll)
+    if delete:
+        deleteCollections(mongoString)
+        st.write("Collections Deleted")
+
+    if check:
+        coll = checkCollections(mongoString)
+        st.write("Collections Check")
+        st.json(coll)
 
 
 ####################################################
-
-st.markdown("## S3")
 
 def createFolderStructure(s3ClientString, bucketName, structure,  accessKey, secretKey):
     s3 = boto3.client('s3', endpoint_url=s3ClientString,
@@ -129,32 +141,34 @@ def checkObjects(s3ClientString, bucketName, accessKey, secretKey):
     return folders
 
 
+with col2:
+    st.markdown("## S3")
 
-folderStructure = [
-    'odtp',
-    'odtp/snapshots'
-]
+    folderStructure = [
+        'odtp',
+        'odtp/snapshots'
+    ]
 
-s3ClientString = st.text_input("clientString", value="https://s3.epfl.ch")
-bucketName=st.text_input("bucketName", value="13301-6bcec4f9e8e75c799891ee1a336725ec")
-accessKey=st.text_input("accessKey", value="Q0ISQFAAKTVB9J3VAQJF")
-secretKey=st.text_input("secretKey", type="password")
-structure=st.text_area("structure", value=folderStructure)
+    s3ClientString = st.text_input("clientString", value="https://s3.epfl.ch")
+    bucketName=st.text_input("bucketName", value="13301-6bcec4f9e8e75c799891ee1a336725ec")
+    accessKey=st.text_input("accessKey", value="Q0ISQFAAKTVB9J3VAQJF")
+    secretKey=st.text_input("secretKey", type="password")
+    structure=st.text_area("structure", value=folderStructure)
 
-createBucketStructure = st.button("createBucketStructure")
-deleteBucketStructure = st.button("deleteBucketStructure")
-checkBucketStructure = st.button("checkBucketStructure")
+    createBucketStructure = st.button("createBucketStructure")
+    deleteBucketStructure = st.button("deleteBucketStructure")
+    checkBucketStructure = st.button("checkBucketStructure")
 
-if createBucketStructure:
-    structure = ast.literal_eval(structure)
-    createFolderStructure(s3ClientString, bucketName, structure, accessKey, secretKey)
+    if createBucketStructure:
+        structure = ast.literal_eval(structure)
+        createFolderStructure(s3ClientString, bucketName, structure, accessKey, secretKey)
 
-if deleteBucketStructure:
-    structure = ast.literal_eval(structure)
-    deleteAllObjects(s3ClientString, bucketName, accessKey, secretKey)
+    if deleteBucketStructure:
+        structure = ast.literal_eval(structure)
+        deleteAllObjects(s3ClientString, bucketName, accessKey, secretKey)
 
-if checkBucketStructure:
-    objects = checkObjects(s3ClientString, bucketName, accessKey, secretKey)
-    st.json(objects)
+    if checkBucketStructure:
+        objects = checkObjects(s3ClientString, bucketName, accessKey, secretKey)
+        st.json(objects)
 
     

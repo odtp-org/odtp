@@ -2,6 +2,8 @@ import streamlit as st
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 
+st.set_page_config(layout="wide")
+
 def loadMongoLogs(mongoString, collection):
     # Connect to the MongoDB server. Replace 'localhost' with your server address and 27017 with your port if different.
     client = MongoClient(mongoString,  server_api=ServerApi('1'))
@@ -21,12 +23,22 @@ def loadMongoLogs(mongoString, collection):
     return documentList
 
 
-st.write("ODTP Logs")
-st.write("Mongo String")
-mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
-collection = st.text_input("Collection", value="logs")
-mongoOK = st.button("Load Mongo Logs")
+st.write("# ODTP Logs")
 
-if mongoOK:
-    docs = loadMongoLogs(mongoString, collection)
-    st.json(docs)
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write("Mongo String")
+    mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
+    collection = st.text_input("Collection", value="logs")
+    mongoOK = st.button("Load Mongo Logs")
+
+    if mongoOK:
+        docs = loadMongoLogs(mongoString, collection)
+        st.json(docs)
+
+with col2: 
+    ## Add selector
+    if mongoOK:
+        textlines = " ".join([log["message"] + " \n" for log in docs[0]["data"]])
+        st.code(textlines)

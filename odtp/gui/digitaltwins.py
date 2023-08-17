@@ -24,7 +24,7 @@ def getDTInMongoDB(mongoString):
 
 st.markdown("## MongoDB Entries")
 mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
-mdbbutton = st.button("Get snapshots entries in MongoDB")
+mdbbutton = st.button("Get Digital Twins entries in MongoDB")
 
 if mdbbutton:
     mdbOut = getDTInMongoDB(mongoString)
