@@ -5,11 +5,15 @@ def write_list_to_file(filename, string_list):
     with open(filename, 'w') as file:
         file.write('\n'.join(string_list))
 
+def write_string_to_file(filename, content):
+    with open(filename, 'w') as file:
+        file.write(content)
+
 
 def runDockerComponent(component, volume, env, name="odtpruntest"):
 
     # Create env file 
-    write_list_to_file(".env", env)
+    write_string_to_file(".env", env)
 
     # Run 
     if component == "Eqasim":
