@@ -20,8 +20,10 @@ def runDockerComponent(component, volume, env, name="odtpruntest"):
         return "Component not found"
 
     cmd = ["docker", "run", "-it", "--rm", "-v", f"{volume}:/odtp/odtp-volume", "--env-file", ".env", "--name", name, dockerimage] 
+    print(cmd)
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    print(process)
 
     return f"Running {cmd}"
 
