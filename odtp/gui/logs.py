@@ -31,6 +31,7 @@ with col1:
     st.write("Mongo String")
     mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
     collection = st.text_input("Collection", value="logs")
+    index = st.number_input("Document", value=0)
     mongoOK = st.button("Load Mongo Logs")
 
     if mongoOK:
@@ -40,5 +41,5 @@ with col1:
 with col2: 
     ## Add selector
     if mongoOK:
-        textlines = " ".join([log["message"] + " \n" for log in docs[0]["data"]])
+        textlines = " ".join([log["message"] + " \n" for log in docs[index]["data"]])
         st.code(textlines)
