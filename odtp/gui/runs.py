@@ -6,6 +6,8 @@ def write_list_to_file(filename, string_list):
         file.write('\n'.join(string_list))
 
 def write_string_to_file(filename, content):
+    if not content.endswith('\n'):
+        content += '\n'
     with open(filename, 'w') as file:
         file.write(content)
 
