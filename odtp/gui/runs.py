@@ -63,7 +63,7 @@ java_memory=24G
 hts=entd
 """
 
-env = st.text_area("Environment file", value=envValue)
+env = st.text_area("Environment file", value=envValue, height=600)
 
 
 if st.button('Run'):
