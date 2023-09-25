@@ -19,10 +19,10 @@ def runDockerComponent(component, volume, env, name="odtpruntest"):
     else:
         return "Component not found"
 
-    cmd = ["docker", "run", "-it", "--rm", "-v", f"{volume}:/odtp/odtp-volume", "--env-file", ".env", "--name", name, dockerimage] 
+    cmd = ["nohup","docker", "run", "-it", "--rm", "-v", f"{volume}:/odtp/odtp-volume", "--env-file", ".env", "--name", name, dockerimage, "&"] 
     print(cmd)
 
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    process = subprocess.Popen(cmd)
     print(process)
 
     return f"Running {cmd}"
@@ -30,9 +30,9 @@ def runDockerComponent(component, volume, env, name="odtpruntest"):
 def stopDockerComponent(name="odtpruntest"):
     cmd = ["docker", "stop", "my_container"]
 
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    process = subprocess.Popen(cmd)
 
-    return "Docker stoped"
+    return "Docker stopped"
 
 st.markdown("# Run components")
 st.markdown("In order to run the component please be sure the component is built on the machine")
@@ -70,7 +70,7 @@ env = st.text_area("Environment file", value=envValue, height=600)
 
 if st.button('Run'):
     out = runDockerComponent(component, volume, env)
-    st.write(out)
+    st.code(out)
 
 if st.button("Stop"):
     out = stopDockerComponent(name="odtpruntest")
