@@ -2,7 +2,7 @@ import streamlit as st
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 
-st.write("Digital Twins")
+st.markdown("# Digital Twins")
 
 def getDTInMongoDB(mongoString):
     # Connect to the MongoDB server. Replace 'localhost' with your server address and 27017 with your port if different.
@@ -22,7 +22,7 @@ def getDTInMongoDB(mongoString):
 
     return documentList
 
-st.markdown("## MongoDB Entries")
+st.markdown("Here it will appear a list of all the digital twins history. Including parameters and other relevant data.")
 mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
 mdbbutton = st.button("Get Digital Twins entries in MongoDB")
 

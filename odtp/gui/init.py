@@ -17,6 +17,7 @@ st.set_page_config(
 )
 
 st.write("# Init section")
+st.write("This section is for rebooting all the services that make the ODTP")
 
 col1, col2 = st.columns(2)
 
