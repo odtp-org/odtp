@@ -35,7 +35,7 @@ def runDockerComponent(component, volume, env, name="odtpruntest"):
     return f"Running {cmd}"
 
 def stopDockerComponent(name="odtpruntest"):
-    cmd = ["docker", "stop", "my_container"]
+    cmd = ["docker", "stop", name]
 
     process = subprocess.Popen(cmd)
 
