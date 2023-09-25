@@ -14,6 +14,11 @@ name = "Digital Twins"
 icon = "🌍"
 
 [[pages]]
+path = "runs.py"
+name = "Run component"
+icon = "🌍"
+
+[[pages]]
 path = "components.py"
 name = "Components"
 icon = "🌍"

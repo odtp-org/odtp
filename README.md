@@ -1,7 +1,22 @@
 # odtp
 
-## How to run the odtp
+## How to install the ODTP in Conda
 
+```
+conda create --name odtp-main python=3.10
+conda activate odpt-main
+pip install streamlit streamlit-aggrid 
+pip install st_pages barfi boto3 pymongo
+pip install pygwalker streamlit-card
+```
+
+For running the GUI
+```
+cd odtp/gui
+streamlit run app.py --server.port 8502
+```
+
+## How to run the odtp in docker
 ```
 docker build -t caviri/odtp .
 ```
