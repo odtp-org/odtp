@@ -19,7 +19,7 @@ def runDockerComponent(component, volume, env, name="odtpruntest"):
 
     # Run 
     if component == "Eqasim":
-        dockerimage = "caviri/odtp-eqasim:environmentparameters_test"
+        dockerimage = "caviri/odtp-eqasim:pipeline_parameter"
     elif component == "Matsim":
         dockerimage = "TODO"
     else:
@@ -60,6 +60,7 @@ st.write("Please define here the file containing the environment variables file.
 st.write("For instance in Eqasim, check the github documentation in README.md")
 
 envValue = """SCENARIO=IDF
+PIPELINE=Synthesis
 MONGODB_CLIENT=mongodb://.....
 S3_ACCESS_KEY=Q0ISQ....
 S3_SERVER=https://..
