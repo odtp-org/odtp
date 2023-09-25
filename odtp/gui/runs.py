@@ -66,7 +66,7 @@ hts=entd
 """
 
 env = st.text_area("Environment file", value=envValue, height=600)
-
+print(env)
 
 if st.button('Run'):
     out = runDockerComponent(component, volume, env)
