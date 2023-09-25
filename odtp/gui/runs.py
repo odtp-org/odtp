@@ -23,7 +23,8 @@ def runDockerComponent(component, volume, env, name="odtpruntest"):
     else:
         return "Component not found"
 
-    cmd = ["nohup","docker", "run", "-it", "--rm", "-v", f"{volume}:/odtp/odtp-volume", "--env-file", ".env", "--name", name, dockerimage, "&"] 
+    # We can use detach from docker too
+    cmd = ["nohup","docker", "run", "-it", "--rm", "-v", f"{volume}:/odtp/odtp-volume", "--env-file", ".env", "--name", name, dockerimage, ">" ,"output.log", "2>&1", "&"] 
     print(cmd)
 
     process = subprocess.Popen(cmd)
@@ -70,7 +71,6 @@ hts=entd
 """
 
 env = st.text_area("Environment file", value=envValue, height=600)
-print(env)
 
 if st.button('Run'):
     out = runDockerComponent(component, volume, env)
