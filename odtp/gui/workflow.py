@@ -90,6 +90,7 @@ dataloader.add_option(name='select-option', type='select', items=['IDF', 'CH'], 
 dataloader.add_option(name='display-input', type='display', value='Introduce data folder.')
 dataloader.add_option(name='file-path-input', type='input')
 
+dataloader.add_output(name='Scenario')
 dataloader.add_output(name='Mounted Volume')
 
 def eqasim_dataloader(self):
