@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
     menu_items={
         'Get Help': 'https://github.com/odtp-org',
-        'Report a bug': "carlos.vivarrios@epfl.ch",
+        'Report a bug': "https://github.com/odtp-org",
         'About': "# ODTP"
     }
 )
