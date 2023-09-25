@@ -12,9 +12,9 @@ def runDockerComponent(component, volume, env, name="odtpruntest"):
     write_list_to_file(".env", env)
 
     # Run 
-    if component == "eqasim":
+    if component == "Eqasim":
         dockerimage = "caviri/odtp-eqasim:environmentparameters_test"
-    elif component == "matsim":
+    elif component == "Matsim":
         dockerimage = "TODO"
     else:
         return "Component not found"
