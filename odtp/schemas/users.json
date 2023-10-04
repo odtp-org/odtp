@@ -1,0 +1,16 @@
+{
+    "displayName": {
+        "type": "string",
+        "minlength": 1,
+        "required": "True"},
+    "email": {
+        "type": "string",
+        "minlength": 1, 
+        "required": "True"
+    },
+    "github": {
+        "type": "string",
+        "minlength": 1, 
+        "required": "False"
+    }
+}

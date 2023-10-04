@@ -1,0 +1,8 @@
+streamlit
+streamlit-aggrid
+st_pages
+barfi
+boto3
+pymongo
+pygwalker
+streamlit-card
