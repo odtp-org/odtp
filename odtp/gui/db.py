@@ -186,6 +186,18 @@ class MongoManager:
             digital_twins.append(doc)
             
         return digital_twins
+    
+    def print_logs_by_indices(self, twin_index, execution_index, step_index):
+        # Skip to the digital twin specified by the given index and retrieve it
+        digital_twin = self.db.digitalTwins.find().sort("_id", 1).skip(twin_index).limit(1).next()
+
+        try:
+            # Navigate to the logs using the given execution index
+            logs = digital_twin["executions"][execution_index]["steps"][step_index]["logs"]
+        except (IndexError, KeyError):
+            print(f"No logs found for execution {execution_index} of digital twin {twin_index}.")
+
+        return logs
 
     ######################################
 

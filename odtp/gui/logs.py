@@ -2,7 +2,15 @@ import streamlit as st
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 
+from db import MongoManager
+
 st.set_page_config(layout="wide")
+
+if 'logs' not in st.session_state:
+    st.session_state['logs'] = {}
+
+if 'textlogs' not in st.session_state:
+    st.session_state['textlogs'] = ""
 
 def loadMongoLogs(mongoString, collection):
     # Connect to the MongoDB server. Replace 'localhost' with your server address and 27017 with your port if different.
@@ -31,15 +39,21 @@ with col1:
     st.write("Mongo String")
     mongoString = st.text_input("MongoString", value="mongodb://USER:PASS@10.95.48.38:27017/")
     collection = st.text_input("Collection", value="logs")
-    index = st.number_input("Document", value=0)
+    digital_twin_index = st.number_input("Digital Twin Index", value=0)
+    execution_index = st.number_input("Execution Index", value=0)
+    step_index = st.number_input("Step Index", value=0)
     mongoOK = st.button("Load Mongo Logs")
 
     if mongoOK:
-        docs = loadMongoLogs(mongoString, collection)
-        st.json(docs)
+        mongo_manager = MongoManager(mongoString, "odtp")
+        logs = mongo_manager.print_logs_by_indices(digital_twin_index, execution_index, step_index)
+        print(logs)
+        
+        st.session_state['logs'] = logs
+        st.session_state['textlogs'] = "".join([log["logstring"] + " \n" for log in logs])
+    
+    st.json(st.session_state['logs'])
 
 with col2: 
-    ## Add selector
-    if mongoOK:
-        textlines = " ".join([log["message"] + " \n" for log in docs[index]["data"]])
-        st.code(textlines)
+    
+    st.code(st.session_state['textlogs'])
