@@ -78,54 +78,80 @@ TOBEDONE
 
 This is the schema for odtp database. 
 
-v.0.1.0 Schema
+v.0.2.0 Schema
 
 ```python
 # Users Collection
 users = {
-    "_id": ObjectId(),   # MongoDB will automatically create an _id
+    "_id": ObjectId(),
     "displayName": "John Doe",
     "email": "john@example.com",
-    "github": "johnDoeRepo"
+    "github": "johnDoeRepo",
+    "created_at": datetime.utcnow(),
+    "updated_at": datetime.utcnow(),
 }
 
 # Components Collection
 components = {
     "_id": ObjectId(),
     "author": ObjectId(),  # Reference to Users collection
-    "componentName": "ComponentX"
+    "componentName": "ComponentX",
+    "status": "active",
+    "title": "Title for ComponentX",
+    "description": "Description for ComponentX",
+    "tags": ["tag1", "tag2"],
+    "created_at": datetime.utcnow(),
+    "updated_at": datetime.utcnow(),
 }
 
 # Versions Collection
 versions = {
     "_id": ObjectId(),
-    "componentId": ObjectId(),  # Reference to Components collection
+    "componentId": ObjectId(),
     "version": "v1.0",
+    "component_version": "1.0.0",
     "repoLink": "https://github.com/...",
     "dockerHubLink": "https://hub.docker.com/...",
-    "parameters": {...}   # Parameters JSON object
+    "parameters": {},
+    "title": "Title for Version v1.0",
+    "description": "Description for Version v1.0",
+    "tags": ["tag1", "tag2"],
+    "created_at": datetime.utcnow(),
+    "updated_at": datetime.utcnow(),
 }
 
 # DigitalTwins Collection
 digitalTwins = {
     "_id": ObjectId(),
-    "userRef": ObjectId(),  # Reference to Users collection
-    "workflowSchema": {
-        "version": "v2.0",
-        "components": [ObjectId()],  # Array of ObjectIds referring to Components
-        "barfiSchema": {...},  # Barfi Schema JSON object
-        "public": True
-    },
+    "userRef": ObjectId(),
+    "status": "active",
+    "public": True,
+    "created_at": datetime.utcnow(),
+    "updated_at": datetime.utcnow(),
     "executions": [{
-        "timestamp": "2023-10-03T10:15:30Z",
+        "executionId": ObjectId(),
+        "title": "Title for Execution",
+        "description": "Description for Execution",
+        "tags": ["tag1", "tag2"],
+        "workflowSchema": {
+            "workflowExecutor": "barfi",
+            "worflowExecutorVersion": "v2.0",
+            "components": [ObjectId()],
+            "WorkflowExecutorSchema": {}
+        },
+        "start_timestamp": datetime.utcnow(),
+        "end_timestamp": datetime.utcnow(),
         "steps": [{
-            "timestamp": "2023-10-03T10:16:00Z",
+            "stepId": ObjectId(),
+            "timestamp": datetime.utcnow(),
+            "start_timestamp": datetime.utcnow(),
+            "end_timestamp": datetime.utcnow(),
             "logs": "...",
-            "inputs": {...},
-            "outputs": {...},
-            "component": ObjectId(),  # Reference to Components collection
+            "inputs": {},
+            "outputs": {},
+            "component": ObjectId(),
             "component_version": "v1.0",
-            "parameters": {...}, 
+            "parameters": {}, 
             "snapshot": "..."
         }]
     }]
@@ -134,8 +160,14 @@ digitalTwins = {
 # Results Collection
 results = {
     "_id": ObjectId(),
-    "executionRef": ObjectId(),  # Reference to DigitalTwins.execution
-    "outputs": {...}
+    "executionRef": ObjectId(),
+    "digitalTwinRef": ObjectId(),  # Direct reference to the DigitalTwin
+    "outputs": {},
+    "title": "Title for Result",
+    "description": "Description for Result",
+    "tags": ["tag1", "tag2"],
+    "created_at": datetime.utcnow(),
+    "updated_at": datetime.utcnow(),
 }
 ```
 
