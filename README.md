@@ -149,7 +149,7 @@ users = {
 # Components Collection
 components = {
     "_id": ObjectId(),
-    "author": ObjectId(),  # Reference to Users collection
+    "author": "Test",
     "componentName": "ComponentX",
     "status": "active",
     "title": "Title for ComponentX",
@@ -183,41 +183,78 @@ digitalTwins = {
     "public": True,
     "created_at": datetime.utcnow(),
     "updated_at": datetime.utcnow(),
-    "executions": [{
-        "executionId": ObjectId(),
-        "title": "Title for Execution",
-        "description": "Description for Execution",
-        "tags": ["tag1", "tag2"],
-        "workflowSchema": {
-            "workflowExecutor": "barfi",
-            "worflowExecutorVersion": "v2.0",
-            "components": [ObjectId()],
-            "WorkflowExecutorSchema": {}
-        },
-        "start_timestamp": datetime.utcnow(),
-        "end_timestamp": datetime.utcnow(),
-        "steps": [{
-            "stepId": ObjectId(),
-            "timestamp": datetime.utcnow(),
-            "start_timestamp": datetime.utcnow(),
-            "end_timestamp": datetime.utcnow(),
-            "logs": "...",
-            "inputs": {},
-            "outputs": {},
-            "component": ObjectId(),
-            "component_version": "v1.0",
-            "parameters": {}, 
-            "snapshot": "..."
-        }]
-    }]
+    "executions": [ObjectId()]  # Array of ObjectIds referencing Executions collection
 }
+
+# Executions
+executions = {
+    "_id": ObjectId(),
+    "digitalTwinRef": ObjectId(),  # Reference to DigitalTwins collection
+    "title": "Title for Execution",
+    "description": "Description for Execution",
+    "tags": ["tag1", "tag2"],
+    "workflowSchema": {
+        "workflowExecutor": "barfi",
+        "worflowExecutorVersion": "v2.0",
+        "components": [{"component": ObjectId(),
+                        "version": ObjectId() }],  # Array of ObjectIds for components
+        "WorkflowExecutorSchema": {}
+    },
+    "start_timestamp": datetime.utcnow(),
+    "end_timestamp": datetime.utcnow(),
+    "steps": [ObjectId()]  # Array of ObjectIds referencing Steps collection. Change in a future by DAG graph.
+}
+
+# Steps
+steps = {
+    "_id": ObjectId(),
+    "executionRef": ObjectId(),  # Reference to Executions collection
+    "timestamp": datetime.utcnow(),
+    "start_timestamp": datetime.utcnow(),
+    "end_timestamp": datetime.utcnow(),
+    "type": "interactive" or "ephemeral",
+    "logs": [{
+        "timestamp": datetime.utcnow(),
+        "type": "DEBUG"
+        "logstring": "Test log"
+    }],
+    "inputs": {},
+    "outputs": {},
+    "component": ObjectId(),
+    "component_version": ObjectId(),
+    "parameters": {},
+    "output": ObjectId()
+}
+
+output = {
+    "_id": ObjectId(),
+    "stepRef": ObjectId(),  # Reference to the Step this snapshot is associated with
+    "output_type": "snapshot" or "output"
+    "s3_bucket": "bucket_name",  # Name of the S3 bucket where the snapshot is stored
+    "s3_key": "path/to/snapshot",  # The key (path) in the S3 bucket to the snapshot
+    "file_name": "snapshot_file_name",  # The name of the file in the snapshot
+    "file_size": 123456,  # Size of the file in bytes
+    "file_type": "image/jpeg",  # MIME type or file type
+    "created_at": datetime.utcnow(),  # Timestamp when the snapshot was created
+    "updated_at": datetime.utcnow(),  # Timestamp when the snapshot was last updated
+    "metadata": {  # Additional metadata associated with the snapshot
+        "description": "Description of the snapshot",
+        "tags": ["tag1", "tag2"],
+        "other_info": "Other relevant information"
+    },
+    "access_control": {  # Information about who can access this snapshot
+        "public": False,  # Indicates if the snapshot is public or private
+        "authorized_users": [ObjectId()],  # Array of User ObjectIds who have access
+    }
+}
+
 
 # Results Collection
 results = {
     "_id": ObjectId(),
     "executionRef": ObjectId(),
     "digitalTwinRef": ObjectId(),  # Direct reference to the DigitalTwin
-    "outputs": {},
+    "output": [ObjectId()],
     "title": "Title for Result",
     "description": "Description for Result",
     "tags": ["tag1", "tag2"],
