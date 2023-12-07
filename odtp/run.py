@@ -1,3 +1,6 @@
+import logging
+import os
+import subprocess
 # Send to the docker as env
 # Step id for logging
 # Output id for uploading the data
@@ -11,6 +14,83 @@
 # 
 
 
+
+class DockerManager:
+    def __init__(self, repo_url):
+        self.repo_url = repo_url
+
+    def download_repo(self, destination):
+        """
+        Download a GitHub repository to the specified destination.
+
+        Args:
+            destination (str): The destination directory to download the repository.
+        """
+        logging.info(f"Downloading repository from {self.repo_url} to {destination}")
+        # TODO: Implement the download logic using git clone or any other method
+
+    def build_image(self, dockerfile_path, image_name):
+        """
+        Build a Docker image from the specified Dockerfile.
+
+        Args:
+            dockerfile_path (str): The path to the Dockerfile.
+            image_name (str): The name of the Docker image to build.
+        """
+        logging.info(f"Building Docker image {image_name} from {dockerfile_path}")
+        # TODO: Implement the build logic using docker build command
+
+    def create_volume(self, volume_name):
+        """
+        Create a Docker volume with the specified name.
+
+        Args:
+            volume_name (str): The name of the Docker volume to create.
+        """
+        logging.info(f"Creating Docker volume {volume_name}")
+        # TODO: Implement the volume creation logic using docker volume create command
+
+    def run_component(self, component, volume, env, name="odtpruntest"):
+        """
+        Run a Docker component with the specified parameters.
+
+        Args:
+            component (str): The name of the Docker component to run.
+            volume (str): The name of the Docker volume to mount.
+            env (dict): The environment variables to pass to the Docker component.
+            name (str, optional): The name of the Docker container. Defaults to "odtpruntest".
+
+        Returns:
+            str: The command used to run the Docker component.
+        """
+        logging.info(f"Running Docker component {component} with volume {volume} and name {name}")
+        # TODO: Implement the component running logic using subprocess.Popen
+
+    def stop_component(self, name="odtpruntest"):
+        """
+        Stop a running Docker component.
+
+        Args:
+            name (str, optional): The name of the Docker container. Defaults to "odtpruntest".
+
+        Returns:
+            str: A message indicating the Docker component has been stopped.
+        """
+        logging.info(f"Stopping Docker component {name}")
+        # TODO: Implement the component stopping logic using subprocess.Popen
+
+    def delete_component(self, name="odtpruntest"):
+        """
+        Delete a Docker component.
+
+        Args:
+            name (str, optional): The name of the Docker container. Defaults to "odtpruntest".
+
+        Returns:
+            str: A message indicating the Docker component has been deleted.
+        """
+        logging.info(f"Deleting Docker component {name}")
+        # TODO: Implement the component deletion logic using docker rm command
 
 
 def runDockerComponent(component, volume, env, name="odtpruntest"):
