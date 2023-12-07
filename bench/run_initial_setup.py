@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..')
 
 from odtp.initial_setup import odtpDatabase
 

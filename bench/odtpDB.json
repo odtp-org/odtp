@@ -1,0 +1,597 @@
+{
+  "steps": [
+    {
+      "_id": "65701dc519b363fe3dea87a3",
+      "timestamp": "2023-12-06 07:07:49.633000",
+      "start_timestamp": "2023-12-06 07:07:49.633000",
+      "end_timestamp": "2023-12-06 07:07:49.633000",
+      "type": "ephemeral",
+      "logs": [
+        {
+          "timestamp": "2023-12-06T08:07:49.691795",
+          "type": "INFO",
+          "logstring": "Emulated log entry 1..."
+        },
+        {
+          "timestamp": "2023-12-06T08:07:49.701962",
+          "type": "INFO",
+          "logstring": "Emulated log entry 2..."
+        },
+        {
+          "timestamp": "2023-12-06T08:07:49.713800",
+          "type": "INFO",
+          "logstring": "Emulated log entry 3..."
+        }
+      ],
+      "inputs": {},
+      "outputs": {},
+      "component": "65701dc519b363fe3dea879d",
+      "component_version": "65701dc519b363fe3dea87a0",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "snapshot": "",
+      "executionRef": "65701dc519b363fe3dea87a2"
+    },
+    {
+      "_id": "65701dc519b363fe3dea87a5",
+      "timestamp": "2023-12-06 07:07:49.731000",
+      "start_timestamp": "2023-12-06 07:07:49.731000",
+      "end_timestamp": "2023-12-06 07:07:49.731000",
+      "type": "ephemeral",
+      "logs": [
+        {
+          "timestamp": "2023-12-06T08:07:49.778219",
+          "type": "INFO",
+          "logstring": "Emulated log entry 1..."
+        },
+        {
+          "timestamp": "2023-12-06T08:07:49.791384",
+          "type": "INFO",
+          "logstring": "Emulated log entry 2..."
+        },
+        {
+          "timestamp": "2023-12-06T08:07:49.804368",
+          "type": "INFO",
+          "logstring": "Emulated log entry 3..."
+        }
+      ],
+      "inputs": {},
+      "outputs": {},
+      "component": "65701dc519b363fe3dea879d",
+      "component_version": "65701dc519b363fe3dea87a0",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "snapshot": "",
+      "executionRef": "65701dc519b363fe3dea87a2"
+    },
+    {
+      "_id": "65701dc519b363fe3dea87a9",
+      "timestamp": "2023-12-06 07:07:49.867000",
+      "start_timestamp": "2023-12-06 07:07:49.867000",
+      "end_timestamp": "2023-12-06 07:07:49.867000",
+      "type": "ephemeral",
+      "logs": [
+        {
+          "timestamp": "2023-12-06T08:07:49.918328",
+          "type": "INFO",
+          "logstring": "Emulated log entry 1..."
+        },
+        {
+          "timestamp": "2023-12-06T08:07:49.930757",
+          "type": "INFO",
+          "logstring": "Emulated log entry 2..."
+        },
+        {
+          "timestamp": "2023-12-06T08:07:49.942582",
+          "type": "INFO",
+          "logstring": "Emulated log entry 3..."
+        }
+      ],
+      "inputs": {},
+      "outputs": {},
+      "component": "65701dc519b363fe3dea879d",
+      "component_version": "65701dc519b363fe3dea87a0",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "snapshot": "",
+      "executionRef": "65701dc519b363fe3dea87a8"
+    },
+    {
+      "_id": "65701dc519b363fe3dea87ab",
+      "timestamp": "2023-12-06 07:07:49.954000",
+      "start_timestamp": "2023-12-06 07:07:49.954000",
+      "end_timestamp": "2023-12-06 07:07:49.954000",
+      "type": "ephemeral",
+      "logs": [
+        {
+          "timestamp": "2023-12-06T08:07:50.042969",
+          "type": "INFO",
+          "logstring": "Emulated log entry 1..."
+        },
+        {
+          "timestamp": "2023-12-06T08:07:50.054026",
+          "type": "INFO",
+          "logstring": "Emulated log entry 2..."
+        },
+        {
+          "timestamp": "2023-12-06T08:07:50.066008",
+          "type": "INFO",
+          "logstring": "Emulated log entry 3..."
+        }
+      ],
+      "inputs": {},
+      "outputs": {},
+      "component": "65701dc519b363fe3dea879d",
+      "component_version": "65701dc519b363fe3dea87a0",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "snapshot": "",
+      "executionRef": "65701dc519b363fe3dea87a8"
+    }
+  ],
+  "executions": [
+    {
+      "_id": "65701dc519b363fe3dea87a2",
+      "title": "Title for Execution 1",
+      "description": "Description for Execution",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "workflowSchema": {
+        "workflowExecutor": "barfi",
+        "worflowExecutorVersion": "v2.0",
+        "components": [
+          {
+            "component": "65701dc519b363fe3dea879d",
+            "version": "65701dc519b363fe3dea87a0"
+          }
+        ],
+        "WorkflowExecutorSchema": {}
+      },
+      "start_timestamp": "2023-12-06 07:07:49.598000",
+      "end_timestamp": "2023-12-06 07:07:49.598000",
+      "steps": [
+        "65701dc519b363fe3dea87a3",
+        "65701dc519b363fe3dea87a5"
+      ],
+      "digitalTwinRef": "65701dc519b363fe3dea87a1"
+    },
+    {
+      "_id": "65701dc519b363fe3dea87a8",
+      "title": "Title for Execution 2",
+      "description": "Description for Execution",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "workflowSchema": {
+        "workflowExecutor": "barfi",
+        "worflowExecutorVersion": "v2.0",
+        "components": [
+          {
+            "component": "65701dc519b363fe3dea879d",
+            "version": "65701dc519b363fe3dea87a0"
+          }
+        ],
+        "WorkflowExecutorSchema": {}
+      },
+      "start_timestamp": "2023-12-06 07:07:49.829000",
+      "end_timestamp": "2023-12-06 07:07:49.829000",
+      "steps": [
+        "65701dc519b363fe3dea87a9",
+        "65701dc519b363fe3dea87ab"
+      ],
+      "digitalTwinRef": "65701dc519b363fe3dea87a1"
+    }
+  ],
+  "users": [
+    {
+      "_id": "65701dc519b363fe3dea8792",
+      "displayName": "John Doe",
+      "email": "john@example.com",
+      "github": "johnDoeRepo",
+      "created_at": "2023-12-06 07:07:49.389000",
+      "updated_at": "2023-12-06 07:07:49.389000"
+    },
+    {
+      "_id": "65701dc519b363fe3dea8793",
+      "displayName": "Alice Smith",
+      "email": "alice@example.com",
+      "github": "aliceSmithRepo",
+      "created_at": "2023-12-06 07:07:49.401000",
+      "updated_at": "2023-12-06 07:07:49.401000"
+    },
+    {
+      "_id": "65701dc519b363fe3dea8794",
+      "displayName": "Bob Johnson",
+      "email": "bob@example.com",
+      "github": "bobJohnsonRepo",
+      "created_at": "2023-12-06 07:07:49.413000",
+      "updated_at": "2023-12-06 07:07:49.413000",
+      "digitalTwins": [
+        "65701dc519b363fe3dea87a1"
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "_id": "65701dc519b363fe3dea87a4",
+      "s3_bucket": "bucket_name",
+      "s3_key": "path/to/snapshot",
+      "output_type": "output",
+      "file_name": "snapshot_file_name",
+      "file_size": 123456,
+      "file_type": "image/jpeg",
+      "created_at": "2023-12-06 07:07:49.662000",
+      "updated_at": "2023-12-06 07:07:49.662000",
+      "metadata": {
+        "description": "Description of the snapshot",
+        "tags": [
+          "tag1",
+          "tag2"
+        ],
+        "other_info": "Other relevant information"
+      },
+      "access_control": {
+        "public": false,
+        "authorized_users": "65701dc519b363fe3dea8792"
+      },
+      "stepRef": "65701dc519b363fe3dea87a3"
+    },
+    {
+      "_id": "65701dc519b363fe3dea87a6",
+      "s3_bucket": "bucket_name",
+      "s3_key": "path/to/snapshot",
+      "output_type": "output",
+      "file_name": "snapshot_file_name",
+      "file_size": 123456,
+      "file_type": "image/jpeg",
+      "created_at": "2023-12-06 07:07:49.754000",
+      "updated_at": "2023-12-06 07:07:49.754000",
+      "metadata": {
+        "description": "Description of the snapshot",
+        "tags": [
+          "tag1",
+          "tag2"
+        ],
+        "other_info": "Other relevant information"
+      },
+      "access_control": {
+        "public": false,
+        "authorized_users": "65701dc519b363fe3dea8792"
+      },
+      "stepRef": "65701dc519b363fe3dea87a5"
+    },
+    {
+      "_id": "65701dc519b363fe3dea87aa",
+      "s3_bucket": "bucket_name",
+      "s3_key": "path/to/snapshot",
+      "output_type": "output",
+      "file_name": "snapshot_file_name",
+      "file_size": 123456,
+      "file_type": "image/jpeg",
+      "created_at": "2023-12-06 07:07:49.891000",
+      "updated_at": "2023-12-06 07:07:49.891000",
+      "metadata": {
+        "description": "Description of the snapshot",
+        "tags": [
+          "tag1",
+          "tag2"
+        ],
+        "other_info": "Other relevant information"
+      },
+      "access_control": {
+        "public": false,
+        "authorized_users": "65701dc519b363fe3dea8792"
+      },
+      "stepRef": "65701dc519b363fe3dea87a9"
+    },
+    {
+      "_id": "65701dc519b363fe3dea87ac",
+      "s3_bucket": "bucket_name",
+      "s3_key": "path/to/snapshot",
+      "output_type": "output",
+      "file_name": "snapshot_file_name",
+      "file_size": 123456,
+      "file_type": "image/jpeg",
+      "created_at": "2023-12-06 07:07:49.980000",
+      "updated_at": "2023-12-06 07:07:49.980000",
+      "metadata": {
+        "description": "Description of the snapshot",
+        "tags": [
+          "tag1",
+          "tag2"
+        ],
+        "other_info": "Other relevant information"
+      },
+      "access_control": {
+        "public": false,
+        "authorized_users": "65701dc519b363fe3dea8792"
+      },
+      "stepRef": "65701dc519b363fe3dea87ab"
+    }
+  ],
+  "components": [
+    {
+      "_id": "65701dc519b363fe3dea8795",
+      "author": "author test",
+      "componentName": "Component_1",
+      "status": "active",
+      "title": "Title for Component_1",
+      "description": "Description for Component_1",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.426000",
+      "updated_at": "2023-12-06 07:07:49.426000"
+    },
+    {
+      "_id": "65701dc519b363fe3dea8799",
+      "author": "author test",
+      "componentName": "Component_2",
+      "status": "active",
+      "title": "Title for Component_2",
+      "description": "Description for Component_2",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.476000",
+      "updated_at": "2023-12-06 07:07:49.476000"
+    },
+    {
+      "_id": "65701dc519b363fe3dea879d",
+      "author": "author test",
+      "componentName": "Component_3",
+      "status": "active",
+      "title": "Title for Component_3",
+      "description": "Description for Component_3",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.525000",
+      "updated_at": "2023-12-06 07:07:49.525000"
+    }
+  ],
+  "versions": [
+    {
+      "_id": "65701dc519b363fe3dea8796",
+      "version": "v1.0",
+      "component_version": "1.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.444000",
+      "updated_at": "2023-12-06 07:07:49.444000",
+      "componentId": "65701dc519b363fe3dea8795"
+    },
+    {
+      "_id": "65701dc519b363fe3dea8797",
+      "version": "v2.0",
+      "component_version": "2.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.455000",
+      "updated_at": "2023-12-06 07:07:49.455000",
+      "componentId": "65701dc519b363fe3dea8795"
+    },
+    {
+      "_id": "65701dc519b363fe3dea8798",
+      "version": "v3.0",
+      "component_version": "3.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.466000",
+      "updated_at": "2023-12-06 07:07:49.466000",
+      "componentId": "65701dc519b363fe3dea8795"
+    },
+    {
+      "_id": "65701dc519b363fe3dea879a",
+      "version": "v1.0",
+      "component_version": "1.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.487000",
+      "updated_at": "2023-12-06 07:07:49.487000",
+      "componentId": "65701dc519b363fe3dea8799"
+    },
+    {
+      "_id": "65701dc519b363fe3dea879b",
+      "version": "v2.0",
+      "component_version": "2.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.499000",
+      "updated_at": "2023-12-06 07:07:49.499000",
+      "componentId": "65701dc519b363fe3dea8799"
+    },
+    {
+      "_id": "65701dc519b363fe3dea879c",
+      "version": "v3.0",
+      "component_version": "3.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.512000",
+      "updated_at": "2023-12-06 07:07:49.512000",
+      "componentId": "65701dc519b363fe3dea8799"
+    },
+    {
+      "_id": "65701dc519b363fe3dea879e",
+      "version": "v1.0",
+      "component_version": "1.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.537000",
+      "updated_at": "2023-12-06 07:07:49.537000",
+      "componentId": "65701dc519b363fe3dea879d"
+    },
+    {
+      "_id": "65701dc519b363fe3dea879f",
+      "version": "v2.0",
+      "component_version": "2.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.550000",
+      "updated_at": "2023-12-06 07:07:49.550000",
+      "componentId": "65701dc519b363fe3dea879d"
+    },
+    {
+      "_id": "65701dc519b363fe3dea87a0",
+      "version": "v3.0",
+      "component_version": "3.0.0",
+      "repoLink": "https://github.com/...",
+      "dockerHubLink": "https://hub.docker.com/...",
+      "parameters": {
+        "a": "a",
+        "b": "b"
+      },
+      "title": "Title for Version v1.0",
+      "description": "Description for Version v1.0",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.562000",
+      "updated_at": "2023-12-06 07:07:49.562000",
+      "componentId": "65701dc519b363fe3dea879d"
+    }
+  ],
+  "digitalTwins": [
+    {
+      "_id": "65701dc519b363fe3dea87a1",
+      "userRef": "65701dc519b363fe3dea8794",
+      "status": "active",
+      "public": true,
+      "created_at": "2023-12-06 07:07:49.574000",
+      "updated_at": "2023-12-06 07:07:49.574000",
+      "executions": [
+        "65701dc519b363fe3dea87a2",
+        "65701dc519b363fe3dea87a8"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "_id": "65701dc519b363fe3dea87a7",
+      "output": [
+        "65701dc519b363fe3dea87a6"
+      ],
+      "title": "Title for Result",
+      "description": "Description for Result",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:49.818000",
+      "updated_at": "2023-12-06 07:07:49.818000",
+      "digitalTwinRef": "65701dc519b363fe3dea87a1",
+      "executionRed": "65701dc519b363fe3dea87a2"
+    },
+    {
+      "_id": "65701dc619b363fe3dea87ad",
+      "output": [
+        "65701dc519b363fe3dea87ac"
+      ],
+      "title": "Title for Result",
+      "description": "Description for Result",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "created_at": "2023-12-06 07:07:50.078000",
+      "updated_at": "2023-12-06 07:07:50.078000",
+      "digitalTwinRef": "65701dc519b363fe3dea87a1",
+      "executionRed": "65701dc519b363fe3dea87a8"
+    }
+  ]
+}
