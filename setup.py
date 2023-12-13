@@ -23,5 +23,10 @@ setup(
         'License :: OSI Approved :: GLP 3 License',
         'Operating System :: OS Independent',
     ],
+    entry_points={
+        'console_scripts': [
+            'odtp=odtp.cli:app',
+        ],
+    },
     python_requires='==3.11.5',
 )

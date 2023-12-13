@@ -10,7 +10,7 @@ from typing import List, Optional
 import click
 import typer
 
-from odtp import __version__
+#from odtp import __version__
 
 app = typer.Typer(add_completion=False)
 db = typer.Typer()
