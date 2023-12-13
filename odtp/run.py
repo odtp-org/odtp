@@ -19,19 +19,15 @@ class DockerManager:
     def __init__(self, repo_url):
         self.repo_url = repo_url
 
+    def download_repo(self, destination):
+        """
+        Download a GitHub repository to the specified destination.
 
-    class DockerManager:
-        # ...
-
-        def download_repo(self, destination):
-            """
-            Download a GitHub repository to the specified destination.
-
-            Args:
-                destination (str): The destination directory to download the repository.
-            """
-            logging.info(f"Downloading repository from {self.repo_url} to {destination}")
-            subprocess.run(["git", "clone", self.repo_url, destination])
+        Args:
+            destination (str): The destination directory to download the repository.
+        """
+        logging.info(f"Downloading repository from {self.repo_url} to {destination}")
+        subprocess.run(["git", "clone", self.repo_url, destination])
 
 
     def build_image(self, dockerfile_path, image_name):

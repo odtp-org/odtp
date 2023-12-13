@@ -59,12 +59,12 @@ class odtpDatabase:
 class s3Database:
     def __init__(self):
         load_dotenv()
-        s3ClientString = os.getenv("ODTP-S3-CLIENT")
+        s3Server = os.getenv("ODTP-S3-SERVER")
         bucketName = os.getenv("ODTP-BUCKET-NAME")
         accessKey = os.getenv("ODTP-ACCESS-KEY")
         secretKey = os.getenv("ODTP-SECRET-KEY")
 
-        storageManager = s3Manager(s3ClientString, bucketName, accessKey, secretKey)
+        storageManager = s3Manager(s3Server, bucketName, accessKey, secretKey)
 
         self.storageManager = storageManager
         

@@ -83,38 +83,18 @@ def delete():
 ### MongoDB Commands
 ###############################################################
 
-@db.command()
-def createSchema(
-                url: str = typer.Option(
-                    ...,
-                    "--mongodb-url",
-                    help="Specify the url to your mongo database including the port"
-                )):
-    
-    # Execute DB initiateDB
-    pass
 
-@db.command()
-def deleteSchema(
-                url: str = typer.Option(
-                    ...,
-                    "--mongodb-url",
-                    help="Specify the url to your mongo database including the port"
-                )):
+# Create, delete, check Schema?
+# @db.command()
+# def createSchema(
+#                 url: str = typer.Option(
+#                     ...,
+#                     "--mongodb-url",
+#                     help="Specify the url to your mongo database including the port"
+#                 )):
     
-    # Execute DB initiateDB
-    pass
-
-@db.command()
-def checkSchema(
-                url: str = typer.Option(
-                    ...,
-                    "--mongodb-url",
-                    help="Specify the url to your mongo database including the port"
-                )):
-    
-    # Execute DB initiateDB
-    pass
+#     # Execute DB initiateDB
+#     pass
 
 # S3
 ###############################################################
@@ -130,6 +110,10 @@ def checkSchema(
 ###############################################################
 
 #### TODO: Run Component
+@run.command()
+def component():
+    pass
+
 
 #### TODO: Stop Component
 

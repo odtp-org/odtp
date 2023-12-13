@@ -11,8 +11,8 @@ import boto3
 import logging
 
 class s3Manager:
-    def __init__(self, s3ClientString, bucketName, accessKey, secretKey):
-        self.s3ClientString = s3ClientString
+    def __init__(self, s3Server, bucketName, accessKey, secretKey):
+        self.s3Server = s3Server
         self.bucketName = bucketName
         self.accessKey = accessKey
         self.secretKey = secretKey
@@ -23,7 +23,7 @@ class s3Manager:
         
     # Method to connect to s3 server
     def connect(self):
-        s3 = boto3.client('s3', endpoint_url=self.s3ClientString,
+        s3 = boto3.client('s3', endpoint_url=self.s3Server,
                     aws_access_key_id=self.accessKey, 
                     aws_secret_access_key=self.secretKey)
         
