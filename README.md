@@ -10,6 +10,18 @@ This tools allows you to:
 - Restart and test different schemas for MongoDB / S3.
 - Check outputs/snapshots and download results. 
 
+
+## How to use it?
+
+1. Download the repository. 
+2. Run `poetry install`
+3. Dashboard: `odtp dashboard run --port 8501`
+4. 
+
+```
+poetry install
+```
+
 ## Concept
 
 The idea of odtp is to be installed as an instance in small-medium computing platform (such a servers, workstations, laptops, etc).  

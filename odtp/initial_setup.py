@@ -2,6 +2,8 @@
 The goal of this script is to generate and initial mockup data for the instances.
 """
 from .db import MongoManager
+from .storage import s3Manager
+
 import logging
 import os
 from dotenv import load_dotenv
@@ -11,7 +13,7 @@ class odtpDatabase:
     def __init__(self):
         load_dotenv()
 
-        url = os.getenv("MONGOURL")
+        url = os.getenv("ODTP-MONGO-URL")
         db_name = "odtp"
         dbManager = MongoManager(url, db_name)
 
@@ -49,6 +51,39 @@ class odtpDatabase:
 
         logging.info("DB deleted and client closed")
 
+    def close(self):
+        self.dbManager.close()
+
+##################################################################################
+
+class s3Database:
+    def __init__(self):
+        load_dotenv()
+        s3ClientString = os.getenv("ODTP-S3-CLIENT")
+        bucketName = os.getenv("ODTP-BUCKET-NAME")
+        accessKey = os.getenv("ODTP-ACCESS-KEY")
+        secretKey = os.getenv("ODTP-SECRET-KEY")
+
+        storageManager = s3Manager(s3ClientString, bucketName, accessKey, secretKey)
+
+        self.storageManager = storageManager
+        
+        logging.info("Connected to: %s", storageManager)
+
+    def create_folders(self, structure):
+        self.storageManager.createFolderStructure(structure)
+
+        logging.info("Folder structure generated")
+
+    def close(self):
+        self.storageManager.close()
+
+
+    def deleteAll(self):
+        self.storageManager.deleteAll()
+        self.storageManager.close()
+
+        logging.info("S3 deleted and client closed")
 
 
 ##################################################################################

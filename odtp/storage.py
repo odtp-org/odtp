@@ -8,22 +8,22 @@
 ####################################################
 
 import boto3
-
-import os
 import logging
 
 class s3Manager:
-    def __init__(self):
-        self.s3ClientString = os.env["s3ClientString"]
-        self.bucketName = os.env["bucketName"]
-        self.accessKey = os.env["accessKey"]
-        self.secretKey = os.env["secretKey"]
+    def __init__(self, s3ClientString, bucketName, accessKey, secretKey):
+        self.s3ClientString = s3ClientString
+        self.bucketName = bucketName
+        self.accessKey = accessKey
+        self.secretKey = secretKey
+
+        self.connect()
 
         # Add logging Info
         
     # Method to connect to s3 server
     def connect(self):
-        s3 = boto3.resource('s3', endpoint_url=self.s3ClientString,
+        s3 = boto3.client('s3', endpoint_url=self.s3ClientString,
                     aws_access_key_id=self.accessKey, 
                     aws_secret_access_key=self.secretKey)
         
@@ -111,7 +111,7 @@ class s3Manager:
         return folders
 
     # Method to delete all objects in s3
-    def deleteAllObjects(self):
+    def deleteAll(self):
         
         bucket = self.s3.Bucket(self.bucketName)
         
@@ -134,3 +134,7 @@ class s3Manager:
         """
         self.s3.delete_object(Bucket=self.bucketName, Key=s3_path)
         logging.info(f"File '{s3_path}' deleted from S3 bucket")
+
+    def close(self):
+        del self.s3
+        logging.info("S3 Session deleted")
