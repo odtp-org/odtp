@@ -14,7 +14,8 @@ This tools allows you to:
 ## How to use it?
 
 1. Download the repository. 
-2. Run `poetry install`
+2. Run `poetry install .`
+3. Run `odtp --help`
 
 ### How to run a single component?
 
@@ -51,7 +52,8 @@ odtp component delete-image --image_name image_test
 ```
 
 ### Dashboard
-3. Dashboard: `odtp dashboard run --port 8501`
+
+The dashboard functionality is limited right now and still require an update to the version v0.2.0. However it can be deployed by going to the repository folder and running: `odtp dashboard run --port 8501`
 
 
 
