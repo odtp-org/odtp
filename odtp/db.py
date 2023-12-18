@@ -1,8 +1,9 @@
 from pymongo import MongoClient
-from bson import ObjectId
+from bson import ObjectId, json_util
 import json
 import logging
 import datetime
+
 
 #################################################################################
 # Testing Class MongoManager with v.0.2.0 Schema version of ID.
@@ -175,17 +176,29 @@ class MongoManager:
             
         return digital_twins
     
-    def print_logs_by_indices(self, twin_index, execution_index, step_index):
-        # Skip to the digital twin specified by the given index and retrieve it
-        digital_twin = self.db.digitalTwins.find().sort("_id", 1).skip(twin_index).limit(1).next()
+    # def print_logs_by_indices(self, twin_index, execution_index, step_index):
+    #     # Skip to the digital twin specified by the given index and retrieve it
+    #     digital_twin = self.db.digitalTwins.find().sort("_id", 1).skip(twin_index).limit(1).next()
 
+    #     try:
+    #         # Navigate to the logs using the given execution index
+    #         logs = digital_twin["executions"][execution_index]["steps"][step_index]["logs"]
+    #     except (IndexError, KeyError):
+    #         print(f"No logs found for execution {execution_index} of digital twin {twin_index}.")
+
+    #     return logs
+    
+    def get_document_by_id(self, execution_id, collection):
+        # Skip to the digital twin specified by the given index and retrieve it
+        document = self.db[collection].find_one({'_id': ObjectId(execution_id)})
+        print(document)
         try:
             # Navigate to the logs using the given execution index
-            logs = digital_twin["executions"][execution_index]["steps"][step_index]["logs"]
+            json_output = json.dumps(document, indent=4, default=json_util.default)
         except (IndexError, KeyError):
-            print(f"No logs found for execution {execution_index} of digital twin {twin_index}.")
+            print(f"No execution found for execution {execution_id}.")
 
-        return logs
+        return json_output
 
     ######################################
     # Closing & Deleting

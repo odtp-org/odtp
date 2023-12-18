@@ -15,12 +15,45 @@ This tools allows you to:
 
 1. Download the repository. 
 2. Run `poetry install`
-3. Dashboard: `odtp dashboard run --port 8501`
-4. 
+
+### How to run a single component?
+
+In this example we are going to run ()[ODTP component example]. First, we will prepare the component which will automatically download the repostory, build the image and prepare all the folders needed for the input / output data. 
+
+First let's create a project folder called `digital_twin_project`. In this folder is where all the folders will appear. 
 
 ```
-poetry install
+mkdir digital_twin_project
 ```
+ 
+ Then we can prepare the project by running the following. This will download the repo and build the image. 
+
+ ```
+ odtp component prepare --folder /Users/carlosvivarrios/pro/odtp/digital_twin_project --image_name image_test --repository https://github.com/odtp-org/odtp-component-example
+ ```
+
+ Now we need to run the component: 
+
+ ```
+ odtp component run --folder /Users/carlosvivarrios/pro/odtp/digital_twin_project --image_name image_test --repository https://github.com/odtp-org/odtp-component-example --env_file /Users/carlosvivarrios/pro/odtp/digital_twin_project/.env --instance_name instance_test
+ ```
+
+Then we can delete the instance by running. In docker terminology this will remove the container
+
+```
+odtp component delete-instance --instance_name instance_test
+```
+
+And finally if we want to delete the image we can run:
+
+```
+odtp component delete-image --image_name image_test 
+```
+
+### Dashboard
+3. Dashboard: `odtp dashboard run --port 8501`
+
+
 
 ## Concept
 
@@ -104,30 +137,12 @@ Finally the ODTP will be complemented with a components zoo that will include ex
 - Services: One service or micro-service, in a micro-services architecture refers to one logical unit that performs one specific task in an independent manner. In ODTP we use different servers to support core modules, such as MongoDB for the database, Minion for the storage, or GraphDB for the knowledge graph storing. But also, from a technical standpoint every component is turned into a micro-service when running. I think this is the part that’s bringing more confusion. 
 
 ## How to install ODTP
-### How to install ODTP in Conda
 
-```
-conda create --name odtp-main python=3.10
-conda activate odpt-main
-pip install streamlit streamlit-aggrid 
-pip install st_pages barfi boto3 pymongo
-pip install pygwalker streamlit-card
-```
+In order to install ODTP v0.2.0 we recommend to use [https://python-poetry.org/](https://python-poetry.org/). 
 
-For running the GUI
-```
-cd odtp/gui
-streamlit run app.py --server.port 8502
-```
+After you installed it, go to the repository folder and run `poetry install .`
 
-### How to run the odtp in docker
-```
-docker build -t caviri/odtp .
-```
-
-```
-docker run -it --rm -p 8501:8501 caviri/odtp
-```
+After that you should be able to run commands using the CLI: `odtp`
 
 ## Documentation 
 
@@ -136,10 +151,6 @@ docker run -it --rm -p 8501:8501 caviri/odtp
 ```
 docker run --name mongodb-instance -it -v /home/[USER]/mongodb:/data/db -e MONGO_INITDB_ROOT_USERNAME=[USER] -e MONGO_INITDB_ROOT_PASSWORD=[PASS] -e MONGO_INITDB_DATABASE=odtp -p 27017:27017 mongo:latest
 ```
-
-### How to request an EPFL S3 Instance
-
-TOBEDONE
 
 ### MongoDB Schema
 
@@ -227,7 +238,7 @@ steps = {
     "type": "interactive" or "ephemeral",
     "logs": [{
         "timestamp": datetime.utcnow(),
-        "type": "DEBUG"
+        "type": "DEBUG",
         "logstring": "Test log"
     }],
     "inputs": {},
@@ -240,22 +251,22 @@ steps = {
 
 output = {
     "_id": ObjectId(),
-    "stepRef": ObjectId(),  # Reference to the Step this snapshot is associated with
-    "output_type": "snapshot" or "output"
-    "s3_bucket": "bucket_name",  # Name of the S3 bucket where the snapshot is stored
-    "s3_key": "path/to/snapshot",  # The key (path) in the S3 bucket to the snapshot
-    "file_name": "snapshot_file_name",  # The name of the file in the snapshot
+    "stepRef": ObjectId(),  # Reference to the Step this output is associated with
+    "output_type": "snapshot" or "output",
+    "s3_bucket": "bucket_name",  # Name of the S3 bucket where the output is stored
+    "s3_key": "path/to/output",  # The key (path) in the S3 bucket to the output
+    "file_name": "output_file_name",  # The name of the file in the output
     "file_size": 123456,  # Size of the file in bytes
     "file_type": "image/jpeg",  # MIME type or file type
-    "created_at": datetime.utcnow(),  # Timestamp when the snapshot was created
-    "updated_at": datetime.utcnow(),  # Timestamp when the snapshot was last updated
-    "metadata": {  # Additional metadata associated with the snapshot
-        "description": "Description of the snapshot",
+    "created_at": datetime.utcnow(),  # Timestamp when the output was created
+    "updated_at": datetime.utcnow(),  # Timestamp when the output was last updated
+    "metadata": {  # Additional metadata associated with the output
+        "description": "Description of the output",
         "tags": ["tag1", "tag2"],
         "other_info": "Other relevant information"
     },
-    "access_control": {  # Information about who can access this snapshot
-        "public": False,  # Indicates if the snapshot is public or private
+    "access_control": {  # Information about who can access this output
+        "public": False,  # Indicates if the output is public or private
         "authorized_users": [ObjectId()],  # Array of User ObjectIds who have access
     }
 }
@@ -274,7 +285,9 @@ results = {
     "updated_at": datetime.utcnow(),
 }
 ```
+### How to request an EPFL S3 Instance
 
+TO BE DONE
 
 ## Development.
 
