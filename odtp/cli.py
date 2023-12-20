@@ -9,6 +9,7 @@ from typing import List, Optional
 
 import click
 import typer
+import datetime
 
 ## ODTP METHODS
 from .initial_setup import odtpDatabase, s3Database
@@ -17,6 +18,7 @@ from .run import DockerManager
 #from odtp import __version__
 
 app = typer.Typer(add_completion=False)
+new = typer.Typer()
 db = typer.Typer()
 s3 = typer.Typer()
 component = typer.Typer()
@@ -24,6 +26,7 @@ log = typer.Typer()
 setup = typer.Typer()
 dashboard = typer.Typer()
 
+app.add_typer(new, name="new")
 app.add_typer(db, name="db")
 app.add_typer(s3, name="s3")
 app.add_typer(component, name="component")
@@ -46,9 +49,60 @@ def version_callback(value: bool):
     
 
 
-
 typer_cli = typer.main.get_command(app)
 cli.add_command(typer_cli, "cli")
+
+### New Commands
+###############################################################
+
+# New user
+@new.command()
+def user(name: str = typer.Option(
+            ...,
+            "--name",
+            help="Specify the name"
+        ),
+        email: str = typer.Option(
+            ...,
+            "--email",
+            help="Specify the email"
+        ),
+        github: str = typer.Option(
+            ...,
+            "--github",
+            help="Specify the github"
+        )):
+
+    user_data = {
+                "displayName": name,
+                "email": email,
+                "github": github,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+
+    odtpDB = odtpDatabase()
+    user_id = odtpDB.dbManager.add_user(user_data)
+    odtpDB.close()
+    print("User added with ID {}".format(user_id))
+    
+
+# New Digital Twin
+@new.command()
+def digital_twin():
+    pass
+
+# New Execution 
+@new.command()
+def execution():
+    pass
+
+# New Component. This is to add a compatible available component. We need to specify the version.
+@new.command()
+def odtp_component():
+    pass
+
+# Step, Output, Result is always created as a result of an execution
 
 ### Setup Commands
 ###############################################################
@@ -83,7 +137,6 @@ def delete():
 
 ### MongoDB Commands
 ###############################################################
-
 
 # Create, delete, check Schema?
 @db.command()
