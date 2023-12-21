@@ -10,6 +10,7 @@ from typing import List, Optional
 import click
 import typer
 import datetime
+import logging
 
 ## ODTP METHODS
 from .initial_setup import odtpDatabase, s3Database
@@ -85,8 +86,68 @@ def user(name: str = typer.Option(
     odtpDB = odtpDatabase()
     user_id = odtpDB.dbManager.add_user(user_data)
     odtpDB.close()
-    print("User added with ID {}".format(user_id))
+    logging.info("User added with ID {}".format(user_id))
     
+
+# New Component. This is to add a compatible available component. We need to specify the version.
+# Only implemented the basic features
+# Add the possibility to add component by config file
+@new.command()
+def odtp_component(component_name: str = typer.Option(
+                    ...,
+                    "--name",
+                    help="Specify the name"
+                    ),
+                    version: str = typer.Option(
+                    ...,
+                    "--version",
+                    help="Specify the version"
+                    ),
+                    component_version: str = typer.Option(
+                    ...,
+                    "--component-version",
+                    help="Specify the component version"
+                    ),
+                    repository: str = typer.Option(
+                    ...,
+                    "--repository",
+                    help="Specify the repository"
+                    )):
+
+    # New component
+    component_data= {"author": "Test",
+                    "componentName": component_name,
+                    "status": "active",
+                    "title": "Title for ComponentX",
+                    "description": "Description for ComponentX",
+                    "tags": ["tag1", "tag2"],
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow(),
+                }
+    
+
+    odtpDB = odtpDatabase()
+    component_id = odtpDB.dbManager.add_component(component_data)
+    odtpDB.close()
+    logging.info("Component added with ID {}".format(component_id))
+
+    # New version
+    version_data = {"version": version,
+                "component_version": component_version,
+                "repoLink": repository,
+                "dockerHubLink": "https://hub.docker.com/...",
+                "parameters": {},
+                "title": "Title for Version v1.0",
+                "description": "Description for Version v1.0",
+                "tags": ["tag1", "tag2"],
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+            }
+    
+    odtpDB = odtpDatabase()
+    version_id = odtpDB.dbManager.add_version(component_id,version_data)
+    odtpDB.close()
+    logging.info("Version added with ID {}".format(version_id))
 
 # New Digital Twin
 @new.command()
@@ -98,10 +159,6 @@ def digital_twin():
 def execution():
     pass
 
-# New Component. This is to add a compatible available component. We need to specify the version.
-@new.command()
-def odtp_component():
-    pass
 
 # Step, Output, Result is always created as a result of an execution
 
