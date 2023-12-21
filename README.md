@@ -204,6 +204,7 @@ versions = {
 digitalTwins = {
     "_id": ObjectId(),
     "userRef": ObjectId(),
+    "name" : "title",
     "status": "active",
     "public": True,
     "created_at": datetime.utcnow(),

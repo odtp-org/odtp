@@ -25,7 +25,7 @@ class MongoManager:
 
     def add_version(self, componentId, version_data):
         versions_collection = self.db["versions"]
-        version_data["componentId"] = componentId
+        version_data["componentId"] = ObjectId(componentId)
 
         return versions_collection.insert_one(version_data).inserted_id
 
@@ -37,7 +37,7 @@ class MongoManager:
 
         # Add digital twin reference to user
         self.db.users.update_one(
-            {"_id": userRef},
+            {"_id": ObjectId(userRef)},
             {"$push": {"digitalTwins": digital_twin_id}}
         )
 
@@ -46,14 +46,14 @@ class MongoManager:
 
     def append_execution(self, digital_twin_id, execution_data):
         executions_collection = self.db["executions"]
-        execution_data["digitalTwinRef"] = digital_twin_id
+        execution_data["digitalTwinRef"] = ObjectId(digital_twin_id)
 
         execution_id = executions_collection.insert_one(execution_data).inserted_id
 
         # Update digital twin with execution reference
         self.db.digitalTwins.update_one(
-            {"_id": digital_twin_id},
-            {"$push": {"executions": execution_id}}
+            {"_id": ObjectId(digital_twin_id)},
+            {"$push": {"executions": ObjectId(execution_id)}}
         )
 
         return execution_id

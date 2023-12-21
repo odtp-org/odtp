@@ -16,6 +16,12 @@ import logging
 from .initial_setup import odtpDatabase, s3Database
 from .run import DockerManager
 
+
+## Temporaly placing ObjectID for dealing with stesp. 
+## For the next version these methods for data handling will 
+## be placed in db
+from bson import ObjectId
+
 #from odtp import __version__
 
 app = typer.Typer(add_completion=False)
@@ -151,14 +157,85 @@ def odtp_component(component_name: str = typer.Option(
 
 # New Digital Twin
 @new.command()
-def digital_twin():
-    pass
+def digital_twin(user_id: str = typer.Option(
+                    ...,
+                    "--user-id",
+                    help="Specify the user ID"
+                    ),
+                    name: str = typer.Option(
+                    ...,
+                    "--name",
+                    help="Specify the name"
+                    ) ):
+    
+    dt_data = {"name" : name,
+                "status": "active",
+                "public": True,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "executions": []  
+                }
+    
+    odtpDB = odtpDatabase()
+    dt_id = odtpDB.dbManager.add_digital_twin(user_id, dt_data)
+    odtpDB.close()
+
+    logging.info("Digital Twin added with ID {}".format(dt_id))
 
 # New Execution 
 @new.command()
-def execution():
-    pass
+def execution(dt_id: str = typer.Option(
+                ...,
+                "--digital-twin-id",
+                help="Specify the digital twin ID"
+                ),
+                name: str = typer.Option(
+                ...,
+                "--name",
+                help="Specify the name of the execution"
+                ),
+                components: str = typer.Option(
+                ...,
+                "--components",
+                help="Specify the components_ids separated by commas"
+                ),
+                versions: str = typer.Option(
+                ...,
+                "--versions",
+                help="Specify the version_ids separated by commas"
+                ),
+                workflow: str = typer.Option(
+                ...,
+                "--worflow",
+                help="Specify the sequential order for the components, starting by 0, and separating values by commas"
+                )):
+    
 
+    components = [ObjectId(c) for c in components.split(',')]
+    versions = [ObjectId(v) for v in versions.split(',')]
+
+    components_list = [{"component": c, "version": v } for c,v in zip(components, versions) ]
+    
+
+    execution_data = {"title": name,
+    "description": "Description for Execution",
+    "tags": ["tag1", "tag2"],
+    "workflowSchema": {
+        "workflowExecutor": "odtpwf",
+        "worflowExecutorVersion": "0.2.0",
+        "components": components_list,  # Array of ObjectIds for components
+        "WorkflowExecutorSchema": [int(i) for i in workflow.split(",")]
+    },
+    "start_timestamp": datetime.utcnow(),
+    "end_timestamp": datetime.utcnow(),
+    "steps": []  # Array of ObjectIds referencing Steps collection. Change in a future by DAG graph
+    }
+
+    odtpDB = odtpDatabase()
+    execution_id = odtpDB.dbManager.append_execution(dt_id, execution_data)
+    odtpDB.close()
+
+    logging.info("Digital Twin added with ID {}".format(execution_id))
 
 # Step, Output, Result is always created as a result of an execution
 
