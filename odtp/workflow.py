@@ -147,7 +147,10 @@ class WorkflowManager:
                 with zipfile.ZipFile(output_zip_path, 'r') as zip_ref:
                     zip_ref.extractall(actual_input_path)
 
-                    
+                # List the contents of the actual_input_path directory
+                contents = os.listdir(actual_input_path)
+                logging.info(f"Contents of the folder: {contents}")
+
 
             # Change image_name by Component ID_version
             # image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)

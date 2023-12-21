@@ -20,10 +20,10 @@ class DockerManager:
         os.makedirs(self.input_volume, exist_ok=True)
         os.makedirs(self.output_volume, exist_ok=True)
         
-        logging.info("Removing all files and directories")
-        shutil.rmtree(self.repository_path)
-        shutil.rmtree(self.input_volume)
-        shutil.rmtree(self.output_volume)
+        # logging.info("Removing all files and directories")
+        # shutil.rmtree(self.repository_path)
+        # shutil.rmtree(self.input_volume)
+        # shutil.rmtree(self.output_volume)
 
     def download_repo(self):
         """
