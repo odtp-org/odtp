@@ -319,6 +319,23 @@ def deleteAll():
 #### TODO: S3 Check
 
 #### TODO: S3 Download
+    
+@s3.command()
+def download(s3_path: str = typer.Option(
+            ...,
+            "--s3-path",
+            help="Specify the s3 Path"
+        ), 
+        output_path: str = typer.Option(
+            ...,
+            "--output-path",
+            help="Specify the path to the folder where the file is going to be downloaded"
+        )):
+    
+    odtpS3 = s3Database()
+    odtpS3.download_file(s3_path, output_path)
+    odtpS3.close()
+    
 
 # Running
 ###############################################################
@@ -381,7 +398,6 @@ def run(folder: str = typer.Option(
     #componentManager.download_repo()
     #componentManager.build_image()
     componentManager.run_component(env_file, instance_name=instance_name)
-
 
 #### TODO: Stop Component
 @component.command()

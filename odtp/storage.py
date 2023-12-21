@@ -27,7 +27,7 @@ class s3Manager:
                     aws_access_key_id=self.accessKey, 
                     aws_secret_access_key=self.secretKey)
         
-        self.s3 = s3 
+        self.s3 = s3
 
         # Add logging info
 
