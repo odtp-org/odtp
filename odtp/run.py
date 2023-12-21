@@ -59,7 +59,7 @@ class DockerManager:
         subprocess.run(["docker", "volume", "create", volume_name])
         
 
-    def run_component(self, env, instance_name="odtp_component"):
+    def run_component(self, env,  step_id, instance_name):
         """
         Run a Docker component with the specified parameters.
 
@@ -76,8 +76,12 @@ class DockerManager:
         
 
         env_values = dotenv_values(env)
-        env_args = [f"-e {key}={value}" for key, value in env_values.items()]
+        
+        # REMPLACE env by the ones for step, execution, ...
+        env_values["ODTP-STEP-ID"] = step_id
 
+
+        env_args = [f"-e {key}={value}" for key, value in env_values.items()]
 
         #docker_run_command = ["docker", "run", "--detach", "--name", name, "--volume", f"{volume}:/mount"] + env_args + [component]
         docker_run_command = ["docker", "run", "-it", "--name", instance_name, 

@@ -124,7 +124,7 @@ odtp db get --id 65843d8043feea167c5cbbe8 --collection executions
 odtp db get --id 65843d8143feea167c5cbbea --collection steps
 ```
 
-### How to prepare an execution?
+### How to prepare an execution with one ODTP Component?
 
 Once the execution is configured and added to the database we can prepare it. This means that all the components will be downloaded and the docker images built. This step is necessary before running the execution.
 
@@ -153,7 +153,7 @@ INFO (21/12/2023 02:53:05 PM): Building Docker image component-example_0.0.1 fro
 INFO (21/12/2023 03:24:36 PM): COMPONENTS DOWNLOADES AND BUILT (LineL 60 [workflow.py])
  ```
 
-### How to run one exection?
+### How to run one execution with one ODTP Component?
 
 We need to create one envfile containing the parameters per step.
 

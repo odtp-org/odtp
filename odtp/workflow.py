@@ -118,7 +118,7 @@ class WorkflowManager:
                                     project_folder=self.working_path)
             
             instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
-            componentManager.run_component(env_files[step_index], instance_name=instance_name)
+            componentManager.run_component(env_files[step_index], self.execution["steps"][step_index], instance_name=instance_name)
 
 
     def run_task(self):
