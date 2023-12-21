@@ -239,7 +239,7 @@ def execution_entry(dt_id: str = typer.Option(
     execution_id = odtpDB.dbManager.append_execution(dt_id, execution_data)
     odtpDB.close()
 
-    logging.info("Digital Twin added with ID {}".format(execution_id))
+    logging.info("Execution added with ID {}".format(execution_id))
 
     steps_ids = []
     for c in components_list:
@@ -495,6 +495,7 @@ def run(execution_id: str = typer.Option(
     odtpDB.close()
 
     env_files = env_files.split(",")
+    logging.info(env_files)
 
     flowManager = WorkflowManager(execution_doc, project_path)
     flowManager.run_workflow(env_files)

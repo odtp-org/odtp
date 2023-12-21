@@ -59,7 +59,7 @@ class DockerManager:
         subprocess.run(["docker", "volume", "create", volume_name])
         
 
-    def run_component(self, env,  step_id, instance_name):
+    def run_component(self, env, instance_name, step_id=None):
         """
         Run a Docker component with the specified parameters.
 
@@ -78,16 +78,31 @@ class DockerManager:
         env_values = dotenv_values(env)
         
         # REMPLACE env by the ones for step, execution, ...
-        env_values["ODTP-STEP-ID"] = step_id
+        if step_id:
+            env_values["ODTP_STEP_ID"] = step_id
 
-
-        env_args = [f"-e {key}={value}" for key, value in env_values.items()]
+        env_args = [f"-e \"{key}={value}\"" for key, value in env_values.items()]
+        #logging.info(env_args)
 
         #docker_run_command = ["docker", "run", "--detach", "--name", name, "--volume", f"{volume}:/mount"] + env_args + [component]
         docker_run_command = ["docker", "run", "-it", "--name", instance_name, 
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + [self.docker_image_name]
-        process = subprocess.Popen(docker_run_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        command_string = ' '.join(docker_run_command)
+        #logging.info("Command to be executed:")
+        #logging.info(command_string) 
+
+        process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+        # # Print standard output in real-time
+        # while True:
+        #     output = process.stdout.readline()
+        #     if output == b'' and process.poll() is not None:
+        #         break
+        #     if output:
+        #         logging.info(output.replace('\r', '\n').strip())
+
         output, error = process.communicate()
 
         if process.returncode != 0:
