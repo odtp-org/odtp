@@ -150,7 +150,7 @@ INFO (21/12/2023 02:53:05 PM): Building Docker image component-example_0.0.1 fro
 
 ...
 
-
+INFO (21/12/2023 03:24:36 PM): COMPONENTS DOWNLOADES AND BUILT (LineL 60 [workflow.py])
  ```
 
 ### How to run one exection?

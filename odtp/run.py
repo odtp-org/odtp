@@ -81,8 +81,8 @@ class DockerManager:
 
         #docker_run_command = ["docker", "run", "--detach", "--name", name, "--volume", f"{volume}:/mount"] + env_args + [component]
         docker_run_command = ["docker", "run", "-it", "--name", instance_name, 
-                              "--volume", f"{self.input_volume}:/odtp/odtp-input",
-                              "--volume", f"{self.output_volume}:/odtp/odtp-output"] + env_args + [self.docker_image_name]
+                              "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
+                              "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + [self.docker_image_name]
         process = subprocess.Popen(docker_run_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = process.communicate()
 
