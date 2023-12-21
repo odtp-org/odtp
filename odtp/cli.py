@@ -15,6 +15,7 @@ import logging
 ## ODTP METHODS
 from .initial_setup import odtpDatabase, s3Database
 from .run import DockerManager
+from .workflow import WorkflowManager
 
 
 ## Temporaly placing ObjectID for dealing with stesp. 
@@ -32,6 +33,7 @@ component = typer.Typer()
 log = typer.Typer()
 setup = typer.Typer()
 dashboard = typer.Typer()
+execution = typer.Typer()
 
 app.add_typer(new, name="new")
 app.add_typer(db, name="db")
@@ -40,6 +42,7 @@ app.add_typer(component, name="component")
 app.add_typer(log, name="log")
 app.add_typer(setup, name="setup")
 app.add_typer(dashboard, name="dashboard")
+app.add_type(execution, name="execution")
 
 # Used to autogenerate docs with sphinx-click
 @click.group()
@@ -342,8 +345,7 @@ def deleteAll():
 
 #### TODO: S3 Check
 
-#### TODO: S3 Download
-    
+#### S3 Download
 @s3.command()
 def download(s3_path: str = typer.Option(
             ...,
@@ -361,7 +363,7 @@ def download(s3_path: str = typer.Option(
     odtpS3.close()
     
 
-# Running
+# Running Individual Components
 ###############################################################
 
 @component.command()
@@ -448,6 +450,55 @@ def delete_image(image_name: str = typer.Option(
     componentManager.delete_image()
     print("Component Deleted")
 
+
+# Running Workflow Executions
+###############################################################
+
+@execution.command()
+def prepare(execution_id: str = typer.Option(
+            ...,
+            "--execution-id",
+            help="Specify the ID of the execution"
+        ),
+        project_path: str = typer.Option(
+            ...,
+            "--project-path",
+            help="Specify the path for the execution"
+        )):
+
+    odtpDB = odtpDatabase()
+    execution_doc = odtpDB.dbManager.get_document_by_id(execution_id, "executions")
+    odtpDB.close()
+
+    flowManager = WorkflowManager(execution_doc, project_path)
+    flowManager.prepare_workflow()
+
+@execution.command()
+def run(execution_id: str = typer.Option(
+            ...,
+            "--execution-id",
+            help="Specify the ID of the execution"
+        ),
+        project_path: str = typer.Option(
+            ...,
+            "--project-path",
+            help="Specify the path for the execution"
+        ),
+        env_files: str = typer.Option(
+            ...,
+            "--env-files",
+            help="Specify the path for the env files separated by commas."
+        )):
+
+    odtpDB = odtpDatabase()
+    execution_doc = odtpDB.dbManager.get_document_by_id(execution_id, "executions")
+    odtpDB.close()
+
+    env_files = env_files.split(",")
+
+    flowManager = WorkflowManager(execution_doc, project_path)
+    flowManager.run_workflow(env_files)
+    
 
 # GUI
 ###############################################################
