@@ -51,13 +51,77 @@ And finally if we want to delete the image we can run:
 odtp component delete-image --image_name image_test 
 ```
 
-### How to add  a new user? 
+### How to add a new user? 
+
+```
+odtp new user-entry --name Pedro --email vote@for.pedro --github pedro
+```
+
+You can check that the user is correctly stored using:
+
+```
+odtp db get --id 65843acbe473dfffb95371d7 --collection users
+```
+
+This should deliver:
+
+```
+INFO (21/12/2023 02:18:34 PM): Connected to: <odtp.db.MongoManager object at 0x137689610> (LineL 22 [initial_setup.py])
+{'_id': ObjectId('65843acbe473dfffb95371d7'), 'displayName': 'Pedro', 'email': 'vote@for.pedro', 'github': 'pedro', 'created_at': datetime.datetime(2023, 12, 21, 13, 16, 59, 857000), 'updated_at': datetime.datetime(2023, 12, 21, 13, 16, 59, 857000)}
+{
+    "_id": {
+        "$oid": "65843acbe473dfffb95371d7"
+    },
+    "displayName": "Pedro",
+    "email": "vote@for.pedro",
+    "github": "pedro",
+    "created_at": {
+        "$date": 1703164619857
+    },
+    "updated_at": {
+        "$date": 1703164619857
+    }
+}
+```
 
 ### How to index a new component?
 
+```
+odtp new odtp-component-entry --name component-example --version 0.0.1 --component-version 0.0.1 --repository https://github.com/odtp-org/odtp-component-example
+```
+
+Info:
+```
+odtp db get --id 65843bdf57da36bb8e8da182 --collection components
+odtp db get --id 65843be057da36bb8e8da184 --collection versions
+```
+
 ### How to create a new digital twin? 
 
+```
+odtp new digital-twin-entry --user-id 65843acbe473dfffb95371d7 --name example
+```
+
+Info:
+```
+odtp db get --id 65843c6cae2082459baeb575 --collection digitalTwins
+```
+
 ### How to create a new execution of a digital twin?
+
+```
+odtp new execution-entry --digital-twin-id 65843acbe473dfffb95371d7 \
+--name execution-example \
+--components 65843bdf57da36bb8e8da182 \
+--versions 65843be057da36bb8e8da184 \
+--worflow 0
+```
+
+Info:
+```
+odtp db get --id 65843d8043feea167c5cbbe8 --collection executions
+odtp db get --id 65843d8143feea167c5cbbea --collection steps
+```
 
 ### How to run the GUI dashboard?
 

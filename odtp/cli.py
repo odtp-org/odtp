@@ -9,7 +9,7 @@ from typing import List, Optional
 
 import click
 import typer
-import datetime
+from datetime import datetime
 import logging
 
 ## ODTP METHODS
@@ -42,7 +42,7 @@ app.add_typer(component, name="component")
 app.add_typer(log, name="log")
 app.add_typer(setup, name="setup")
 app.add_typer(dashboard, name="dashboard")
-app.add_type(execution, name="execution")
+app.add_typer(execution, name="execution")
 
 # Used to autogenerate docs with sphinx-click
 @click.group()
@@ -67,7 +67,7 @@ cli.add_command(typer_cli, "cli")
 
 # New user
 @new.command()
-def user(name: str = typer.Option(
+def user_entry(name: str = typer.Option(
             ...,
             "--name",
             help="Specify the name"
@@ -102,7 +102,7 @@ def user(name: str = typer.Option(
 # Only implemented the basic features
 # Add the possibility to add component by config file
 @new.command()
-def odtp_component(component_name: str = typer.Option(
+def odtp_component_entry(component_name: str = typer.Option(
                     ...,
                     "--name",
                     help="Specify the name"
@@ -144,7 +144,7 @@ def odtp_component(component_name: str = typer.Option(
     version_data = {"version": version,
                 "component_version": component_version,
                 "repoLink": repository,
-                "dockerHubLink": "https://hub.docker.com/...",
+                "dockerHubLink": "",
                 "parameters": {},
                 "title": "Title for Version v1.0",
                 "description": "Description for Version v1.0",
@@ -160,7 +160,7 @@ def odtp_component(component_name: str = typer.Option(
 
 # New Digital Twin
 @new.command()
-def digital_twin(user_id: str = typer.Option(
+def digital_twin_entry(user_id: str = typer.Option(
                     ...,
                     "--user-id",
                     help="Specify the user ID"
@@ -187,7 +187,7 @@ def digital_twin(user_id: str = typer.Option(
 
 # New Execution 
 @new.command()
-def execution(dt_id: str = typer.Option(
+def execution_entry(dt_id: str = typer.Option(
                 ...,
                 "--digital-twin-id",
                 help="Specify the digital twin ID"
