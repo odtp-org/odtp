@@ -13,7 +13,7 @@ class odtpDatabase:
     def __init__(self):
         load_dotenv()
 
-        url = os.getenv("ODTP-MONGO-SERVER")
+        url = os.getenv("ODTP_MONGO_SERVER")
         db_name = "odtp"
         dbManager = MongoManager(url, db_name)
 
@@ -59,10 +59,10 @@ class odtpDatabase:
 class s3Database:
     def __init__(self):
         load_dotenv()
-        s3Server = os.getenv("ODTP-S3-SERVER")
-        bucketName = os.getenv("ODTP-BUCKET-NAME")
-        accessKey = os.getenv("ODTP-ACCESS-KEY")
-        secretKey = os.getenv("ODTP-SECRET-KEY")
+        s3Server = os.getenv("ODTP_S3_SERVER")
+        bucketName = os.getenv("ODTP_BUCKET_NAME")
+        accessKey = os.getenv("ODTP_ACCESS_KEY")
+        secretKey = os.getenv("ODTP_SECRET_KEY")
 
         storageManager = s3Manager(s3Server, bucketName, accessKey, secretKey)
 

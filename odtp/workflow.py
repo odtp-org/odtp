@@ -49,9 +49,10 @@ class WorkflowManager:
 
             self.steps_folder_paths.append(step_folder_path)
 
+            image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
             # By now the image_name is just the name of the component and the version
             componentManager = DockerManager(repo_url=version_doc["repoLink"], 
-                                    image_name="{}_{}".format(component_doc["componentName"], version_doc["version"]), 
+                                    image_name=image_name, 
                                     project_folder=step_folder_path)
             
             componentManager.download_repo()
@@ -111,10 +112,11 @@ class WorkflowManager:
                 with zipfile.ZipFile(output_zip_path, 'r') as zip_ref:
                     zip_ref.extractall(actual_input_path)
 
-
+            # Change image_name by Component ID_version
+            image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
             # By now the image_name is just the name of the component and the version
             componentManager = DockerManager(repo_url=version_doc["repoLink"], 
-                                    image_name="{}_{}".format(component_doc["componentName"], version_doc["version"]), 
+                                    image_name=image_name, 
                                     project_folder=self.working_path)
             
             instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
