@@ -215,7 +215,7 @@ def execution(dt_id: str = typer.Option(
     versions = [ObjectId(v) for v in versions.split(',')]
 
     components_list = [{"component": c, "version": v } for c,v in zip(components, versions) ]
-    
+
 
     execution_data = {"title": name,
     "description": "Description for Execution",
@@ -231,13 +231,37 @@ def execution(dt_id: str = typer.Option(
     "steps": []  # Array of ObjectIds referencing Steps collection. Change in a future by DAG graph
     }
 
+
     odtpDB = odtpDatabase()
     execution_id = odtpDB.dbManager.append_execution(dt_id, execution_data)
     odtpDB.close()
 
     logging.info("Digital Twin added with ID {}".format(execution_id))
 
-# Step, Output, Result is always created as a result of an execution
+    steps_ids = []
+    for c in components_list:
+        step_data = {"timestamp": datetime.utcnow(),
+            "start_timestamp": datetime.utcnow(),
+            "end_timestamp": datetime.utcnow(),
+            "type": "ephemeral",
+            "logs": [],
+            "inputs": {},
+            "outputs": {},
+            "component": c["component"],
+            "component_version": c["version"],
+            "parameters": {}
+        }
+
+        odtpDB = odtpDatabase()
+        step_id = odtpDB.dbManager.append_step(execution_id, step_data)
+        odtpDB.close()
+
+        steps_ids.append(step_id)
+
+    logging.info("STEPS added with ID {}".format(steps_ids))
+
+
+# Output, Result is always created as a result of an execution
 
 ### Setup Commands
 ###############################################################
