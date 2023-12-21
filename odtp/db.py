@@ -188,9 +188,9 @@ class MongoManager:
 
     #     return logs
     
-    def get_document_by_id(self, execution_id, collection):
+    def get_document_by_id(self, document_id, collection):
         # Skip to the digital twin specified by the given index and retrieve it
-        document = self.db[collection].find_one({'_id': ObjectId(execution_id)})
+        document = self.db[collection].find_one({'_id': ObjectId(document_id)})
         print(document)
         try:
             # Navigate to the logs using the given execution index

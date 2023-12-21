@@ -224,7 +224,7 @@ def execution(dt_id: str = typer.Option(
         "workflowExecutor": "odtpwf",
         "worflowExecutorVersion": "0.2.0",
         "components": components_list,  # Array of ObjectIds for components
-        "WorkflowExecutorSchema": [int(i) for i in workflow.split(",")]
+        "workflowExecutorSchema": [int(i) for i in workflow.split(",")]
     },
     "start_timestamp": datetime.utcnow(),
     "end_timestamp": datetime.utcnow(),

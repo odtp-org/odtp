@@ -1,7 +1,9 @@
 import os
-from storage import s3Manager
-from run import runManager
-from db import MongoManager
+from .storage import s3Manager
+from .run import DockerManager
+from .db import MongoManager
+from .initial_setup import odtpDatabase
+import logging
 
 from barfi import st_barfi, barfi_schemas, Block
 
@@ -12,15 +14,39 @@ from barfi import st_barfi, barfi_schemas, Block
     #     pass
 
 class WorkflowManager:
-    def __init__(self, barfi_schema):
+    def __init__(self, execution_data, working_path):
         # This workflow will have one execution ID associated
         # This class should contain flags used to know the status of the workflow. 
-        self.barfi_schema = barfi_schema
+        self.execution = 
+        self.schema = execution_data["workflowSchema"]
+        self.working_path
 
     def prepare_workflow(self):
         # This method will download all needed files and components to run the workflow
         # It will Build the images needed too. 
-        pass
+        
+        for step_index in self.schema["workflowExecutorSchema"]:
+            component_id = self.schema["components"][step_index]["component"]
+            version_id = self.schema["components"][step_index]["version"]
+
+            odtpDB = odtpDatabase()
+            component_doc = odtpDB.dbManager.get_document_by_id(component_id, "components")
+            odtpDB.close()
+
+
+            odtpDB = odtpDatabase()
+            version_doc = odtpDB.dbManager.get_document_by_id(version_id, "versions")
+            odtpDB.close()
+
+            # By now the image_name is just the name of the component and the version
+            componentManager = DockerManager(repo_url=version_doc["repoLink"], 
+                                    image_name="{}_{}".format(component_doc["componentName"], version_doc["version"]), 
+                                    project_folder=self.working_path)
+            
+            componentManager.download_repo()
+            componentManager.build_image()
+
+            logging.info("COMPONENTS DOWNLOADES AND BUILT")
 
     def download_data_from_storage(self):
         # Implement the logic to download data from S3
@@ -36,10 +62,34 @@ class WorkflowManager:
         self.paramenters = {}
         pass
 
-    def run_workflow(self):
+    def run_workflow(self, env_files):
         # Implement the logic to send tasks following the DAG schema. 
         # This can make use of barfi workflow execution function. Each 
         # call will make call of the run_task
+
+        # Temporally the parameters are taken from the environment files and not 
+        # taken from the steps documents
+
+        for step_index in self.schema["workflowExecutorSchema"]:
+            component_id = self.schema["components"][int(step_index)]["component"]
+            version_id = self.schema["components"][int(step_index)]["version"]
+
+            odtpDB = odtpDatabase()
+            component_doc = odtpDB.dbManager.get_document_by_id(component_id, "components")
+            odtpDB.close()
+
+            odtpDB = odtpDatabase()
+            version_doc = odtpDB.dbManager.get_document_by_id(version_id, "versions")
+            odtpDB.close()
+
+            # By now the image_name is just the name of the component and the version
+            componentManager = DockerManager(repo_url=version_doc["repoLink"], 
+                                    image_name="{}_{}".format(component_doc["componentName"], version_doc["version"]), 
+                                    project_folder=self.working_path)
+            
+            instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
+            componentManager.run_component(env_files[int(step_index)], instance_name=instance_name)
+
         pass
 
     def run_task(self):
