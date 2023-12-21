@@ -196,9 +196,19 @@ class MongoManager:
             # Navigate to the logs using the given execution index
             json_output = json.dumps(document, indent=4, default=json_util.default)
         except (IndexError, KeyError):
-            print(f"No execution found for execution {execution_id}.")
+            print(f"No execution found for execution {document_id}.")
 
         return json_output
+    
+    def get_document_by_id_as_dict(self, document_id, collection):
+        # Skip to the document specified by the given id and retrieve it
+        document = self.db[collection].find_one({'_id': ObjectId(document_id)})
+        
+        if document:
+            document["_id"] = str(document["_id"])  # Convert ObjectId to string
+            return document
+        else:
+            return None
 
     ######################################
     # Closing & Deleting

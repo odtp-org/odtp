@@ -467,7 +467,7 @@ def prepare(execution_id: str = typer.Option(
         )):
 
     odtpDB = odtpDatabase()
-    execution_doc = odtpDB.dbManager.get_document_by_id(execution_id, "executions")
+    execution_doc = odtpDB.dbManager.get_document_by_id_as_dict(execution_id, "executions")
     odtpDB.close()
 
     flowManager = WorkflowManager(execution_doc, project_path)
@@ -491,7 +491,7 @@ def run(execution_id: str = typer.Option(
         )):
 
     odtpDB = odtpDatabase()
-    execution_doc = odtpDB.dbManager.get_document_by_id(execution_id, "executions")
+    execution_doc = odtpDB.dbManager.get_document_by_id_as_dict(execution_id, "executions")
     odtpDB.close()
 
     env_files = env_files.split(",")

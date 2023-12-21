@@ -21,7 +21,7 @@ class WorkflowManager:
         self.execution = execution_data
         self.schema = execution_data["workflowSchema"]
         self.working_path = working_path
-        self.steps_paths = []
+        self.steps_folder_paths = []
 
     def prepare_workflow(self):
         # This method will download all needed files and components to run the workflow
@@ -34,25 +34,25 @@ class WorkflowManager:
             version_id = self.schema["components"][step_index]["version"]
 
             odtpDB = odtpDatabase()
-            component_doc = odtpDB.dbManager.get_document_by_id(component_id, "components")
+            component_doc = odtpDB.dbManager.get_document_by_id_as_dict(component_id, "components")
             odtpDB.close()
 
             odtpDB = odtpDatabase()
-            version_doc = odtpDB.dbManager.get_document_by_id(version_id, "versions")
+            version_doc = odtpDB.dbManager.get_document_by_id_as_dict(version_id, "versions")
             odtpDB.close()
 
             step_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
 
             # Create folder structure
             step_folder_path = os.path.join(self.working_path, step_name)
-            os.mkdir(step_folder_path)
+            os.makedirs(step_folder_path, exist_ok=True)
 
-            self.steps_paths.append(step_folder_path)
+            self.steps_folder_paths.append(step_folder_path)
 
             # By now the image_name is just the name of the component and the version
             componentManager = DockerManager(repo_url=version_doc["repoLink"], 
                                     image_name="{}_{}".format(component_doc["componentName"], version_doc["version"]), 
-                                    project_folder=self.step_folder_path)
+                                    project_folder=step_folder_path)
             
             componentManager.download_repo()
             componentManager.build_image()
@@ -88,11 +88,11 @@ class WorkflowManager:
             version_id = self.schema["components"][step_index]["version"]
 
             odtpDB = odtpDatabase()
-            component_doc = odtpDB.dbManager.get_document_by_id(component_id, "components")
+            component_doc = odtpDB.dbManager.get_document_by_id_as_dict(component_id, "components")
             odtpDB.close()
 
             odtpDB = odtpDatabase()
-            version_doc = odtpDB.dbManager.get_document_by_id(version_id, "versions")
+            version_doc = odtpDB.dbManager.get_document_by_id_as_dict(version_id, "versions")
             odtpDB.close()
 
             step_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
@@ -101,11 +101,11 @@ class WorkflowManager:
             # Copying the compressed output files into the new input ones
             # Extracting the files
             if step_index !=0:
-                previous_output_path = os.path.join(self.steps_paths[step_index-1], "odtp-output")
+                previous_output_path = os.path.join(self.steps_folder_paths[step_index-1], "odtp-output")
 
                 # Specify the path to the output.zip file and the actual_input_path
                 output_zip_path = os.path.join(previous_output_path, 'output.zip')
-                actual_input_path = os.path.join(self.steps_paths[step_index], 'odtp-input')
+                actual_input_path = os.path.join(self.steps_folder_paths[step_index], 'odtp-input')
 
                 # Extract the contents of the output.zip file into the actual_input_path
                 with zipfile.ZipFile(output_zip_path, 'r') as zip_ref:

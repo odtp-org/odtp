@@ -14,8 +14,9 @@ This tools allows you to:
 ## How to use it?
 
 1. Download the repository. 
-2. Run `poetry install .`
-3. Run `odtp --help`
+2. Run `poetry install`
+3. Run `poetry shell`
+4. Run `odtp --help`
 
 ### How to run a single component?
 
@@ -123,10 +124,46 @@ odtp db get --id 65843d8043feea167c5cbbe8 --collection executions
 odtp db get --id 65843d8143feea167c5cbbea --collection steps
 ```
 
+### How to prepare an execution?
+
+Once the execution is configured and added to the database we can prepare it. This means that all the components will be downloaded and the docker images built. This step is necessary before running the execution.
+
+```
+odtp execution prepare --execution-id 65843d8043feea167c5cbbe8 --project-path [Path to your folder]
+```
+ A normal preparation should looks like:
+
+ ```
+INFO (21/12/2023 02:53:02 PM): Connected to: <odtp.db.MongoManager object at 0x138546950> (LineL 22 [initial_setup.py])
+INFO (21/12/2023 02:53:03 PM): Connected to: <odtp.db.MongoManager object at 0x12eca4110> (LineL 22 [initial_setup.py])
+INFO (21/12/2023 02:53:03 PM): Connected to: <odtp.db.MongoManager object at 0x138530bd0> (LineL 22 [initial_setup.py])
+INFO (21/12/2023 02:53:04 PM): Removing all files and directories (LineL 23 [run.py])
+INFO (21/12/2023 02:53:04 PM): Downloading repository from https://github.com/odtp-org/odtp-component-example to dt_test/component-example_0.0.1_0/repository (LineL 35 [run.py])
+Cloning into 'dt_test/component-example_0.0.1_0/repository'...
+remote: Enumerating objects: 65, done.
+remote: Counting objects: 100% (65/65), done.
+remote: Compressing objects: 100% (42/42), done.
+remote: Total 65 (delta 30), reused 52 (delta 18), pack-reused 0
+Receiving objects: 100% (65/65), 31.23 KiB | 376.00 KiB/s, done.
+Resolving deltas: 100% (30/30), done.
+INFO (21/12/2023 02:53:05 PM): Building Docker image component-example_0.0.1 from dt_test/component-example_0.0.1_0/repository (LineL 47 [run.py])
+
+...
+
+
+ ```
+
+### How to run one exection?
+
+We need to create one envfile containing the parameters per step.
+
+```
+odtp execution run --execution-id 65843d8043feea167c5cbbe8 --project-path [Path to your folder] --env-files [Path to the envfiles]
+```
+
 ### How to run the GUI dashboard?
 
 The dashboard functionality is limited right now and still require an update to the version v0.2.0. However it can be deployed by going to the repository folder and running: `odtp dashboard run --port 8501`
-
 
 
 ## Concept
