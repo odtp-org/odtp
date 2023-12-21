@@ -2,7 +2,7 @@ import os
 from .storage import s3Manager
 from .run import DockerManager
 from .db import MongoManager
-from .initial_setup import odtpDatabase
+from .setup import odtpDatabase
 import logging
 
 from barfi import st_barfi, barfi_schemas, Block

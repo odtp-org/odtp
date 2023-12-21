@@ -13,7 +13,7 @@ from datetime import datetime
 import logging
 
 ## ODTP METHODS
-from .initial_setup import odtpDatabase, s3Database
+from .setup import odtpDatabase, s3Database
 from .run import DockerManager
 from .workflow import WorkflowManager
 

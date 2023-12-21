@@ -151,9 +151,8 @@ class MongoManager:
 
     ######################################
     # USER METHOD
-
-    def get_all_users(self):
-        cursor = self.db.users.find({})
+    def get_all_documents(self, collection):
+        cursor = self.db[collection].find()
 
         users = []
         for doc in cursor:
@@ -191,7 +190,7 @@ class MongoManager:
     def get_document_by_id(self, document_id, collection):
         # Skip to the digital twin specified by the given index and retrieve it
         document = self.db[collection].find_one({'_id': ObjectId(document_id)})
-        print(document)
+       
         try:
             # Navigate to the logs using the given execution index
             json_output = json.dumps(document, indent=4, default=json_util.default)

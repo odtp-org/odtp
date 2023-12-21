@@ -1,29 +1,26 @@
 import streamlit as st
-from pymongo import MongoClient
-from pymongo.server_api import ServerApi
+from odtp.setup import odtpDatabase
 import pandas as pd
 
 from db import MongoManager
 
 st.set_page_config(layout="wide")
 
-def getDTInMongoDB(mongoString):
-    # Connect to the MongoDB server. Replace 'localhost' with your server address and 27017 with your port if different.
-    client = MongoClient(mongoString,  server_api=ServerApi('1'))
+def get_digital_twins():
+    odtpDB = odtpDatabase()
+    documents = odtpDB.dbManager.get_all_documents("digitalTwins")
+    print(documents)
+    odtpDB.close()
 
-    # Connect to your database. Replace 'mydatabase' with your database name.
-    db = client['odtp']
+    return documents
 
-    # Connect to your collection. Replace 'mycollection' with your collection name.
-    collection = db['users']
+def get_users():
+    odtpDB = odtpDatabase()
+    documents = odtpDB.dbManager.get_all_documents("users")
+    print(documents)
+    odtpDB.close()
 
-    # Fetch all documents and store them in a list.
-    documentList = list(collection.find())
-
-    # Close the connection.
-    client.close()
-
-    return documentList
+    return documents
 
 
 if 'users_df' not in st.session_state:
@@ -49,8 +46,8 @@ with st.form("users_registed"):
     mdbbutton = st.form_submit_button("Get users entries in MongoDB")
     if mdbbutton:
         st.write("Loading users")
-        mongo_manager = MongoManager(mongoString, "odtp")
-        all_users = mongo_manager.get_all_users()
+
+        all_users = get_users()
         users_df = pd.DataFrame(all_users)
         
         st.session_state['users_df'] = users_df
