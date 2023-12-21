@@ -51,7 +51,15 @@ And finally if we want to delete the image we can run:
 odtp component delete-image --image_name image_test 
 ```
 
-### Dashboard
+### How to add  a new user? 
+
+### How to index a new component?
+
+### How to create a new digital twin? 
+
+### How to create a new execution of a digital twin?
+
+### How to run the GUI dashboard?
 
 The dashboard functionality is limited right now and still require an update to the version v0.2.0. However it can be deployed by going to the repository folder and running: `odtp dashboard run --port 8501`
 
