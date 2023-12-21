@@ -13,7 +13,7 @@ class odtpDatabase:
     def __init__(self):
         load_dotenv()
 
-        url = os.getenv("ODTP-MONGO-URL")
+        url = os.getenv("ODTP-MONGO-SERVER")
         db_name = "odtp"
         dbManager = MongoManager(url, db_name)
 
@@ -84,6 +84,10 @@ class s3Database:
         self.storageManager.close()
 
         logging.info("S3 deleted and client closed")
+
+    def download(self, item):
+
+        pass
 
 
 ##################################################################################

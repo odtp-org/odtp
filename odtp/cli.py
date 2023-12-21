@@ -73,6 +73,7 @@ def user(name: str = typer.Option(
             help="Specify the github"
         )):
 
+    # This need to be manage by Database class
     user_data = {
                 "displayName": name,
                 "email": email,
