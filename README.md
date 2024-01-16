@@ -11,12 +11,43 @@ This tools allows you to:
 - Check outputs/snapshots and download results. 
 
 
-## How to use it?
+## How to install and configure it?
+
+You can install odtp by using [poetry](https://python-poetry.org/) and running: 
 
 1. Download the repository. 
+2. (Optional) Rename `.env.dist` as `.env` and populate it with the right credentials. This is essential if you want to use S3 and MongoDB. 
 2. Run `poetry install`
 3. Run `poetry shell`
 4. Run `odtp --help`
+
+This should print out the help for `odtp`
+
+### Using PDM
+
+As an alterntive [PDM](https://pdm-project.org/latest/) can be used. 
+
+1. Download the repository. 
+2. (Optional) Rename `.env.dist` as `.env` and populate it with the right credentials. This is essential if you want to use S3 and MongoDB. 
+3. Run `pdm run odtp --help`
+
+This should print out the help for `odtp`
+
+### Configuring .env file. 
+
+In order to connect to MongoDB and S3. You need to provide the credentials in an enviroment file with the following structure. This .env file needs to be in the folder where odtp is executed.
+
+```
+ODTP_MONGO_URL=
+ODTP_S3_SERVER=
+ODTP_BUCKET_NAME=
+ODTP_ACCESS_KEY=
+ODTP_SECRET_KEY=
+```
+
+## How to use it?
+
+This will guide you through the most usual tasks when working with ODTP.
 
 ### How to run a single component?
 
@@ -255,7 +286,7 @@ After you installed it, go to the repository folder and run `poetry install .`
 
 After that you should be able to run commands using the CLI: `odtp`
 
-## Documentation 
+## Third party dependencies
 
 ### How to deploy a mongoDB
 
