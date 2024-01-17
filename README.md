@@ -146,7 +146,7 @@ odtp new execution-entry --digital-twin-id 65843acbe473dfffb95371d7 \
 --name execution-example \
 --components 65843bdf57da36bb8e8da182 \
 --versions 65843be057da36bb8e8da184 \
---worflow 0
+--workflow 0
 ```
 
 Info:
@@ -262,7 +262,7 @@ Finally the ODTP will be complemented with a components zoo that will include ex
 ## Technologies involved
 
 - Streamlit (UI)
-- Barfi (Worflow manager)
+- Barfi (Workflow manager)
 - MongoDB (Document Database)
 - S3 (Storage Sytem)
 - Docker (Container Technology)
@@ -361,7 +361,7 @@ executions = {
     "tags": ["tag1", "tag2"],
     "workflowSchema": {
         "workflowExecutor": "barfi",
-        "worflowExecutorVersion": "v2.0",
+        "workflowExecutorVersion": "v2.0",
         "components": [{"component": ObjectId(),
                         "version": ObjectId() }],  # Array of ObjectIds for components
         "WorkflowExecutorSchema": {}

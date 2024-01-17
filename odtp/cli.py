@@ -209,7 +209,7 @@ def execution_entry(dt_id: str = typer.Option(
                 ),
                 workflow: str = typer.Option(
                 ...,
-                "--worflow",
+                "--workflow",
                 help="Specify the sequential order for the components, starting by 0, and separating values by commas"
                 )):
     
@@ -225,7 +225,7 @@ def execution_entry(dt_id: str = typer.Option(
     "tags": ["tag1", "tag2"],
     "workflowSchema": {
         "workflowExecutor": "odtpwf",
-        "worflowExecutorVersion": "0.2.0",
+        "workflowExecutorVersion": "0.2.0",
         "components": components_list,  # Array of ObjectIds for components
         "workflowExecutorSchema": [int(i) for i in workflow.split(",")]
     },
