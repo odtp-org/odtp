@@ -148,7 +148,7 @@
       ],
       "workflowSchema": {
         "workflowExecutor": "barfi",
-        "worflowExecutorVersion": "v2.0",
+        "workflowExecutorVersion": "v2.0",
         "components": [
           {
             "component": "65701dc519b363fe3dea879d",
@@ -175,7 +175,7 @@
       ],
       "workflowSchema": {
         "workflowExecutor": "barfi",
-        "worflowExecutorVersion": "v2.0",
+        "workflowExecutorVersion": "v2.0",
         "components": [
           {
             "component": "65701dc519b363fe3dea879d",

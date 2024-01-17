@@ -184,7 +184,7 @@ class MockDataEmulator:
                 "tags": ["tag1", "tag2"],
                 "workflowSchema": {
                     "workflowExecutor": "barfi",
-                    "worflowExecutorVersion": "v2.0",
+                    "workflowExecutorVersion": "v2.0",
                     "components": [{"component": component_id,
                                     "version": version_id }],  # Array of ObjectIds for components. only one for testing
                     "WorkflowExecutorSchema": {}
