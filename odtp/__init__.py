@@ -4,9 +4,9 @@
 # Eidgenössische Technische Hochschule Zürich (ETHZ).
 
 import logging
-# import importlib.metadata as importlib_metadata
+import importlib.metadata as importlib_metadata
 
-# __version__ = importlib_metadata.version(__name__)
+__version__ = importlib_metadata.version(__name__)
 logging.basicConfig(#filename='my_logs.log',
                     #encoding='utf-8',
                     #filemode='w',
