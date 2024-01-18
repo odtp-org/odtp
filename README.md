@@ -1,15 +1,16 @@
-# odtp
+# ODTP: Open Digital Twin Platform
 
-This tools allows you to: 
+ODTP offers a comprehensive suite of functionalities to enhance digital twins' management, operation, and analysis. In ODTP, a digital twin is an advanced virtual model, embodying a broad spectrum of scenarios and systems that mirror current conditions and forecast future scenarios, offering users a robust platform for strategic optimization and decision-making. With ODTP, the digital twin concept transcends traditional boundaries, providing a pivotal tool for various applications, ensuring adaptability, insight, and innovation across diverse domains.
 
-- Serve an user interface to manage and run your digital twins. 
-- Execute ODTP components.
-- Check digital twins iterations.
-- Check running container logs.
-- Design and run digital twins using a node base workflow tool.
-- Restart and test different schemas for MongoDB / S3.
-- Check outputs/snapshots and download results. 
+## Features
 
+- **Intuitive User Interface** to manage and operate your digital twins. 
+- **Component Execution** to execute your or existing components for simulation, analysis or visualization.
+- **Iteration Monitoring** to check digital twins iterations.
+- **Log Analysis** to conveniently access and analyze container logs.
+- **Workflow Design Tool** to design and run digital twins.
+- **Schema Management & Testing** to restart and test different schemas for MongoDB / S3.
+- **Result Analysis** to inspect outputs/snapshots and download results. 
 
 ## How to install and configure it?
 
