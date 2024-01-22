@@ -1,7 +1,8 @@
 """
 The goal of this script is to generate and initial mockup data for the instances.
 """
-from .db import MongoManager
+from odtp.mongodb.db import MongoManager
+from odtp.mongodb.db import odtpDatabase
 from .storage import s3Manager
 
 import logging
@@ -9,18 +10,7 @@ import os
 from dotenv import load_dotenv
 
 
-class odtpDatabase:
-    def __init__(self):
-        load_dotenv()
-
-        url = os.getenv("ODTP_MONGO_SERVER")
-        db_name = "odtp"
-        dbManager = MongoManager(url, db_name)
-
-        self.dbManager = dbManager
-        
-        logging.info("Connected to: %s", dbManager)
-
+class mongoDatabase(odtpDatabase):
 
     def create_collections(self):
         db_odtp = self.dbManager.db
