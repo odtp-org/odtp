@@ -5,17 +5,15 @@ from pymongo import MongoClient
 from bson import ObjectId, json_util
 import json
 import logging
-import os
-from dotenv import load_dotenv
 from datetime import datetime
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
 
 
 class odtpDatabase:
     def __init__(self):
-        load_dotenv()
-        url = os.getenv("ODTP_MONGO_SERVER")
-        db_name = "odtp"
-        dbManager = MongoManager(url, db_name)
+        dbManager = MongoManager(config['ODTP_MONGO_SERVER'], "odtp")
         self.dbManager = dbManager
         logging.info("Connected to: %s", dbManager)
 
@@ -152,15 +150,16 @@ class MongoManager:
 
     def get_digital_twins_by_user_id(self, user_id_str):
         # Convert user_id string to ObjectId
+        print(user_id_str)
         user_id = ObjectId(user_id_str)
+        print(user_id)
         # Fetch digital twins by user_id
         cursor = self.db.digitalTwins.find(
-            {"userRef": user_id},
-            {"_id": 1, "userRef": 1,
-             "executions[0].timestamp": 1,
-             "executions[0].timestamp": 1}
+            {"userRef": user_id}, {"_id": 1, "userRef": 1}
         )
         digital_twins = []
+        print("____________ DTs")
+        print(digital_twins)
         for doc in cursor:
             doc["_id"] = str(doc["_id"])  # Convert ObjectId to string for pandas compatibility
             digital_twins.append(doc)

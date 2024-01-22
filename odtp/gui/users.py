@@ -2,23 +2,21 @@ import streamlit as st
 from odtp.setup import odtpDatabase
 import pandas as pd
 
-from db import MongoManager
+from odtp.mongodb.db import MongoManager
 
 st.set_page_config(layout="wide")
 
 def get_digital_twins():
-    odtpDB = odtpDatabase()
-    documents = odtpDB.dbManager.get_all_documents("digitalTwins")
+    with odtpDatabase() as dbManager:
+        documents = dbManager.get_all_documents("digitalTwins")
     print(documents)
-    odtpDB.close()
 
     return documents
 
 def get_users():
-    odtpDB = odtpDatabase()
-    documents = odtpDB.dbManager.get_all_documents("users")
+    with odtpDatabase() as dbManager:
+        documents = dbManager.get_all_documents("users")
     print(documents)
-    odtpDB.close()
 
     return documents
 
@@ -58,6 +56,10 @@ with st.form("users_registed"):
 
 st.dataframe(st.session_state['users_df'])
 
+all_digital_twins = get_digital_twins()
+digital_twin_df = pd.DataFrame(all_digital_twins)
+print(digital_twin_df)
+#st.write(digital_twin_df)
 
 # if mdbbutton:
 #     # mdbOut = getDTInMongoDB(mongoString)
@@ -67,17 +69,19 @@ st.dataframe(st.session_state['users_df'])
 #     users_df = pd.DataFrame(all_users)
 #     st.dataframe(users_df)
 
-
+"""
 st.write("## Digital Twins Entries")
 with st.form("digital_twins_registered"):
     index_selected = st.selectbox('Select one user to check the associated digital twins.', 
-                                  range(len(st.session_state['users_email'])), format_func=lambda x: st.session_state['users_email'][x])
-
+                                  range(len(st.session_state['users_email'])),
+                                  format_func=lambda x: st.session_state['users_email'][x])
+    print(st.session_state['users_id'])
     submit = st.form_submit_button("Load DTs")
     if submit:
         st.write("Loading DTs")
         mongo_manager = MongoManager(mongoString, "odtp")
-        digital_twins_by_user = mongo_manager.get_digital_twins_by_user_id(st.session_state['users_id'][index_selected])
+        digital_twins_by_user = mongo_manager.get_digital_twins_by_user_id(
+            st.session_state['users_id'][index_selected])
         digital_twins_df = pd.DataFrame(digital_twins_by_user)
         st.session_state['digital_twins_df'] = digital_twins_df
 
@@ -86,7 +90,7 @@ with st.form("digital_twins_registered"):
 
 st.dataframe(st.session_state['digital_twins_df'])
 
-
+"""
 # ##########################
 
 # import pandas as pd 

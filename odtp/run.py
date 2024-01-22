@@ -4,6 +4,8 @@ import subprocess
 import shutil
 from dotenv import dotenv_values
 
+"odtp"
+
 class DockerManager:
     def __init__(self, repo_url="", image_name="", project_folder=""):
         self.repo_url = repo_url

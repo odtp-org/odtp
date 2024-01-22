@@ -30,6 +30,27 @@ def get(
 
 
 @app.command()
+def getcollection(
+    collection: str = typer.Option(..., "--collection", help="Specify the collection"),
+):
+    """get a collection from the mongo db"""
+    with odtpDatabase() as dbManager:
+        out = dbManager.get_all_documents(collection)
+    print(out)
+
+
+@app.command()
+def getdigitaltwin(
+    id: str = typer.Option(..., "--userid", help="Specify the id"),
+):
+    """get a collection from the mongo db"""
+    with odtpDatabase() as dbManager:
+        out = dbManager.get_digital_twins_by_user_id(id)
+    print(out)
+
+
+
+@app.command()
 def deleteAll():
     """delete all content in the db"""
     with odtpDatabase() as dbManager:

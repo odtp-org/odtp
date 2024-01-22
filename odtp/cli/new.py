@@ -25,8 +25,8 @@ def user_entry(
     github: str = typer.Option(..., "--github", help="Specify the github"),
 ):
     """Add new user in the MongoDB"""
-    with odtpDatabase() as odtpDB:
-        user_id = odtpDB.add_user(name=name, github=github, email=email)
+    with odtpDatabase() as dbManager:
+        user_id = dbManager.add_user(name=name, github=github, email=email)
         logging.info("User added with ID {}".format(user_id))
 
 
