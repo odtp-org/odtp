@@ -9,8 +9,10 @@ import unittest
 import logging
 from odtp import db
 
-from dotenv import load_dotenv
-import os
+from dotenv import dotenv_values
+
+
+config = dotenv_values(".env")
 
 # # Set up logging
 # logging.basicConfig(level=logging.DEBUG)
@@ -38,9 +40,7 @@ class DBTests(unittest.TestCase):
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger(__name__)
 
-        load_dotenv()
-
-        url = os.getenv("MONGOURL")
+        url = config["MONGOURL"]
         db_name = "odtp"
         dbManager = db.MongoManager(url, db_name)
 

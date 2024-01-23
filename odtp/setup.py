@@ -5,15 +5,16 @@ from .db import MongoManager
 from .storage import s3Manager
 
 import logging
-import os
-from dotenv import load_dotenv
+from dotenv import dotenv_values
+
+
+config = dotenv_values(".env")
 
 
 class odtpDatabase:
     def __init__(self):
-        load_dotenv()
 
-        url = os.getenv("ODTP_MONGO_SERVER")
+        url = config["ODTP_MONGO_SERVER"]
         db_name = "odtp"
         dbManager = MongoManager(url, db_name)
 
@@ -58,11 +59,10 @@ class odtpDatabase:
 
 class s3Database:
     def __init__(self):
-        load_dotenv()
-        s3Server = os.getenv("ODTP_S3_SERVER")
-        bucketName = os.getenv("ODTP_BUCKET_NAME")
-        accessKey = os.getenv("ODTP_ACCESS_KEY")
-        secretKey = os.getenv("ODTP_SECRET_KEY")
+        s3Server = config["ODTP_S3_SERVER"]
+        bucketName = config["ODTP_BUCKET_NAME"]
+        accessKey = config["ODTP_ACCESS_KEY"]
+        secretKey = config["ODTP_SECRET_KEY"]
 
         storageManager = s3Manager(s3Server, bucketName, accessKey, secretKey)
 
