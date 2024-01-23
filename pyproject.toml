@@ -28,4 +28,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-odtp = "odtp.cli:app"
+odtp = "odtp.cli.main:app"
