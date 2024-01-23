@@ -23,7 +23,7 @@ from .workflow import WorkflowManager
 ## be placed in db
 from bson import ObjectId
 
-#from odtp import __version__
+from odtp import __version__
 
 app = typer.Typer(add_completion=False)
 new = typer.Typer()
@@ -52,11 +52,8 @@ def cli():
 
 def version_callback(value: bool):
     if value:
-        # TODO: Fix
         print(f"odtp {__version__}")
-        # Exits successfully
         raise typer.Exit()
-    
 
 
 typer_cli = typer.main.get_command(app)
