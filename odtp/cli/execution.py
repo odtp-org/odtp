@@ -5,7 +5,7 @@ import logging
 
 import typer
 
-from odtp.setup import odtpDatabase
+from odtp.mongodb.db import odtpDatabase
 from odtp.workflow import WorkflowManager
 
 app = typer.Typer()
@@ -20,11 +20,10 @@ def prepare(
         ..., "--project-path", help="Specify the path for the execution"
     ),
 ):
-    odtpDB = odtpDatabase()
-    execution_doc = odtpDB.dbManager.get_document_by_id_as_dict(
+    with odtpDatabase() as dbManager:
+        execution_doc = dbManager.get_document_by_id_as_dict(
         execution_id, "executions"
     )
-    odtpDB.close()
 
     flowManager = WorkflowManager(execution_doc, project_path)
     flowManager.prepare_workflow()
@@ -44,11 +43,10 @@ def run(
         help="Specify the path for the env files separated by commas.",
     ),
 ):
-    odtpDB = odtpDatabase()
-    execution_doc = odtpDB.dbManager.get_document_by_id_as_dict(
+    with odtpDatabase() as dbManager:
+        execution_doc = dbManager.get_document_by_id_as_dict(
         execution_id, "executions"
     )
-    odtpDB.close()
 
     env_files = env_files.split(",")
     logging.info(env_files)

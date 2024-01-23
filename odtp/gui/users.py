@@ -1,5 +1,5 @@
 import streamlit as st
-from odtp.setup import odtpDatabase
+from odtp.mongodb.db import odtpDatabase
 import pandas as pd
 
 from db import MongoManager
@@ -7,18 +7,16 @@ from db import MongoManager
 st.set_page_config(layout="wide")
 
 def get_digital_twins():
-    odtpDB = odtpDatabase()
-    documents = odtpDB.dbManager.get_all_documents("digitalTwins")
+    with odtpDatabase() as dbManager:
+        documents = dbManager.get_all_documents("digitalTwins")
     print(documents)
-    odtpDB.close()
 
     return documents
 
 def get_users():
-    odtpDB = odtpDatabase()
-    documents = odtpDB.dbManager.get_all_documents("users")
+    with odtpDatabase() as dbManager:
+        documents = dbManager.get_all_documents("users")
     print(documents)
-    odtpDB.close()
 
     return documents
 

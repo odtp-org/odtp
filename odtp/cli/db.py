@@ -3,7 +3,7 @@ This scripts contains odtp subcommands for 'db'
 """
 import typer
 
-from odtp.setup import odtpDatabase
+from odtp.mongodb.db import odtpDatabase
 
 app = typer.Typer()
 
@@ -13,27 +13,24 @@ def get(
     id: str = typer.Option(..., "--id", help="Specify the id"),
     collection: str = typer.Option(..., "--collection", help="Specify the collection"),
 ):
-    odtpDB = odtpDatabase()
-    out = odtpDB.dbManager.get_document_by_id(id, collection)
-    odtpDB.close()
+    with odtpDatabase() as dbManager:
+        out = dbManager.get_document_by_id(id, collection)
 
     print(out)
 
 
 @app.command()
 def showAll():
-    odtpDB = odtpDatabase()
-    out = odtpDB.dbManager.get_all_collections_as_json_string
-    odtpDB.close()
+    with odtpDatabase() as dbManager:
+        out = dbManager.get_all_collections_as_json_string
 
     print(out())
 
 
 @app.command()
 def deleteAll():
-    odtpDB = odtpDatabase()
-    odtpDB.deleteAll()
-    odtpDB.close()
+    with odtpDatabase() as dbManager:
+        dbManager.deleteAll()
 
     print("All collection deleted.")
 

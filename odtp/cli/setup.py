@@ -3,14 +3,14 @@ This scripts contains odtp subcommands for 'setup'
 """
 import typer
 
-from odtp.setup import odtpDatabase, s3Database
+from odtp.setup import mongodbDatabase, s3Database
 
 app = typer.Typer()
 
 
 @app.command()
 def initiate():
-    odtpDB = odtpDatabase()
+    odtpDB = mongodbDatabase()
     odtpDB.run_initial_setup()
 
     # Save all collections as JSON
@@ -27,7 +27,7 @@ def initiate():
 
 @app.command()
 def delete():
-    odtpDB = odtpDatabase()
+    odtpDB = mongodbDatabase()
     odtpDB.deleteAll()
 
     odtpS3 = s3Database()

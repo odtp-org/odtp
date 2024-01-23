@@ -1,8 +1,8 @@
 import os
-from .storage import s3Manager
-from .run import DockerManager
-from .db import MongoManager
-from .setup import odtpDatabase
+from odtp.storage import s3Manager
+from odtp.run import DockerManager
+from odtp.db import MongoManager
+from odtp.mongodb.db import odtpDatabase
 import logging
 
 from barfi import st_barfi, barfi_schemas, Block
@@ -33,13 +33,11 @@ class WorkflowManager:
             component_id = self.schema["components"][step_index]["component"]
             version_id = self.schema["components"][step_index]["version"]
 
-            odtpDB = odtpDatabase()
-            component_doc = odtpDB.dbManager.get_document_by_id_as_dict(component_id, "components")
-            odtpDB.close()
+            with odtpDatabase() as dbManager:
+                component_doc = dbManager.get_document_by_id_as_dict(component_id, "components")
 
-            odtpDB = odtpDatabase()
-            version_doc = odtpDB.dbManager.get_document_by_id_as_dict(version_id, "versions")
-            odtpDB.close()
+            with odtpDatabase() as dbManager:
+                version_doc = dbManager.get_document_by_id_as_dict(version_id, "versions")
 
             step_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
 

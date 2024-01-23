@@ -11,7 +11,7 @@ import typer
 ## be placed in db
 from bson import ObjectId
 
-from odtp.setup import odtpDatabase
+from odtp.mongodb.db import odtpDatabase
 
 app = typer.Typer()
 
@@ -30,10 +30,8 @@ def user_entry(
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
     }
-
-    odtpDB = odtpDatabase()
-    user_id = odtpDB.dbManager.add_user(user_data)
-    odtpDB.close()
+    with odtpDatabase() as dbManager:
+        user_id = dbManager.add_user(user_data)
     logging.info("User added with ID {}".format(user_id))
 
 
@@ -61,9 +59,8 @@ def odtp_component_entry(
         "updated_at": datetime.utcnow(),
     }
 
-    odtpDB = odtpDatabase()
-    component_id = odtpDB.dbManager.add_component(component_data)
-    odtpDB.close()
+    with odtpDatabase() as dbManager:
+        component_id = dbManager.add_component(component_data)
     logging.info("Component added with ID {}".format(component_id))
 
     # New version
@@ -80,9 +77,8 @@ def odtp_component_entry(
         "updated_at": datetime.utcnow(),
     }
 
-    odtpDB = odtpDatabase()
-    version_id = odtpDB.dbManager.add_version(component_id, version_data)
-    odtpDB.close()
+    with odtpDatabase() as dbManager:
+        version_id = dbManager.add_version(component_id, version_data)
     logging.info("Version added with ID {}".format(version_id))
 
 
@@ -101,9 +97,8 @@ def digital_twin_entry(
         "executions": [],
     }
 
-    odtpDB = odtpDatabase()
-    dt_id = odtpDB.dbManager.add_digital_twin(user_id, dt_data)
-    odtpDB.close()
+    with odtpDatabase() as dbManager:
+        dt_id = dbManager.add_digital_twin(user_id, dt_data)
 
     logging.info("Digital Twin added with ID {}".format(dt_id))
 
@@ -149,9 +144,8 @@ def execution_entry(
         "steps": [],  # Array of ObjectIds referencing Steps collection. Change in a future by DAG graph
     }
 
-    odtpDB = odtpDatabase()
-    execution_id = odtpDB.dbManager.append_execution(dt_id, execution_data)
-    odtpDB.close()
+    with odtpDatabase() as dbManager:
+        execution_id = dbManager.append_execution(dt_id, execution_data)
 
     logging.info("Execution added with ID {}".format(execution_id))
 
@@ -170,9 +164,8 @@ def execution_entry(
             "parameters": {},
         }
 
-        odtpDB = odtpDatabase()
-        step_id = odtpDB.dbManager.append_step(execution_id, step_data)
-        odtpDB.close()
+        with odtpDatabase() as dbManager:
+            step_id = dbManager.append_step(execution_id, step_data)
 
         steps_ids.append(step_id)
 
