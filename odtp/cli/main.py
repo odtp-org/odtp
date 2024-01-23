@@ -13,9 +13,9 @@ from datetime import datetime
 import logging
 
 ## ODTP METHODS
-from .setup import odtpDatabase, s3Database
-from .run import DockerManager
-from .workflow import WorkflowManager
+from odtp.setup import odtpDatabase, s3Database
+from odtp.run import DockerManager
+from odtp.workflow import WorkflowManager
 
 
 ## Temporaly placing ObjectID for dealing with stesp. 
