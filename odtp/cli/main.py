@@ -3,11 +3,13 @@
 # A partnership between École Polytechnique Fédérale de Lausanne (EPFL) and
 # Eidgenössische Technische Hochschule Zürich (ETHZ).
 """Command line interface to the odpt package."""
+from typing import Optional
+
 import click
 import typer
-from typing import Optional
-from odtp.cli import db, new, component, dashboard, execution, s3, setup
+
 from odtp import __version__
+from odtp.cli import component, dashboard, db, execution, new, s3, setup
 
 app = typer.Typer(add_completion=False)
 
@@ -26,6 +28,7 @@ def cli():
     """Command line group"""
     pass
 
+
 def version_callback(value: bool):
     if value:
         print(f"odtp {__version__}")
@@ -39,12 +42,11 @@ cli.add_command(typer_cli, "cli")
 # This callback is triggered when odtp is called without subcommand
 @app.callback()
 def callback(
-    version: Optional[bool] = typer.Option(
-        None, "--version", callback=version_callback
-    )
+    version: Optional[bool] = typer.Option(None, "--version", callback=version_callback)
 ):
     """odtp runs and organize digital twins."""
     pass
+
 
 if __name__ == "__main__":
     app()

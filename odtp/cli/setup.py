@@ -2,8 +2,8 @@
 This scripts contains odtp subcommands for 'setup'
 """
 import typer
-from odtp.setup import odtpDatabase, s3Database
 
+from odtp.setup import odtpDatabase, s3Database
 
 app = typer.Typer()
 
@@ -14,11 +14,10 @@ def initiate():
     odtpDB.run_initial_setup()
 
     # Save all collections as JSON
-    odtpDB.dbManager.export_all_collections_as_json('odtpDB.json')
+    odtpDB.dbManager.export_all_collections_as_json("odtpDB.json")
 
     odtpS3 = s3Database()
     odtpS3.create_folders(["odtp"])
-
 
     odtpDB.close()
     odtpS3.close()

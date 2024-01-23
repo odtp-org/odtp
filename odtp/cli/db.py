@@ -2,23 +2,17 @@
 This scripts contains odtp subcommands for 'db'
 """
 import typer
-from odtp.setup import odtpDatabase
 
+from odtp.setup import odtpDatabase
 
 app = typer.Typer()
 
 
 @app.command()
-def get(id: str = typer.Option(
-    ...,
-    "--id",
-    help="Specify the id"
-),
-        collection: str = typer.Option(
-            ...,
-            "--collection",
-            help="Specify the collection"
-        )):
+def get(
+    id: str = typer.Option(..., "--id", help="Specify the id"),
+    collection: str = typer.Option(..., "--collection", help="Specify the collection"),
+):
     odtpDB = odtpDatabase()
     out = odtpDB.dbManager.get_document_by_id(id, collection)
     odtpDB.close()

@@ -2,64 +2,52 @@
 This scripts contains odtp subcommands for 'components'
 """
 import typer
-from odtp.run import DockerManager
 
+from odtp.run import DockerManager
 
 app = typer.Typer()
 
 
 @app.command()
-def prepare(folder: str = typer.Option(
-    ...,
-    "--folder",
-    help="Specify the project folder location"
-),
-        image_name: str = typer.Option(
-            ...,
-            "--image_name",
-            help="Specify the name of the component image"
-        ),
-        repository: str = typer.Option(
-            ...,
-            "--repository",
-            help="Specify the git repository url"
-        )):
-    componentManager = DockerManager(repo_url=repository,
-                                     image_name=image_name,
-                                     project_folder=folder)
+def prepare(
+    folder: str = typer.Option(
+        ..., "--folder", help="Specify the project folder location"
+    ),
+    image_name: str = typer.Option(
+        ..., "--image_name", help="Specify the name of the component image"
+    ),
+    repository: str = typer.Option(
+        ..., "--repository", help="Specify the git repository url"
+    ),
+):
+    componentManager = DockerManager(
+        repo_url=repository, image_name=image_name, project_folder=folder
+    )
     componentManager.download_repo()
     componentManager.build_image()
 
 
 @app.command()
-def run(folder: str = typer.Option(
-    ...,
-    "--folder",
-    help="Specify the project folder location"
-),
-        image_name: str = typer.Option(
-            ...,
-            "--image_name",
-            help="Specify the name of the component image"
-        ),
-        repository: str = typer.Option(
-            ...,
-            "--repository",
-            help="Specify the git repository url"
-        ),
-        env_file: str = typer.Option(
-            ...,
-            "--env_file",
-            help="Specify the path to the environment file"
-        ),
-        instance_name: str = typer.Option(
-            ...,
-            "--instance_name",
-            help="Specify the name of the instance"
-        )):
-    componentManager = DockerManager(repo_url=repository,
-                                     image_name=image_name,
-                                     project_folder=folder)
+def run(
+    folder: str = typer.Option(
+        ..., "--folder", help="Specify the project folder location"
+    ),
+    image_name: str = typer.Option(
+        ..., "--image_name", help="Specify the name of the component image"
+    ),
+    repository: str = typer.Option(
+        ..., "--repository", help="Specify the git repository url"
+    ),
+    env_file: str = typer.Option(
+        ..., "--env_file", help="Specify the path to the environment file"
+    ),
+    instance_name: str = typer.Option(
+        ..., "--instance_name", help="Specify the name of the instance"
+    ),
+):
+    componentManager = DockerManager(
+        repo_url=repository, image_name=image_name, project_folder=folder
+    )
 
     # TODO: Detect if previous steps has been completed
     # componentManager.download_repo()
@@ -74,22 +62,22 @@ def stop():
 
 
 @app.command()
-def delete_instance(instance_name: str = typer.Option(
-    ...,
-    "--instance_name",
-    help="Specify the name of the docker image"
-)):
+def delete_instance(
+    instance_name: str = typer.Option(
+        ..., "--instance_name", help="Specify the name of the docker image"
+    )
+):
     componentManager = DockerManager()
     componentManager.delete_component(instance_name=instance_name)
     print("Component Deleted")
 
 
 @app.command()
-def delete_image(image_name: str = typer.Option(
-    ...,
-    "--image_name",
-    help="Specify the name of the docker image"
-)):
+def delete_image(
+    image_name: str = typer.Option(
+        ..., "--image_name", help="Specify the name of the docker image"
+    )
+):
     componentManager = DockerManager(image_name=image_name)
     componentManager.delete_image()
     print("Component Deleted")
