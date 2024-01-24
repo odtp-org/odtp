@@ -7,6 +7,12 @@ from odtp.setup import s3Database
 
 app = typer.Typer()
 
+#### TODO: S3 Create
+
+#### TODO: S3 Delete
+
+#### TODO: S3 Check
+
 
 @app.command()
 def download(
