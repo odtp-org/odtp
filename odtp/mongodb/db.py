@@ -50,8 +50,10 @@ def get_document_by_id(document_id, collection):
 def delete_document_by_id(document_id, collection):
     with MongoClient(mongodb_url) as client:
         db = client[db_name]
+        import pdb; pdb.set_trace()
         document = db[collection].delete_one({"_id": ObjectId(document_id)})
         logging.info(f"Document with ID {document_id} was deleted")
+
 
 
 def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
@@ -120,7 +122,7 @@ def add_version(componentRef, version, component_version, repository_commit):
         db = client[db_name]
         version_id = db[collection_versions].insert_one(version_data).inserted_id
         logging.info("Version added with ID {}".format(version_id))
-        db[collection_users].update_one(
+        db[collection_components].update_one(
             {"_id": ObjectId(componentRef)}, {"$push": {"versions": version_id}}
         )
     return version_id

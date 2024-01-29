@@ -32,17 +32,20 @@ def odtp_component_entry(
         repository=repository,
     )
     print(
-        f"A component has been added with \ncomponent_id={component_id} \nversion_id={version_id}"
+        f"A component has been added with \ncomponent_id={component_id}"
     )
 
-
+@app.command()
 def odtp_component_version_entry(
-    component_id: str = typer.Option(..., "--name", help="Specify the name"),
+    component_id: str = typer.Option(
+        ..., "--component-id",
+        help="Specify the id of the component that the version relates to"),
     version: str = typer.Option(..., "--version", help="Specify the version"),
     component_version: str = typer.Option(
         ..., "--component-version", help="Specify the component version"
     ),
-    repository_commit: str = typer.Option(..., "--repository", help="Specify the repository"),
+    repository_commit: str = typer.Option(
+        ..., "--repository-commit", help="Specify the url to the repository commit"),
 ):
     version_id = db.add_version(
         componentRef=component_id,
