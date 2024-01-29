@@ -47,15 +47,6 @@ def get_document_by_id(document_id, collection):
     return document
 
 
-def delete_document_by_id(document_id, collection):
-    with MongoClient(mongodb_url) as client:
-        db = client[db_name]
-        import pdb; pdb.set_trace()
-        document = db[collection].delete_one({"_id": ObjectId(document_id)})
-        logging.info(f"Document with ID {document_id} was deleted")
-
-
-
 def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
     with MongoClient(mongodb_url) as client:
         db = client[db_name]

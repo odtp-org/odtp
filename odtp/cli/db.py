@@ -64,15 +64,6 @@ def steps_for_execution(
 
 
 @app.command()
-def delete_document(
-    collection: str = typer.Option(..., "--collection", help="Specify the collection"),
-    id: str = typer.Option(help="Specify the id")
-):
-    db.delete_document_by_id(document_id=id, collection=collection)
-    print(f"Document with ID {id} was deleted")
-
-
-@app.command()
 def deleteAll():
     db.delete_all()
     print("All collection deleted.")
