@@ -50,7 +50,7 @@ class WorkflowManager:
             image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
 
             self.image_names.append(image_name)
-            self.repo_urls.append(version_doc["repoLink"])
+            self.repo_urls.append(version_doc["repoCommitLink"])
             self.instance_names.append(image_name)
 
 
