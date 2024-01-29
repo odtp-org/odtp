@@ -81,22 +81,33 @@ def add_user(name, github, email):
     return user_id
 
 
-def add_component(component_name, version, component_version, repository):
+def add_component(component_name, repository):
     """add component and component version"""
     component_data = {
         "author": "Test",
         "componentName": component_name,
+        "repoLink": repository,
         "status": "active",
         "title": "Title for ComponentX",
         "description": "Description for ComponentX",
         "tags": ["tag1", "tag2"],
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
+        "versions": [],
     }
+    with MongoClient(mongodb_url) as client:
+        db = client[db_name]
+        component_id = db[collection_components].insert_one(component_data).inserted_id
+        logging.info("Component added with ID {}".format(component_id))
+    return component_id
+
+
+def add_version(componentRef, version, component_version, repository_commit):
+    """add component and component version"""
     version_data = {
         "version": version,
         "component_version": component_version,
-        "repoLink": repository,
+        "repoCommitLink": repository_commit,
         "dockerHubLink": "",
         "parameters": {},
         "title": "Title for Version v1.0",
@@ -107,12 +118,12 @@ def add_component(component_name, version, component_version, repository):
     }
     with MongoClient(mongodb_url) as client:
         db = client[db_name]
-        component_id = db[collection_components].insert_one(component_data).inserted_id
-        logging.info("Component added with ID {}".format(component_id))
-        version_data["componentId"] = component_id
         version_id = db[collection_versions].insert_one(version_data).inserted_id
         logging.info("Version added with ID {}".format(version_id))
-    return (component_id, version_id)
+        db[collection_users].update_one(
+            {"_id": ObjectId(componentRef)}, {"$push": {"versions": version_id}}
+        )
+    return version_id
 
 
 def add_digital_twin(userRef, name):

@@ -25,22 +25,34 @@ def user_entry(
 @app.command()
 def odtp_component_entry(
     component_name: str = typer.Option(..., "--name", help="Specify the name"),
-    version: str = typer.Option(..., "--version", help="Specify the version"),
-    component_version: str = typer.Option(
-        ..., "--component-version", help="Specify the component version"
-    ),
     repository: str = typer.Option(..., "--repository", help="Specify the repository"),
 ):
-    component_id, version_id = db.add_component(
+    component_id = db.add_component(
         component_name=component_name,
-        version=version,
-        component_version=component_version,
         repository=repository,
     )
     print(
         f"A component has been added with \ncomponent_id={component_id} \nversion_id={version_id}"
     )
 
+
+def odtp_component_version_entry(
+    component_id: str = typer.Option(..., "--name", help="Specify the name"),
+    version: str = typer.Option(..., "--version", help="Specify the version"),
+    component_version: str = typer.Option(
+        ..., "--component-version", help="Specify the component version"
+    ),
+    repository_commit: str = typer.Option(..., "--repository", help="Specify the repository"),
+):
+    version_id = db.add_version(
+        componentRef=component_id,
+        version=version,
+        component_version=component_version,
+        repository_commit=repository_commit,
+    )
+    print(
+        f"A version {version_id} has been added to the component_id={component_id}"
+    )
 
 # New Digital Twin
 @app.command()
