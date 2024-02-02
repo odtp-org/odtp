@@ -468,7 +468,7 @@ Ontology: The foundational ODTP ontology is licensed under the Creative Commons 
 Component Zoo Template: The template for the Component Zoo operates under the BSD-3 license, emphasizing broad compatibility and open development. It's important to note that individual components within the Zoo retain their original licenses.
 
 ### Alternative Commercial Licensing
-Alternative commercial licensing options for the core platform and other components are available and can be negotiated through the EPFL Technology Transfer Office (tto.epfl.ch) or ETH Zürich Technology Transfer Office (https://ethz.ch/en/industry/transfer.html).
+Alternative commercial licensing options for the core platform and other components are available and can be negotiated through the EPFL Technology Transfer Office (https://tto.epfl.ch) or ETH Zürich Technology Transfer Office (https://ethz.ch/en/industry/transfer.html).
 
 ## Ethical Use and Legal Compliance Disclaimer
 Please note that this software should not be used to deliberately harm any individual or entity. Users and developers must adhere to ethical guidelines and use the software responsibly and legally. This disclaimer serves to remind all parties involved in the use or development of this software to engage in practices that are ethical, lawful, and in accordance with the intended purpose of the software.
