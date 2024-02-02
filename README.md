@@ -429,10 +429,43 @@ results = {
     "updated_at": datetime.utcnow(),
 }
 ```
-### How to request an EPFL S3 Instance
+# How to Contribute to the Open Digital Twin Platform (ODTP) Project
+We sincerely appreciate your interest in contributing to the ODTP project. Here is a step-by-step guide to help you through the process:
+- **Step 1: Sign the Contributor License Agreement (CLA).** Before contributing, please sign a CLA, which clarifies the intellectual property licenses granted with contributions.
+    - Individual Contributors (CLAI): If you're contributing independently (not on behalf of a company), sign the [Individual Contributor License Agreement (CLAI)](https://github.com/odtp-org/odtp/blob/main/CLAI.txt).
+    - Corporate Contributors (CLAC): If contributions are made by employees on behalf of a company, the company should sign the [Corporate Contributor License Agreement (CLAC)](https://github.com/odtp-org/odtp/blob/main/CLAC.txt).
 
-TO BE DONE
+- **Step 2: Decide How to Contribute.** For minor improvements or fixes, consider opening a new issue or commenting on an existing relevant issue. For significant contributions or discussions before contributing, contact our coordinators at contact@datascience.ch.
+- **Step 3: Follow Our Code of Conduct and Contribution Guidelines**.
+Contributors are expected to adhere to our Code of Conduct, which promotes a respectful and collaborative environment:
+  - Inclusivity & Empathy: Everyone is welcome. We value empathy, kindness, and patience.
+  - Collaborative Spirit: Resolve conflicts together, assume good intentions, and respect each other’s work.
+  - Openness: Encourage public communication for project-related discussions, reserving private channels for sensitive matters.
+  - Responsibility & Respect: Be thoughtful in communication. Harassment, insults, or exclusionary behavior are not tolerated.
+  - Diversity & Participation: We welcome diverse backgrounds and strive to make everyone feel valued.
+  - Language: English is used for project development. Help maintain this standard.
 
-## Development.
 
-Developed by SDSC/CSFM
+# Acknowledgments, Copyright, and Licensing
+## Acknowledgments and Funding
+This work is part of the broader project **O**pen **D**igital **T**win **P**latform of the **S**wiss **M**obility **S**ystem (ODTP-SMS) funded by Swissuniversities CHORD grant Track B - Establish Projects. ODTP-SMS project is a joint endeavour by the Center for Sustainable Future Mobility - CSFM (ETH Zürich) and the Swiss Data Science Center - SDSC (EPFL and ETH Zürich). 
+The Swiss Data Science Center (SDSC) develops domain-agnostic standards and containerized components to manage digital twins. This includes the creation of the Core Platform (both back-end and front-end), Service Component Integration Templates, Component Ontology, and the Component Zoo template. 
+The Center for Sustainable Future Mobility (CSFM) develops mobility services and utilizes the components produced by SDSC to deploy a mobility digital twin platform. CSFM focuses on integrating mobility services and collecting available components in the mobility zoo, thereby applying the digital twin concept in the realm of mobility.
+ 
+## Copyright
+Copyright © 2023-2024 Swiss Data Science Center (SDSC), www.datascience.ch. All rights reserved.
+The SDSC is jointly established and legally represented by the École Polytechnique Fédérale de Lausanne (EPFL) and the Eidgenössische Technische Hochschule Zürich (ETH Zürich). This copyright encompasses all materials, software, documentation, and other content created and developed by the SDSC.
+ 
+## Licensing
+The core component of the ODTP software is distributed as open-source under the AGPLv3 license. This ensures that all modifications and derivatives remain open source, fostering a collaborative and shared development environment. Detailed terms of the AGPLv3 license can be found in the LICENSE file within this distribution package.
+
+### Distinct Licensing for Other Components
+Service Component Integration Templates are licensed under the BSD-3 license, allowing for broad compatibility and standardization.
+Ontology: The foundational ODTP ontology is licensed under the Creative Commons Attribution-ShareAlike (CC BY-SA), promoting open use and ensuring that any derivatives also remain open.
+Component Zoo Template: The template for the Component Zoo operates under the BSD-3 license, emphasizing broad compatibility and open development. It's important to note that individual components within the Zoo retain their original licenses.
+
+### Alternative Commercial Licensing
+Alternative commercial licensing options for the core platform and other components are available and can be negotiated through the EPFL Technology Transfer Office (tto.epfl.ch) or ETH Zürich Technology Transfer Office (https://ethz.ch/en/industry/transfer.html).
+
+## Ethical Use and Legal Compliance Disclaimer
+Please note that this software should not be used to deliberately harm any individual or entity. Users and developers must adhere to ethical guidelines and use the software responsibly and legally. This disclaimer serves to remind all parties involved in the use or development of this software to engage in practices that are ethical, lawful, and in accordance with the intended purpose of the software.
