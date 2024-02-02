@@ -429,7 +429,7 @@ results = {
     "updated_at": datetime.utcnow(),
 }
 ```
-# How to Contribute to the Open Digital Twin Platform (ODTP) Project
+# How to Contribute to the ODTP Project
 We sincerely appreciate your interest in contributing to the ODTP project. Here is a step-by-step guide to help you through the process:
 - **Step 1: Sign the Contributor License Agreement (CLA).** Before contributing, please sign a CLA, which clarifies the intellectual property licenses granted with contributions.
     - Individual Contributors (CLAI): If you're contributing independently (not on behalf of a company), sign the [Individual Contributor License Agreement (CLAI)](https://github.com/odtp-org/odtp/blob/main/CLAI.txt).
@@ -455,6 +455,9 @@ The Center for Sustainable Future Mobility (CSFM) develops mobility services and
 ## Copyright
 Copyright © 2023-2024 Swiss Data Science Center (SDSC), www.datascience.ch. All rights reserved.
 The SDSC is jointly established and legally represented by the École Polytechnique Fédérale de Lausanne (EPFL) and the Eidgenössische Technische Hochschule Zürich (ETH Zürich). This copyright encompasses all materials, software, documentation, and other content created and developed by the SDSC.
+
+## Intellectual Property (IP) Rights
+The Open Digital Twin Platform (ODTP) is the result of a collaborative effort between ETH Zurich (ETHZ) and the École Polytechnique Fédérale de Lausanne (EPFL). Both institutions hold equal intellectual property rights for the ODTP project, reflecting the equitable and shared contributions of EPFL and ETH Zürich in the development and advancement of this initiative.  
  
 ## Licensing
 The core component of the ODTP software is distributed as open-source under the AGPLv3 license. This ensures that all modifications and derivatives remain open source, fostering a collaborative and shared development environment. Detailed terms of the AGPLv3 license can be found in the LICENSE file within this distribution package.
