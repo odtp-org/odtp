@@ -33,7 +33,7 @@ def odtp_component_entry(
     commmit: str = typer.Option(
         ..., "--commit", help="Specify the commit of the repository"),
 ):
-    component_id, version_id = db.add_component(
+    component_id, version_id = db.add_component_version(
         component_name=component_name,
         repository=repository,
         odtp_version=odtp_version,

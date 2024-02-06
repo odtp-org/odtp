@@ -80,6 +80,14 @@ def delete_document(
 
 
 @app.command()
+def delete_collection(
+    collection: str = typer.Option(..., "--collection", help="Specify the collection"),
+):
+    db.delete_collection(collection=collection)
+    print(f"Collection {collection} was deleted.")
+
+
+@app.command()
 def deleteAll():
     db.delete_all()
     print("All collection deleted.")

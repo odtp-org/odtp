@@ -70,6 +70,8 @@ def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
     with MongoClient(mongodb_url) as client:
         db = client[db_name]
         collection_item = db[collection].find_one({"_id": ObjectId(item_id)})
+        if not collection_item:
+            return []
         sub_collection_ids = collection_item.get(ref_name)
         if not sub_collection_ids:
             return []
@@ -93,7 +95,7 @@ def add_user(name, github, email):
     return user_id
 
 
-def add_component(
+def add_component_version(
     component_name,
     repository,
     odtp_version,
@@ -138,30 +140,6 @@ def add_component(
             {"_id": ObjectId(component_id)}, {"$push": {"versions": version_id}}
         )
     return component_id, version_id
-
-
-def add_version(componentRef, odtp_version, component_version, repository_commit):
-    """add component and component version"""
-    version_data = {
-        "odtp_version": odtp_version,
-        "component_version": component_version,
-        "commitHash": repository_commit,
-        "dockerHubLink": "",
-        "parameters": {},
-        "title": "Title for Version v1.0",
-        "description": "Description for Version v1.0",
-        "tags": ["tag1", "tag2"],
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
-    }
-    with MongoClient(mongodb_url) as client:
-        db = client[db_name]
-        version_id = db[collection_versions].insert_one(version_data).inserted_id
-        logging.info("Version added with ID {}".format(version_id))
-        db[collection_components].update_one(
-            {"_id": ObjectId(componentRef)}, {"$push": {"versions": version_id}}
-        )
-    return version_id
 
 
 def add_digital_twin(userRef, name):
@@ -260,6 +238,12 @@ def append_step(db, execution_id, step_data):
     # Update execution with step reference
     db.executions.update_one({"_id": execution_id}, {"$push": {"steps": step_id}})
     return step_id
+
+
+def delete_collection(collection):
+    with MongoClient(mongodb_url) as client:
+        db = client[db_name]
+        db.drop_collection(collection)
 
 
 def delete_all():
