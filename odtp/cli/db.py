@@ -7,6 +7,8 @@ from typing_extensions import Annotated
 import odtp.mongodb.db as db
 import odtp.mongodb.utils as utils
 
+from prettytable import PrettyTable
+
 app = typer.Typer()
 
 
@@ -92,6 +94,19 @@ def deleteAll():
     db.delete_all()
     print("All collection deleted.")
 
+@app.command()
+def print_users():
+    odtpDB = odtpDatabase()
+    all_docs = odtpDB.dbManager.get_all_documents("users")
+    odtpDB.close()
+
+    x = PrettyTable()
+    field_names = ["_id", "displayName", "github", "email"]
+    x.field_names = field_names
+    for doc in all_docs:
+        x.add_row([doc[key] for key in field_names])
+    
+    print(x)
 
 if __name__ == "__main__":
     app()
