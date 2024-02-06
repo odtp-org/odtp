@@ -85,9 +85,10 @@ class DockerManager:
         #logging.info(env_args)
 
         if ports:
+            print(ports)
             ports_args = [f"-p {port_pair}" for port_pair in ports]
         else:
-            ports_args = ""
+            ports_args = [""]
 
         #docker_run_command = ["docker", "run", "--detach", "--name", name, "--volume", f"{volume}:/mount"] + env_args + [component]
         docker_run_command = ["docker", "run", "-it", "--name", instance_name, 

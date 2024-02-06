@@ -41,18 +41,19 @@ def run(
         ..., "--repository", help="Specify the git repository url"
     ),
     env_file: str = typer.Option(
-        ..., "--env_file", help="Specify the path to the environment file"
+        None, "--env_file", help="Specify the path to the environment file"
     ),
     instance_name: str = typer.Option(
         ..., "--instance_name", help="Specify the name of the instance"
     ),
     ports: List[str] = typer.Option(
-        [], "--port", "-p", help="Specify ports"
+        None, "--port", "-p", help="Specify ports"
     ),
 ):
     componentManager = DockerManager(
         repo_url=repository, image_name=image_name, project_folder=folder
     )
+
 
     # TODO: Detect if previous steps has been completed
     # componentManager.download_repo()
