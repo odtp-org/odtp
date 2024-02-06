@@ -176,6 +176,7 @@ def add_execution(
     components,
     versions,
     workflow,
+    ports,
 ):
     """add and execution to the database"""
     with MongoClient(mongodb_url) as client:
@@ -215,6 +216,7 @@ def add_execution(
                 "component": c["component"],
                 "component_version": c["version"],
                 "parameters": {},
+                "ports": ports,
             }
             step_id = append_step(db, execution_id, step_data)
             steps_ids.append(step_id)

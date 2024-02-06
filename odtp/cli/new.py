@@ -5,6 +5,9 @@ import typer
 
 import odtp.mongodb.db as db
 
+## Adding listing so we can have multiple flags
+from typing import List
+
 app = typer.Typer()
 
 
@@ -30,6 +33,7 @@ def odtp_component_entry(
     component_version: str = typer.Option(
         ..., "--component-version", help="Specify the component version"
     ),
+<<<<<<< HEAD
     commmit: str = typer.Option(
         ..., "--commit", help="Specify the commit of the repository"),
 ):
@@ -43,6 +47,48 @@ def odtp_component_entry(
     print(
         f"A component version has been added\nversion_id: {version_id}\ncomponent_id: {component_id}"
     )
+=======
+    repository: str = typer.Option(..., "--repository", help="Specify the repository"),
+    ports: List[str] = typer.Option([], "--port", "-p", help="Specify ports")
+):
+    # New component
+    component_data = {
+        "author": "Test",
+        "componentName": component_name,
+        "status": "active",
+        "title": "Title for ComponentX",
+        "description": "Description for ComponentX",
+        "tags": ["tag1", "tag2"],
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+    }
+
+    odtpDB = odtpDatabase()
+    component_id = odtpDB.dbManager.add_component(component_data)
+    odtpDB.close()
+    logging.info("Component added with ID {}".format(component_id))
+
+    # New version
+    version_data = {
+        "version": version,
+        "component_version": component_version,
+        "repoLink": repository,
+        "dockerHubLink": "",
+        "parameters": {},
+        "title": "Title for Version v1.0",
+        "description": "Description for Version v1.0",
+        "tags": ["tag1", "tag2"],
+        "ports": ports,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+    }
+
+    odtpDB = odtpDatabase()
+    version_id = odtpDB.dbManager.add_version(component_id, version_data)
+    odtpDB.close()
+    logging.info("Version added with ID {}".format(version_id))
+
+>>>>>>> b59ecf3 (Ports added to component/version docs (single) and steps docs (pair). It's required when running the component.)
 
 # New Digital Twin
 @app.command()
@@ -72,13 +118,18 @@ def execution_entry(
         "--workflow",
         help="Specify the sequential order for the components, starting by 0, and separating values by commas",
     ),
+    ports: List[str] = typer.Option(
+        [], "--port", "-p", help="Specify ports pairs i.e. -p 9001:9001"
+    ),
 ):
+
     execution_id, step_ids = db.add_execution(
         dt_id=dt_id,
         name=name,
         components=components,
         versions=versions,
         workflow=workflow,
+        ports=ports,
     )
     print(f"execution has been added with ID {execution_id} and steps: {step_ids}")
 

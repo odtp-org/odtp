@@ -118,18 +118,13 @@ class WorkflowManager:
         for step_index in self.schema["workflowExecutorSchema"]:
             step_index = int(step_index)
 
-            # component_id = self.schema["components"][step_index]["component"]
-            # version_id = self.schema["components"][step_index]["version"]
+            step_id = self.execution["steps"][step_index]
 
-            # odtpDB = odtpDatabase()
-            # component_doc = odtpDB.dbManager.get_document_by_id_as_dict(component_id, "components")
-            # odtpDB.close()
+            odtpDB = odtpDatabase()
+            step_doc = odtpDB.dbManager.get_document_by_id_as_dict(step_id, "components")
+            odtpDB.close()
 
-            # odtpDB = odtpDatabase()
-            # version_doc = odtpDB.dbManager.get_document_by_id_as_dict(version_id, "versions")
-            # odtpDB.close()
-
-            # step_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
+            ports = step_doc["ports"]
 
             # Copying the compressed output files into the new input ones
             # Extracting the files
@@ -161,7 +156,8 @@ class WorkflowManager:
             
             # instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
             logging.info(env_files[step_index])
-            componentManager.run_component(env_files[step_index],  
+            componentManager.run_component(env_files[step_index],
+                                           ports=ports,
                                            instance_name=self.instance_names[step_index],
                                            step_id=self.execution["steps"][step_index])
 
