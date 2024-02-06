@@ -102,6 +102,7 @@ def add_component_version(
     odtp_version,
     component_version,
     commit_hash,
+    ports,
 ):
     """add component and component version"""
     with MongoClient(mongodb_url) as client:
@@ -116,6 +117,7 @@ def add_component_version(
                 "title": "Title for ComponentX",
                 "description": "Description for ComponentX",
                 "tags": ["tag1", "tag2"],
+                "ports": ports,
                 "created_at": datetime.utcnow(),
                 "updated_at": datetime.utcnow(),
                 "versions": [],
@@ -183,6 +185,8 @@ def add_execution(
         db = client[db_name]
         components = [ObjectId(c) for c in components.split(",")]
         versions = [ObjectId(v) for v in versions.split(",")]
+        ports = [[port for port in ports_step.split(',')] for ports_step in ports.split('+')]
+    
         components_list = [
             {"component": c, "version": v} for c, v in zip(components, versions)
         ]
@@ -204,7 +208,7 @@ def add_execution(
         logging.info(f"Execution added with ID {execution_id}")
 
         steps_ids = []
-        for c in components_list:
+        for i,c in enumerate(components_list):
             step_data = {
                 "timestamp": datetime.utcnow(),
                 "start_timestamp": datetime.utcnow(),
@@ -216,7 +220,7 @@ def add_execution(
                 "component": c["component"],
                 "component_version": c["version"],
                 "parameters": {},
-                "ports": ports,
+                "ports": ports[i],
             }
             step_id = append_step(db, execution_id, step_data)
             steps_ids.append(step_id)

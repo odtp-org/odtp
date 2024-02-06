@@ -121,10 +121,11 @@ class WorkflowManager:
             step_id = self.execution["steps"][step_index]
 
             odtpDB = odtpDatabase()
-            step_doc = odtpDB.dbManager.get_document_by_id_as_dict(step_id, "components")
+            step_doc = odtpDB.dbManager.get_document_by_id_as_dict(step_id, "steps")
             odtpDB.close()
 
             ports = step_doc["ports"]
+
 
             # Copying the compressed output files into the new input ones
             # Extracting the files
