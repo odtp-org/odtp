@@ -1,5 +1,6 @@
 import os
 import re
+
 ODTP_INPUT = "odtp-input"
 ODTP_OUTPUT = "odtp-output"
 ODTP_REPO = "repository"
@@ -10,7 +11,7 @@ def check_empty_output_folder(project_path):
         return False
     elif not os.path.isdir(project_path):
         return False
-    elif len(os.listdir(project_path)) !=0:
+    elif len(os.listdir(project_path)) != 0:
         return False
     return True
 
