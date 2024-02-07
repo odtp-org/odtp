@@ -297,6 +297,7 @@ users = {
     "github": "johnDoeRepo",
     "created_at": datetime.utcnow(),
     "updated_at": datetime.utcnow(),
+    "digitalTwins": [ObjectId()]  # Array of ObjectIds referencing digitalTwins collection
 }
 
 # Components Collection
@@ -304,12 +305,14 @@ components = {
     "_id": ObjectId(),
     "author": "Test",
     "componentName": "ComponentX",
+    "repoLink": "https://github.com/odtp-org/odtp-component-example",
     "status": "active",
     "title": "Title for ComponentX",
     "description": "Description for ComponentX",
     "tags": ["tag1", "tag2"],
     "created_at": datetime.utcnow(),
     "updated_at": datetime.utcnow(),
+    "versions": [ObjectId()]  # Array of ObjectIds referencing Versions collection
 }
 
 # Versions Collection
@@ -318,14 +321,14 @@ versions = {
     "componentId": ObjectId(),
     "version": "v1.0",
     "component_version": "1.0.0",
-    "repoLink": "https://github.com/...",
+    "commitHash": "6471218336ce7de41a5162c9556c0ff68f9ec13c",
     "dockerHubLink": "https://hub.docker.com/...",
     "parameters": {},
     "title": "Title for Version v1.0",
     "description": "Description for Version v1.0",
     "tags": ["tag1", "tag2"],
     "created_at": datetime.utcnow(),
-    "updated_at": datetime.utcnow(),
+    "updated_at": datetime.utcnow()
 }
 
 # DigitalTwins Collection
@@ -401,7 +404,6 @@ output = {
         "authorized_users": [ObjectId()],  # Array of User ObjectIds who have access
     }
 }
-
 
 # Results Collection
 results = {
