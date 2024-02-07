@@ -26,7 +26,7 @@ def initiate(mockup_data: bool = typer.Option(
     odtpDB.close()
     odtpS3.close()
 
-    print("ODTP DB/S3 and Mockup data generated")
+    print("ODTP DB/S3 and/or Mockup data generated")
 
 
 

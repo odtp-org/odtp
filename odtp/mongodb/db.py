@@ -12,7 +12,7 @@ import odtp.mongodb.utils as utils
 
 config = dotenv_values(".env")
 mongodb_url = config["ODTP_MONGO_SERVER"]
-db_name = config["ODTP_MONGO_DB"]
+db_name = "odtp" #config["ODTP_MONGO_DB"] db_name collection is not supossed to change.
 collection_users = "users"
 collection_components = "components"
 collection_versions = "versions"
