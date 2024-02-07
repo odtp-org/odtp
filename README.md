@@ -24,16 +24,6 @@ You can install odtp by using [poetry](https://python-poetry.org/) and running:
 
 This should print out the help for `odtp`
 
-### Using PDM
-
-As an alterntive [PDM](https://pdm-project.org/latest/) can be used. 
-
-1. Download the repository. 
-2. (Optional) Rename `.env.dist` as `.env` and populate it with the right credentials. This is essential if you want to use S3 and MongoDB. 
-3. Run `pdm run odtp --help`
-
-This should print out the help for `odtp`
-
 ### Configuring .env file. 
 
 In order to connect to MongoDB and S3. You need to provide the credentials in an enviroment file with the following structure. This .env file needs to be in the folder where odtp is executed.
