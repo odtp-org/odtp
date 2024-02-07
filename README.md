@@ -24,15 +24,10 @@ You can install odtp by using [poetry](https://python-poetry.org/) and running:
 
 This should print out the help for `odtp`
 
-### Using PDM
-
-As an alterntive [PDM](https://pdm-project.org/latest/) can be used. 
-
-1. Download the repository. 
-2. (Optional) Rename `.env.dist` as `.env` and populate it with the right credentials. This is essential if you want to use S3 and MongoDB. 
-3. Run `pdm run odtp --help`
-
-This should print out the help for `odtp`
+Hint: on a Mac with Apple Chip: change the default shell before you install
+```bash
+env /usr/bin/arch -x86_64 /bin/bash --login
+```
 
 ### Configuring .env file. 
 
@@ -195,7 +190,7 @@ odtp execution run --execution-id 65843d8043feea167c5cbbe8 --project-path [Path 
 
 ### How to run the GUI dashboard?
 
-The dashboard functionality is limited right now and still require an update to the version v0.2.0. However it can be deployed by going to the repository folder and running: `odtp dashboard run --port 8501`
+The dashboard functionality is limited right now and still require an update to the version v0.2.0. However it can be deployed by going to the repository folder and running: `odtp dashboard run`
 
 
 ## Concept
@@ -204,7 +199,7 @@ The idea of odtp is to be installed as an instance in small-medium computing pla
 
 The arquitecture of the odtp include different core-modules dealing with specific task. Between parenthesis you can find the technologies that are being considered for this modules.
 
-- GUI (Streamlit)
+- Dashboard (Nicegui)
 - CLI
 - Authentication (eduID, GH)
 - Workflow manager (Barfi)
@@ -219,7 +214,8 @@ The arquitecture of the odtp include different core-modules dealing with specifi
 All these core modules will be available in the full instance. However, for those users who wants to try a lighter version they can omit the core-optional modules having only the following configuration.
 
 - Core Modules
-    - GUI (Streamlit)
+    - Dashboard (Nicegui)
+    - GUI (Streamlit): discontinued, but kept until Nicegui transition is complete
     - CLI
     - Authentication (eduID, GH)
     - Workflow manager (Barfi)
@@ -240,29 +236,10 @@ Finally the ODTP will be complemented with a components zoo that will include ex
 - Y number of analytical components.
 - Z number of visualization components.
 
-## Changelog
-
-- v.0.2.0: Improvements in database and files management.
-    - New MongoDB Schema. (Here)
-    - ODTP digital Zoo compatibility. 
-    - Automatic generation/deletion of initial volumes for docker. 
-    - S3 extended functionality.
-
-
-- v.0.1.0: Basic UI
-    - Streamlit APP with different
-    - User tagging
-    - Component listing placeholder
-    - Digital Twins listing
-    - Snapshots listing.
-    - Workflow desginer.
-    - pygwalker data visualization.
-    - MongoDB is required to be deployed independtly.
-    - S3 is required to be deployed indepently.
-
 ## Technologies involved
 
-- Streamlit (UI)
+- Nicegui (UI): replaces Streamlit
+- Streamlit (UI): discontinued, but kept until Nicegui transition is complete
 - Barfi (Workflow manager)
 - MongoDB (Document Database)
 - S3 (Storage Sytem)
@@ -278,14 +255,6 @@ Finally the ODTP will be complemented with a components zoo that will include ex
 	- Visualization component.
 - Core/core-optional modules (ODTP Term): These modules are the different parts that we are developing for the ODTP. These core modules include the different classes/methods needed to run the tool and wrap the services used. Some of these modules are not mandatory in order to run ODTP with the minimal features (i.e. running manually odtp components).
 - Services: One service or micro-service, in a micro-services architecture refers to one logical unit that performs one specific task in an independent manner. In ODTP we use different servers to support core modules, such as MongoDB for the database, Minion for the storage, or GraphDB for the knowledge graph storing. But also, from a technical standpoint every component is turned into a micro-service when running. I think this is the part that’s bringing more confusion. 
-
-## How to install ODTP
-
-In order to install ODTP v0.2.0 we recommend to use [https://python-poetry.org/](https://python-poetry.org/). 
-
-After you installed it, go to the repository folder and run `poetry install .`
-
-After that you should be able to run commands using the CLI: `odtp`
 
 ## Third party dependencies
 
@@ -310,6 +279,7 @@ users = {
     "github": "johnDoeRepo",
     "created_at": datetime.utcnow(),
     "updated_at": datetime.utcnow(),
+    "digitalTwins": [ObjectId()]  # Array of ObjectIds referencing digitalTwins collection
 }
 
 # Components Collection
@@ -317,12 +287,14 @@ components = {
     "_id": ObjectId(),
     "author": "Test",
     "componentName": "ComponentX",
+    "repoLink": "https://github.com/odtp-org/odtp-component-example",
     "status": "active",
     "title": "Title for ComponentX",
     "description": "Description for ComponentX",
     "tags": ["tag1", "tag2"],
     "created_at": datetime.utcnow(),
     "updated_at": datetime.utcnow(),
+    "versions": [ObjectId()]  # Array of ObjectIds referencing Versions collection
 }
 
 # Versions Collection
@@ -331,14 +303,14 @@ versions = {
     "componentId": ObjectId(),
     "version": "v1.0",
     "component_version": "1.0.0",
-    "repoLink": "https://github.com/...",
+    "commitHash": "6471218336ce7de41a5162c9556c0ff68f9ec13c",
     "dockerHubLink": "https://hub.docker.com/...",
     "parameters": {},
     "title": "Title for Version v1.0",
     "description": "Description for Version v1.0",
     "tags": ["tag1", "tag2"],
     "created_at": datetime.utcnow(),
-    "updated_at": datetime.utcnow(),
+    "updated_at": datetime.utcnow()
 }
 
 # DigitalTwins Collection
@@ -414,7 +386,6 @@ output = {
         "authorized_users": [ObjectId()],  # Array of User ObjectIds who have access
     }
 }
-
 
 # Results Collection
 results = {

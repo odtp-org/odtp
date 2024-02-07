@@ -147,7 +147,7 @@ class MockDataEmulator:
             # Emulating 3 versions for some components
             for i in range(3):
                 version_data = {
-                    "version": f"v{i+1}.0",
+                    "odtp_version": f"v{i+1}.0",
                     "component_version": f"{i+1}.0.0",
                     "repoLink": "https://github.com/...",
                     "dockerHubLink": "https://hub.docker.com/...",
