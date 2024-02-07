@@ -39,6 +39,7 @@ def get_collection(collection):
         cursor = db[collection].find({})
     return utils.get_list_from_cursor(cursor)
 
+
 def get_all_collections():
     """
     Retrieve all documents in all collections
@@ -105,7 +106,7 @@ def add_component_version(
     """add component and component version"""
     with MongoClient(mongodb_url) as client:
         db = client[db_name]
-        component = db[collection_components].find_one({"repoLink": repository })
+        component = db[collection_components].find_one({"repoLink": repository})
         if not component:
             component_data = {
                 "author": "Test",
@@ -119,7 +120,9 @@ def add_component_version(
                 "updated_at": datetime.utcnow(),
                 "versions": [],
             }
-            component_id = db[collection_components].insert_one(component_data).inserted_id
+            component_id = (
+                db[collection_components].insert_one(component_data).inserted_id
+            )
         else:
             component_id = component["_id"]
         version_data = {
@@ -254,4 +257,3 @@ def delete_all():
         # Drop each collection
         for collection in collections:
             db.drop_collection(collection)
-
