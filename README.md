@@ -190,7 +190,7 @@ odtp execution run --execution-id 65843d8043feea167c5cbbe8 --project-path [Path 
 
 ### How to run the GUI dashboard?
 
-The dashboard functionality is limited right now and still require an update to the version v0.2.0. However it can be deployed by going to the repository folder and running: `odtp dashboard run --port 8501`
+The dashboard functionality is limited right now and still require an update to the version v0.2.0. However it can be deployed by going to the repository folder and running: `odtp dashboard run`
 
 
 ## Concept
@@ -199,7 +199,7 @@ The idea of odtp is to be installed as an instance in small-medium computing pla
 
 The arquitecture of the odtp include different core-modules dealing with specific task. Between parenthesis you can find the technologies that are being considered for this modules.
 
-- GUI (Streamlit)
+- Dashboard (Nicegui)
 - CLI
 - Authentication (eduID, GH)
 - Workflow manager (Barfi)
@@ -214,7 +214,8 @@ The arquitecture of the odtp include different core-modules dealing with specifi
 All these core modules will be available in the full instance. However, for those users who wants to try a lighter version they can omit the core-optional modules having only the following configuration.
 
 - Core Modules
-    - GUI (Streamlit)
+    - Dashboard (Nicegui)
+    - GUI (Streamlit): discontinued, but kept until Nicegui transition is complete
     - CLI
     - Authentication (eduID, GH)
     - Workflow manager (Barfi)
@@ -237,7 +238,8 @@ Finally the ODTP will be complemented with a components zoo that will include ex
 
 ## Technologies involved
 
-- Streamlit (UI)
+- Nicegui (UI): replaces Streamlit
+- Streamlit (UI): discontinued, but kept until Nicegui transition is complete
 - Barfi (Workflow manager)
 - MongoDB (Document Database)
 - S3 (Storage Sytem)
