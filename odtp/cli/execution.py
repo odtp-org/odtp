@@ -10,6 +10,9 @@ from odtp.workflow import WorkflowManager
 
 app = typer.Typer()
 
+## Adding listing so we can have multiple flags
+from typing import List
+
 
 @app.command()
 def prepare(
@@ -39,10 +42,10 @@ def run(
         ..., "--project-path", help="Specify the path for the execution"
     ),
     env_files: str = typer.Option(
-        ...,
+        None,
         "--env-files",
         help="Specify the path for the env files separated by commas.",
-    ),
+    )
 ):
     odtpDB = odtpDatabase()
     execution_doc = odtpDB.dbManager.get_document_by_id_as_dict(

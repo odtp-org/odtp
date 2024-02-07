@@ -5,6 +5,9 @@ import typer
 
 import odtp.mongodb.db as db
 
+## Adding listing so we can have multiple flags
+from typing import List
+
 app = typer.Typer()
 
 
@@ -31,14 +34,20 @@ def odtp_component_entry(
         ..., "--component-version", help="Specify the component version"
     ),
     commmit: str = typer.Option(
-        ..., "--commit", help="Specify the commit of the repository"),
+        ..., "--commit", help="Specify the commit of the repository"
+    ),
+    ports: List[str] = typer.Option(
+        [], "--port", "-p", help="Specify ports i.e. 8501"
+    ),
 ):
+
     component_id, version_id = db.add_component_version(
         component_name=component_name,
         repository=repository,
         odtp_version=odtp_version,
         component_version=component_version,
         commit_hash=commmit,
+        ports=ports,
     )
     print(
         f"A component version has been added\nversion_id: {version_id}\ncomponent_id: {component_id}"
@@ -72,16 +81,20 @@ def execution_entry(
         "--workflow",
         help="Specify the sequential order for the components, starting by 0, and separating values by commas",
     ),
+    ports: str = typer.Option(
+        None, "--ports", "-p", help="Specify ports pairs separated by commas within the same step and + between steps i.e. -p 9001:9001+8501:8501"
+    ),
 ):
+    
     execution_id, step_ids = db.add_execution(
         dt_id=dt_id,
         name=name,
         components=components,
         versions=versions,
         workflow=workflow,
+        ports=ports,
     )
     print(f"execution has been added with ID {execution_id} and steps: {step_ids}")
-
 
 if __name__ == "__main__":
     app()

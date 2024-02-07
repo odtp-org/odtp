@@ -7,6 +7,8 @@ from odtp.run import DockerManager
 
 app = typer.Typer()
 
+## Adding listing so we can have multiple flags
+from typing import List
 
 @app.command()
 def prepare(
@@ -39,20 +41,24 @@ def run(
         ..., "--repository", help="Specify the git repository url"
     ),
     env_file: str = typer.Option(
-        ..., "--env_file", help="Specify the path to the environment file"
+        None, "--env_file", help="Specify the path to the environment file"
     ),
     instance_name: str = typer.Option(
         ..., "--instance_name", help="Specify the name of the instance"
+    ),
+    ports: List[str] = typer.Option(
+        None, "--port", "-p", help="Specify ports"
     ),
 ):
     componentManager = DockerManager(
         repo_url=repository, image_name=image_name, project_folder=folder
     )
 
+
     # TODO: Detect if previous steps has been completed
     # componentManager.download_repo()
     # componentManager.build_image()
-    componentManager.run_component(env_file, instance_name=instance_name)
+    componentManager.run_component(env_file, ports, instance_name=instance_name)
 
 
 #### TODO: Stop Component

@@ -40,9 +40,11 @@ class odtpDatabase:
 
         logging.info("Mockup data generated and uploaded")
 
-    def run_initial_setup(self):
+    def run_initial_setup(self, mockup_data=False):
         self.create_collections()
-        self.insert_mockup_data()
+        
+        if mockup_data:
+            self.insert_mockup_data()
 
         logging.info("Initial setup finished")
 
