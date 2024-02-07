@@ -5,8 +5,9 @@ import shutil
 from dotenv import dotenv_values
 
 class DockerManager:
-    def __init__(self, repo_url="", image_name="", project_folder=""):
+    def __init__(self, repo_url="", commit_hash="", image_name="", project_folder=""):
         self.repo_url = repo_url
+        self.commit_hash = commit_hash
         self.project_folder = project_folder
         self.repository_path = os.path.join(self.project_folder, "repository")
         self.dockerfile_path = os.path.join(self.project_folder, "repository")
@@ -34,6 +35,7 @@ class DockerManager:
         """
         logging.info(f"Downloading repository from {self.repo_url} to {self.repository_path}")
         subprocess.run(["git", "clone", self.repo_url, os.path.join(self.project_folder, "repository")])
+        subprocess.run(["git", "-C", os.path.join(self.project_folder, "repository"), "checkout", self.commit_hash])
 
 
     def build_image(self):
@@ -84,8 +86,9 @@ class DockerManager:
         env_args = [f"-e \"{key}={value}\"" for key, value in env_values.items()]
         #logging.info(env_args)
 
-        if ports:
-            print(ports)
+        # TODO: Find a better way to evaluate if ports is empty before putting it on DB.
+        if ports != [""]:
+            logging.info(ports)
             ports_args = [f"-p {port_pair}" for port_pair in ports]
         else:
             ports_args = [""]
@@ -96,8 +99,8 @@ class DockerManager:
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + [self.docker_image_name]
         
         command_string = ' '.join(docker_run_command)
-        #logging.info("Command to be executed:")
-        #logging.info(command_string) 
+        logging.info("Command to be executed:")
+        logging.info(command_string) 
 
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 

@@ -24,6 +24,7 @@ class WorkflowManager:
 
         self.image_names = []
         self.repo_urls = []
+        self.commits = []
         self.instance_names = []
         self.steps_folder_paths = []
 
@@ -41,16 +42,17 @@ class WorkflowManager:
             version_doc = odtpDB.dbManager.get_document_by_id_as_dict(version_id, "versions")
             odtpDB.close()
 
-            step_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
+            step_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["component_version"], step_index)
 
             # Create folder structure
             step_folder_path = os.path.join(self.working_path, step_name)
             self.steps_folder_paths.append(step_folder_path)
 
-            image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
+            image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["component_version"], step_index)
 
             self.image_names.append(image_name)
-            self.repo_urls.append(version_doc["commitHash"])
+            self.repo_urls.append(component_doc["repoLink"])
+            self.commits.append(version_doc["commitHash"])
             self.instance_names.append(image_name)
 
 
@@ -84,9 +86,10 @@ class WorkflowManager:
             #image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
 
             # By now the image_name is just the name of the component and the version
-            componentManager = DockerManager(repo_url=self.repo_urls[step_index], 
-                                    image_name=self.image_names[step_index], 
-                                    project_folder=self.steps_folder_paths[step_index])
+            componentManager = DockerManager(repo_url=self.repo_urls[step_index],
+                                             commit_hash=self.commits[step_index],
+                                             image_name=self.image_names[step_index],
+                                             project_folder=self.steps_folder_paths[step_index])
             
             componentManager.download_repo()
             componentManager.build_image()
