@@ -24,6 +24,11 @@ You can install odtp by using [poetry](https://python-poetry.org/) and running:
 
 This should print out the help for `odtp`
 
+Hint: on a Mac with Apple Chip: change the default shell before you install
+```bash
+env /usr/bin/arch -x86_64 /bin/bash --login
+```
+
 ### Configuring .env file. 
 
 In order to connect to MongoDB and S3. You need to provide the credentials in an enviroment file with the following structure. This .env file needs to be in the folder where odtp is executed.
