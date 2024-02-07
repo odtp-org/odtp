@@ -76,10 +76,10 @@ def execution_entry(
     versions: str = typer.Option(
         ..., "--versions", help="Specify the version_ids separated by commas"
     ),
-    workflow: str = typer.Option(
+    parameters_files: str = typer.Option(
         ...,
-        "--workflow",
-        help="Specify the sequential order for the components, starting by 0, and separating values by commas",
+        "--parameters-files",
+        help="List the files containing the parameters by step separated by commas",
     ),
     ports: str = typer.Option(
         None, "--ports", "-p", help="Specify ports pairs separated by commas within the same step and + between steps i.e. -p 9001:9001+8501:8501"
@@ -91,7 +91,7 @@ def execution_entry(
         name=name,
         components=components,
         versions=versions,
-        workflow=workflow,
+        parameters_files=parameters_files,
         ports=ports,
     )
     print(f"execution has been added with ID {execution_id} and steps: {step_ids}")

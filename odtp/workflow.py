@@ -110,7 +110,7 @@ class WorkflowManager:
         self.paramenters = {}
         pass
 
-    def run_workflow(self, env_files):
+    def run_workflow(self):
         # Implement the logic to send tasks following the DAG schema. 
         # This can make use of barfi workflow execution function. Each 
         # call will make call of the run_task
@@ -128,7 +128,7 @@ class WorkflowManager:
             odtpDB.close()
 
             ports = step_doc["ports"]
-
+            parameters = step_doc["parameters"]
 
             # Copying the compressed output files into the new input ones
             # Extracting the files
@@ -159,8 +159,8 @@ class WorkflowManager:
                                     project_folder=self.steps_folder_paths[step_index])
             
             # instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
-            logging.info(env_files[step_index])
-            componentManager.run_component(env_files[step_index],
+            #logging.info(env_files[step_index])
+            componentManager.run_component(parameters,
                                            ports=ports,
                                            instance_name=self.instance_names[step_index],
                                            step_id=self.execution["steps"][step_index])
