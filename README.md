@@ -274,14 +274,6 @@ Finally the ODTP will be complemented with a components zoo that will include ex
 - Core/core-optional modules (ODTP Term): These modules are the different parts that we are developing for the ODTP. These core modules include the different classes/methods needed to run the tool and wrap the services used. Some of these modules are not mandatory in order to run ODTP with the minimal features (i.e. running manually odtp components).
 - Services: One service or micro-service, in a micro-services architecture refers to one logical unit that performs one specific task in an independent manner. In ODTP we use different servers to support core modules, such as MongoDB for the database, Minion for the storage, or GraphDB for the knowledge graph storing. But also, from a technical standpoint every component is turned into a micro-service when running. I think this is the part that’s bringing more confusion. 
 
-## How to install ODTP
-
-In order to install ODTP v0.2.0 we recommend to use [https://python-poetry.org/](https://python-poetry.org/). 
-
-After you installed it, go to the repository folder and run `poetry install .`
-
-After that you should be able to run commands using the CLI: `odtp`
-
 ## Third party dependencies
 
 ### How to deploy a mongoDB
