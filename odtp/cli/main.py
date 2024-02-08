@@ -7,9 +7,11 @@ from typing import Optional
 
 import click
 import typer
+import subprocess
 
 from odtp import __version__
-from odtp.cli import component, dashboard, db, execution, new, s3, setup
+from odtp.cli import component, db, execution, new, s3, setup
+
 
 app = typer.Typer(add_completion=False)
 
@@ -18,7 +20,6 @@ app.add_typer(db.app, name="db")
 app.add_typer(s3.app, name="s3")
 app.add_typer(component.app, name="component")
 app.add_typer(setup.app, name="setup")
-app.add_typer(dashboard.app, name="dashboard")
 app.add_typer(execution.app, name="execution")
 
 
@@ -27,6 +28,12 @@ app.add_typer(execution.app, name="execution")
 def cli():
     """Command line group"""
     pass
+
+
+@app.command()
+def dashboard():
+    # Execute Nicegui
+    subprocess.run(["python", "odtp/dashboard/main.py"])
 
 
 def version_callback(value: bool):
