@@ -1,0 +1,25 @@
+execution:
+  title: example
+  description: example
+  tags: ["a", "b"]
+  steps:
+    0:
+      component_link: string
+      component_version: string
+      component_commit_hash: string
+      parameters:
+        - parameter_a: a
+        - parameter_b: b
+      type: ephemeral
+      ports:
+        - 8501:8501
+    1:
+      component_link: string
+      component_version: string
+      component_commit_hash: string
+      parameters:
+        - parameter_a: a
+        - parameter_b: b
+      type: interactive
+      ports:
+        - 8501:8501

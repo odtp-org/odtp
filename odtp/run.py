@@ -4,9 +4,12 @@ import subprocess
 import shutil
 from dotenv import dotenv_values
 
+config = dotenv_values(".env")
+
 class DockerManager:
-    def __init__(self, repo_url="", image_name="", project_folder=""):
+    def __init__(self, repo_url="", commit_hash="", image_name="", project_folder=""):
         self.repo_url = repo_url
+        self.commit_hash = commit_hash
         self.project_folder = project_folder
         self.repository_path = os.path.join(self.project_folder, "repository")
         self.dockerfile_path = os.path.join(self.project_folder, "repository")
@@ -34,6 +37,7 @@ class DockerManager:
         """
         logging.info(f"Downloading repository from {self.repo_url} to {self.repository_path}")
         subprocess.run(["git", "clone", self.repo_url, os.path.join(self.project_folder, "repository")])
+        subprocess.run(["git", "-C", os.path.join(self.project_folder, "repository"), "checkout", self.commit_hash])
 
 
     def build_image(self):
@@ -59,14 +63,14 @@ class DockerManager:
         subprocess.run(["docker", "volume", "create", volume_name])
         
 
-    def run_component(self, env, instance_name, step_id=None):
+    def run_component(self, parameters, ports, instance_name, step_id=None):
         """
         Run a Docker component with the specified parameters.
 
         Args:
             component (str): The name of the Docker component to run.
             volume (str): The name of the Docker volume to mount.
-            env (dict): The environment variables to pass to the Docker component.
+            parameters (dict): The environment variables to pass to the Docker component.
             name (str, optional): The name of the Docker container. Defaults to "odtp_component".
 
         Returns:
@@ -74,24 +78,36 @@ class DockerManager:
         """
         logging.info(f"Running Docker component {self.repo_url} in docker with name {self.docker_image_name}")
         
-
-        env_values = dotenv_values(env)
+        #env_values = dotenv_values(env)
         
         # REMPLACE env by the ones for step, execution, ...
         if step_id:
-            env_values["ODTP_STEP_ID"] = step_id
+            parameters["ODTP_STEP_ID"] = step_id
+            parameters["ODTP_MONGO_SERVER"] = config["ODTP_MONGO_SERVER"]
+            parameters["ODTP_S3_SERVER"] = config["ODTP_S3_SERVER"]
+            parameters["ODTP_BUCKET_NAME"] = config["ODTP_BUCKET_NAME"]
+            parameters["ODTP_ACCESS_KEY"] = config["ODTP_ACCESS_KEY"]
+            parameters["ODTP_SECRET_KEY"] = config["ODTP_SECRET_KEY"]
 
-        env_args = [f"-e \"{key}={value}\"" for key, value in env_values.items()]
+
+        env_args = [f"-e \"{key}={value}\"" for key, value in parameters.items()]
         #logging.info(env_args)
+
+        # TODO: Find a better way to evaluate if ports is empty before putting it on DB.
+        if ports != [""]:
+            logging.info(ports)
+            ports_args = [f"-p {port_pair}" for port_pair in ports]
+        else:
+            ports_args = [""]
 
         #docker_run_command = ["docker", "run", "--detach", "--name", name, "--volume", f"{volume}:/mount"] + env_args + [component]
         docker_run_command = ["docker", "run", "-it", "--name", instance_name, 
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
-                              "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + [self.docker_image_name]
+                              "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + [self.docker_image_name]
         
         command_string = ' '.join(docker_run_command)
-        #logging.info("Command to be executed:")
-        #logging.info(command_string) 
+        logging.info("Command to be executed:")
+        logging.info(command_string) 
 
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
