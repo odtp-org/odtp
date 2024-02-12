@@ -262,6 +262,8 @@ def register_component(
         )
     finally:
         ui_component_register.refresh()
+        ui_components_select.refresh()
+        ui_version_select.refresh()
 
 
 def app_storage_reset():
