@@ -149,8 +149,6 @@ class MongoManager:
             json.dump(all_data, json_file, indent=2, default=str)  # default=str to handle datetime and ObjectId
 
 
-    ######################################
-    # USER METHOD
     def get_all_documents(self, collection):
         cursor = self.db[collection].find()
 
@@ -208,6 +206,22 @@ class MongoManager:
             return document
         else:
             return None
+        
+    ######################################
+    # CLI Printing Methods
+    ######################################
+        
+    def print_all_users(self):
+        documents = self.get_all_documents("users")
+        for document in documents:
+            print(document)
+    
+    def print_all_digital_twins_by_user(self, user):
+
+    def print_all_executions_by_digital_twin(self, digital_twin):
+
+    def print_all_components(self):
+
 
     ######################################
     # Closing & Deleting
