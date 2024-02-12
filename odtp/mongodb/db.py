@@ -3,6 +3,7 @@ Connect to the Mongo DB
 """
 import logging
 from datetime import datetime
+from pathlib import Path
 
 from bson import ObjectId
 from dotenv import dotenv_values
@@ -10,9 +11,14 @@ from pymongo import MongoClient
 
 import odtp.mongodb.utils as utils
 
-config = dotenv_values(".env")
+config_path = Path(__file__).parent.parent.parent.joinpath(".env")
+config = dotenv_values(config_path)
+
+
 mongodb_url = config["ODTP_MONGO_SERVER"]
-db_name = "odtp" #config["ODTP_MONGO_DB"] db_name collection is not supossed to change.
+db_name = (
+    "odtp"  # config["ODTP_MONGO_DB"] db_name collection is not supossed to change.
+)
 collection_users = "users"
 collection_components = "components"
 collection_versions = "versions"
