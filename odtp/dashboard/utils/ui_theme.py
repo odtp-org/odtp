@@ -10,7 +10,7 @@ PATH_USERS = "/users"
 PATH_DIGITAL_TWINS = "/digital-twins"
 PATH_COMPONENTS = "/components"
 PATH_EXECUTIONS = "/executions"
-PATH_PREPARE = "/prepare"
+PATH_RESULTS = "/results"
 PATH_RUN = "/run"
 
 
@@ -20,7 +20,6 @@ def menu() -> None:
     ui.link("Digital Twins", PATH_DIGITAL_TWINS).classes(replace="text-white")
     ui.link("Components", PATH_COMPONENTS).classes(replace="text-white")
     ui.link("Executions", PATH_EXECUTIONS).classes(replace="text-white")
-    ui.link("Prepare", PATH_PREPARE).classes(replace="text-white")
     ui.link("Run", PATH_RUN).classes(replace="text-white")
 
 
