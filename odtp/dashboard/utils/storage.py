@@ -2,6 +2,7 @@ import json
 
 from nicegui import app, ui
 
+import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.mongodb.db as db
 
@@ -26,6 +27,32 @@ def storage_update_digital_twin(digital_twin_id):
         app.storage.user["digital_twin"] = current_digital_twin
     except Exception as e:
         ui.notify(f"storage update for digital twin failed: {e}", type="negative")
+
+
+def storage_update_docker(image_name, instance_name):
+    docker_settings = {
+        "image_name": image_name,
+        "instance_name": instance_name,
+    }
+    if not docker_settings:
+        app.storage.user["docker_settings"] = "None"
+    try:
+        app.storage.user["docker_settings"] = json.dumps(docker_settings)
+    except Exception as e:
+        ui.notify(f"storage update for docker failed: {e}", type="negative")
+
+
+def storage_update_local_settings(project_folder_name=None, env_file_name=None):
+    local_settings = get_active_object_from_storage("local_settings")
+    helpers.create_project_folder(project_folder_name=project_folder_name)
+    if project_folder_name:
+        local_settings["project_path"] = helpers.get_workdir_path(project_folder_name)
+    if env_file_name:
+        local_settings["env_file_path"] = helpers.get_workdir_path(env_file_name)
+    try:
+        app.storage.user["local_settings"] = json.dumps(local_settings)
+    except Exception as e:
+        ui.notify(f"storage update for local settings failed: {e}", type="negative")
 
 
 def storage_update_execution(execution_id):
@@ -129,6 +156,19 @@ def storage_update_version(version_id, component_id, replace):
             app.storage.user["components"] = json.dumps(components)
         except Exception as e:
             ui.notify(f"storage update for version failed: {e}", type="negative")
+
+
+def storage_run_selection(repo_url, commit_hash):
+    run_selection = {
+        "repo_url": repo_url,
+        "commit_hash": commit_hash,
+    }
+    if not run_selection:
+        app.storage.user["run_selection"] = "None"
+    try:
+        app.storage.user["run_selection"] = json.dumps(run_selection)
+    except Exception as e:
+        ui.notify(f"storage update for run selection failed: {e}", type="negative")
 
 
 def app_storage_reset(object_name):
