@@ -4,6 +4,7 @@ This scripts contains odtp subcommands for 'components'
 import typer
 
 from odtp.run import DockerManager
+from odtp.git import check_commit_for_repo
 
 app = typer.Typer()
 
@@ -21,7 +22,18 @@ def prepare(
     repository: str = typer.Option(
         ..., "--repository", help="Specify the git repository url"
     ),
-):
+    commit: str = typer.Option(
+        ..., "--commit", help="Specify the commit of the repository"
+    ),
+
+):  
+    check_commit_for_repo(
+        repo_url=repository, 
+        commit_hash=commit
+    )
+    if not commit:
+        print(f"The commit {repository} is not a valid commit for this repo {commit}")
+        raise typer.Abort()
     componentManager = DockerManager(
         repo_url=repository, image_name=image_name, project_folder=folder
     )

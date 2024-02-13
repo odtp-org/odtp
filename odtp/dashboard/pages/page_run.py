@@ -166,6 +166,11 @@ def ui_run(dialog, result):
             "category": "git",
             "value": run_selection.get("repo_url"),
         },
+        {
+            "setting": "commit hash",
+            "category": "git",
+            "value": run_selection.get("commit_hash"),
+        },        
     ]
     with ui.expansion("Settings for the docker commands!", icon="settings").classes(
         "w-full"
@@ -176,10 +181,12 @@ def ui_run(dialog, result):
     image = docker_settings.get("image_name")
     container = docker_settings.get("instance_name")
     repo = run_selection.get("repo_url")
+    commit = run_selection.get("commit_hash")
     build_parameter = [
         f"--folder {path}",
         f"--image_name {image}",
         f"--repository {repo}",
+        f"--commit {commit}",
     ]
     run_parameter = build_parameter + [
         f"--env_file {env}",
@@ -267,6 +274,7 @@ def ui_select_for_run():
                 ##### What to run
                 """
             )
+            """
             try:
                 components = db.get_collection(db.collection_components)
                 executions = db.get_all_collections(db.collection_executions)
@@ -274,7 +282,7 @@ def ui_select_for_run():
                 print(components)
                 print("-------executions")
                 print(executions)
-                """
+
                 components_options = {
                     str(
                         component["_id"]
@@ -288,12 +296,12 @@ def ui_select_for_run():
                         label="component",
                         with_input=True,
                     ).props("size=120")
-                """
             except Exception as e:
                 ui.notify(
                     f"Component selection could not be loaded. An Exception occured: {e}",
                     type="negative",
                 )
+            """    
             repo_url_input = ui.input(
                 label="Repo URL",
                 placeholder="repo URL",
