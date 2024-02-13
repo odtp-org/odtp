@@ -9,14 +9,14 @@ import odtp.mongodb.db as db
 
 
 def content() -> None:
-    with ui.right_drawer(fixed=False).style("background-color: #ebf1fa").props(
-        "bordered"
+    with ui.right_drawer().style("background-color: #ebf1fa").props(
+        "bordered width=500"
     ) as right_drawer:
         ui_workarea()
     ui.markdown(
         """
-                ## Manage Components
-                """
+        ## Manage Components
+        """
     )
     with ui.tabs().classes("w-full") as tabs:
         select = ui.tab("Select a component")
@@ -33,9 +33,9 @@ def content() -> None:
 def ui_components_select() -> None:
     ui.markdown(
         """
-                #### Select a component
-                Select a component to see the versions of this component.
-                """
+        #### Select a component
+        Select a component to see the versions of this component.
+        """
     )
     try:
         components = db.get_collection(db.collection_components)
@@ -118,8 +118,8 @@ def ui_component_register():
     with ui.column().classes("w-full"):
         ui.markdown(
             """
-                    #### Component
-                    """
+            #### Component
+            """
         )
         component_name_input = ui.input(
             label="Component name",

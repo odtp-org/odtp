@@ -10,12 +10,12 @@ import odtp.mongodb.db as db
 def content() -> None:
     ui.markdown(
         """
-            # Manage Digital Twins
-            """
+        # Manage Digital Twins
+        """
     )
     current_user = storage.get_active_object_from_storage("user")
-    with ui.right_drawer(fixed=False).style("background-color: #ebf1fa").props(
-        "bordered"
+    with ui.right_drawer().style("background-color: #ebf1fa").props(
+        "bordered width=500"
     ) as right_drawer:
         ui_workarea(current_user)
     if current_user:
@@ -120,35 +120,44 @@ def ui_add_digital_twin(current_user):
 def ui_workarea(current_user):
     ui.markdown(
         """
-                ### Work Area
-                """
+        ### Work Area
+        """
     )
     try:
         if not current_user:
             ui.button("Select a user", on_click=lambda: ui.open(ui_theme.PATH_USERS))
         else:
-            ui.markdown(
-                """
-                        #### User
-                        """
-            )
-            ui.label(current_user.get("display_name"))
             digital_twin = storage.get_active_object_from_storage("digital_twin")
             if digital_twin:
                 ui.markdown(
+                    f"""
+                    #### User / Digital Twin
+                    - {current_user.get("display_name")} / {digital_twin.get("name")}
+                    
+                    #### Actions
+                    - [manage executions of the digital twin](/executions)
                     """
-                            #### Digital Twin
-                            """
                 )
-                digital_twin = storage.get_active_object_from_storage("digital_twin")
-                if digital_twin:
-                    ui.label(digital_twin.get("name"))
-                    ui.button(
-                        "Manage Executions",
-                        on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
+                with ui.button(
+                    "Manage Executions",
+                    on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
+                ):
+                    ui.tooltip(
+                        "Click here to manage the executions for this digital twin"
                     )
-            ui.button("Reset work area", on_click=lambda: app_storage_reset())
-
+                with ui.button("Reset work area", on_click=lambda: app_storage_reset()):
+                    ui.tooltip(f"Click here to reset the user workarea")
+            else:
+                ui.markdown(
+                    f"""
+                    #### User
+                    - {current_user.get("display_name")}
+                    
+                    #### Actions
+                    - add a digital twin
+                    - select a digital twin
+                    """
+                )
     except Exception as e:
         ui.notify(
             f"Work area could not be loaded. An Exception occured: {e}", type="negative"

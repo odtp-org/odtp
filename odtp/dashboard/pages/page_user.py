@@ -6,31 +6,31 @@ import odtp.mongodb.db as db
 
 
 def content() -> None:
-    with ui.right_drawer(fixed=False).style("background-color: #ebf1fa").props(
-        "bordered"
+    with ui.right_drawer().style("background-color: #ebf1fa").props(
+        "bordered width=500"
     ) as right_drawer:
         ui_workarea()
     ui.markdown(
         """
-                # Manage Users 
-                """
+        # Manage Users 
+        """
     )
-    with ui.tabs().classes("w-full") as tabs:
-        select = ui.tab("Select a user")
-        add = ui.tab("Add a new user")
-    with ui.tab_panels(tabs, value=select).classes("w-full"):
-        with ui.tab_panel(select):
-            ui_users_select()
-        with ui.tab_panel(add):
-            ui_add_user()
+    content = {"Select User": ui_users_select(), "Add User": ui_add_user()}
+    with ui.tabs() as tabs:
+        for title in content:
+            ui.tab(title)
+    with ui.tab_panels(tabs).classes("w-full") as panels:
+        for title, text in content.items():
+            with ui.tab_panel(title):
+                ui.label(text)
 
 
 @ui.refreshable
 def ui_users_select() -> None:
     ui.markdown(
         """
-                #### Select your user
-                """
+        #### Select your user
+        """
     )
     try:
         users = db.get_collection(db.collection_users)
@@ -52,9 +52,9 @@ def ui_users_select() -> None:
 def ui_add_user():
     ui.markdown(
         """
-                    #### Add new user
-                    if you are not registered yet: create a new user as a first step.
-                    """
+        #### Add new user
+        if you are not registered yet: create a new user as a first step.
+        """
     )
     with ui.row():
         name_input = ui.input(
@@ -90,28 +90,37 @@ def ui_add_user():
 def ui_workarea():
     ui.markdown(
         """
-                ### Work Area
-                """
+        ### Work Area
+        """
     )
     try:
         user = storage.get_active_object_from_storage("user")
         if user:
             ui.markdown(
+                f"""
+                #### User
+                - user: {user.get("display_name")}
+
+                #### Actions
+                - [manage digital twins](/digital-twins)
                 """
-                        #### User
-                        """
             )
-            ui.label(user.get("display_name"))
             ui.button(
-                "Manage Digital Twins",
-                on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
+                "Reset work area", color="grey", on_click=lambda: app_storage_reset()
+            )
+        else:
+            ui.markdown(
+                f"""
+                #### Actions
+                - Add a user
+                - Select a user
+                """
             )
     except Exception as e:
         ui.notify(
             f"Workarea could not be retrieved. An Exception occured: {e}",
             type="negative",
         )
-    ui.button("Reset work area", on_click=lambda: app_storage_reset())
 
 
 def store_selected_user(value):
