@@ -1,4 +1,4 @@
-from nicegui import app, ui
+from nicegui import app, ui, native
 
 import odtp.dashboard.utils.ui_theme as ui_theme
 from odtp.dashboard.pages.page_about import content as about_page
@@ -54,4 +54,8 @@ def components():
 
 app.add_static_files("/static", "static")
 
-ui.run(title="ODTP", storage_secret="private key to secure the browser session cookie")
+ui.run(
+    title="ODTP", 
+    storage_secret="private key to secure the browser session cookie",
+    port=native.find_open_port()
+)
