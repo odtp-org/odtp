@@ -2,8 +2,12 @@
 This scripts contains odtp subcommands for 'components'
 """
 import typer
+from typing_extensions import Annotated
 
 from odtp.run import DockerManager
+import odtp.helpers.git as odtp_git
+import odtp.helpers.parse as odtp_parse
+import odtp.helpers.utils as odtp_utils
 
 app = typer.Typer()
 
@@ -21,13 +25,19 @@ def prepare(
     repository: str = typer.Option(
         ..., "--repository", help="Specify the git repository url"
     ),
-):
-    componentManager = DockerManager(
-        repo_url=repository, image_name=image_name, project_folder=folder
-    )
-    componentManager.download_repo()
-    componentManager.build_image()
-
+):  
+    try:
+        componentManager = DockerManager(
+            repo_url=repository, 
+            image_name=image_name, 
+            project_folder=folder
+        )
+        componentManager.prepare_component()
+    except Exception as e:
+        print(f"ERROR: Prepare component failed: {e}") 
+        raise typer.Abort()           
+    else:
+        print("SUCCESS: image for the component has been build")
 
 @app.command()
 def run(
@@ -37,28 +47,41 @@ def run(
     image_name: str = typer.Option(
         ..., "--image_name", help="Specify the name of the component image"
     ),
+    instance_name: str = typer.Option(
+        ..., "--instance_name", help="Specify the name of the instance"
+    ),    
     repository: str = typer.Option(
         ..., "--repository", help="Specify the git repository url"
     ),
-    env_file: str = typer.Option(
-        None, "--env_file", help="Specify the path to the environment file"
-    ),
-    instance_name: str = typer.Option(
-        ..., "--instance_name", help="Specify the name of the instance"
-    ),
-    ports: List[str] = typer.Option(
-        None, "--port", "-p", help="Specify ports"
-    ),
+    commit: Annotated[str, typer.Option(
+        help="You may specify the commit of the repository. If not provided the latest commit will be fetched"
+    )] = None,
+    parameter_file: Annotated[str, typer.Option(
+        help="Specify the path to the environment file"
+    )] = None,     
+    ports: Annotated[str, typer.Option(
+        help="Specify ports seperated by a plus sign i.e. 8501:8501+8201:8201"
+    )] = None,  
 ):
-    componentManager = DockerManager(
-        repo_url=repository, image_name=image_name, project_folder=folder
-    )
-
-
-    # TODO: Detect if previous steps has been completed
-    # componentManager.download_repo()
-    # componentManager.build_image()
-    componentManager.run_component(env_file, ports, instance_name=instance_name)
+    try:
+        componentManager = DockerManager(
+            project_folder=folder,
+            repo_url=repository,
+            commit_hash=commit, 
+            image_name=image_name, 
+        )
+        ports = odtp_parse.parse_ports_for_one_component(ports) 
+        parameters = odtp_parse.parse_paramters_for_one_file(parameter_file)
+        componentManager.run_component(
+            parameters=parameters, 
+            ports=ports, 
+            instance_name=instance_name
+        )
+    except Exception as e:
+        print(f"ERROR: Run of component failed: {e}") 
+        raise typer.Abort()           
+    else:
+        print("SUCCESS: container for the component has been started")
 
 
 #### TODO: Stop Component
@@ -75,7 +98,7 @@ def delete_instance(
 ):
     componentManager = DockerManager()
     componentManager.delete_component(instance_name=instance_name)
-    print("Component Deleted")
+    print("Container deleted")
 
 
 @app.command()
@@ -86,7 +109,7 @@ def delete_image(
 ):
     componentManager = DockerManager(image_name=image_name)
     componentManager.delete_image()
-    print("Component Deleted")
+    print("Image deleted")
 
 
 if __name__ == "__main__":
