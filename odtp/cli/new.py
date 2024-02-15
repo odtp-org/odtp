@@ -2,8 +2,13 @@
 This scripts contains odtp subcommands for 'new'
 """
 import typer
+from typing_extensions import Annotated
 
 import odtp.mongodb.db as db
+import odtp.helpers.parse as odtp_parse
+import odtp.mongodb.utils as db_utils
+import odtp.helpers.utils as odtp_utils
+
 
 ## Adding listing so we can have multiple flags
 from typing import List
@@ -22,38 +27,53 @@ def user_entry(
     print(f"A user has been added {user_id}")
 
 
-# New Component. This is to add a compatible available component. We need to specify the version.
-# Only implemented the basic features
-# Add the possibility to add component by config file
 @app.command()
 def odtp_component_entry(
-    component_name: str = typer.Option(..., "--name", help="Specify the name"),
-    repository: str = typer.Option(..., "--repository", help="Specify the repository"),
-    odtp_version: str = typer.Option(..., "--odtp-version", help="Specify the version of odtp"),
-    component_version: str = typer.Option(
-        ..., "--component-version", help="Specify the component version"
-    ),
-    commmit: str = typer.Option(
-        ..., "--commit", help="Specify the commit of the repository"
-    ),
-    ports: List[str] = typer.Option(
-        [], "--port", "-p", help="Specify ports i.e. 8501"
-    ),
-):
+    name: Annotated[str, typer.Option(
+        help="Specify the name"
+    )],
+    repository: Annotated[str, typer.Option(
+        help="Specify the repository"
+    )],
+    odtp_version: Annotated[str, typer.Option(
+        help="Specify the version of odtp"
+    )] = None,
+    component_version: Annotated[str, typer.Option(
+        help="Specify the component version"
+    )] = None,
+    commit: Annotated[str, typer.Option(
+        help="""You may specify the commit of the repository. If not provided 
+        the latest commit will be fetched"""
+    )] = None,
+    type: Annotated[str, typer.Option(
+        help="""You may specify the type of the component as either 'ephemeral or persistent'"""
+    )] = db_utils.COMPONENT_TYPE_EPHERMAL,    
+    ports: Annotated[str, typer.Option(
+        help="Specify ports seperated by a plus sign i.e. 8501:8501+8201:8201"
+    )] = None,
+):  
+    try:
+        ports = odtp_parse.parse_ports_for_one_component(ports)       
+        component_id, version_id = \
+            db.add_component_version(
+                component_name=name,
+                repository=repository,
+                odtp_version=odtp_version,
+                component_version=component_version,
+                commit_hash=commit,
+                type=type,
+                ports=ports,
+            )
+    except Exception as e:
+        print(f"ERROR: {e}")
+        if hasattr(e, "__notes__"):
+            print(f"{','.join(e.__notes__)}") 
+        raise typer.Abort()     
+    print(f"""SUCCESS: component version has been added: see above for the details.
+          component_id: {component_id}
+          version_id: {version_id}""")
 
-    component_id, version_id = db.add_component_version(
-        component_name=component_name,
-        repository=repository,
-        odtp_version=odtp_version,
-        component_version=component_version,
-        commit_hash=commmit,
-        ports=ports,
-    )
-    print(
-        f"A component version has been added\nversion_id: {version_id}\ncomponent_id: {component_id}"
-    )
 
-# New Digital Twin
 @app.command()
 def digital_twin_entry(
     user_id: str = typer.Option(..., "--user-id", help="Specify the user ID"),
@@ -63,38 +83,43 @@ def digital_twin_entry(
     print(f"Digital Twin added with ID {dt_id}")
 
 
-# New Execution
 @app.command()
 def execution_entry(
     dt_id: str = typer.Option(
         ..., "--digital-twin-id", help="Specify the digital twin ID"
     ),
-    name: str = typer.Option(..., "--name", help="Specify the name of the execution"),
-    components: str = typer.Option(
-        ..., "--components", help="Specify the components_ids separated by commas"
+    execution_name: str = typer.Option(..., "--name", help="Specify the name of the execution"),
+    component_versions: str = typer.Option(
+        ..., "--component-versions", help="Specify the version_ids separated by commas"
     ),
-    versions: str = typer.Option(
-        ..., "--versions", help="Specify the version_ids separated by commas"
-    ),
-    parameters_files: str = typer.Option(
-        ...,
-        "--parameters-files",
-        help="List the files containing the parameters by step separated by commas",
-    ),
-    ports: str = typer.Option(
-        None, "--ports", "-p", help="Specify ports pairs separated by commas within the same step and + between steps i.e. -p 9001:9001+8501:8501"
-    ),
-):
-    
-    execution_id, step_ids = db.add_execution(
-        dt_id=dt_id,
-        name=name,
-        components=components,
-        versions=versions,
-        parameters_files=parameters_files,
-        ports=ports,
-    )
-    print(f"execution has been added with ID {execution_id} and steps: {step_ids}")
+    parameter_files: Annotated[str, typer.Option(
+        help="List the files containing the parameters by step separated by commas"
+    )] = None,     
+    ports: Annotated[str, typer.Option(
+        help="""Specify ports pairs separated by commas within the same step and + between steps i.e. 
+        9001:9001+8501:8501,8080:8001+6000:6000"""
+    )] = None,    
+):  
+    try:
+        ports = odtp_parse.parse_ports_for_multiple_components(ports)
+        parameters = odtp_parse.parse_paramters_for_multiple_files(parameter_files)
+        versions = odtp_parse.parse_versions(component_versions)
+        execution_id, step_ids = db.add_execution(
+            dt_id=dt_id,
+            name=execution_name,
+            versions=versions,
+            parameters=parameters,
+            ports=ports,
+        )
+    except Exception as e:
+        print(f"ERROR: {e}")
+        if hasattr(e, "__notes__"):
+            print(f"{','.join(e.__notes__)}") 
+            raise typer.Abort()     
+    print("""SUCCESS: execution has been added: see above for the details.
+          execution id: {execution_id}
+          step_ids: {step_ids}""")
+
 
 if __name__ == "__main__":
     app()
