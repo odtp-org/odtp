@@ -9,7 +9,7 @@ import click
 import typer
 import subprocess
 
-from odtp import __version__
+from odtp.helpers.utils import get_odtp_version
 from odtp.cli import component, db, execution, new, s3, setup
 
 
@@ -38,7 +38,7 @@ def dashboard():
 
 def version_callback(value: bool):
     if value:
-        print(f"odtp {__version__}")
+        print(f"odtp {get_odtp_version()}")
         raise typer.Exit()
 
 
