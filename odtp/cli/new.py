@@ -35,11 +35,11 @@ def odtp_component_entry(
     repository: Annotated[str, typer.Option(
         help="Specify the repository"
     )],
-    odtp_version: Annotated[str, typer.Option(
-        help="Specify the version of odtp"
-    )] = None,
     component_version: Annotated[str, typer.Option(
         help="Specify the component version"
+    )],    
+    odtp_version: Annotated[str, typer.Option(
+        help="Specify the version of odtp"
     )] = None,
     commit: Annotated[str, typer.Option(
         help="""You may specify the commit of the repository. If not provided 
@@ -101,9 +101,12 @@ def execution_entry(
     )] = None,    
 ):  
     try:
-        ports = odtp_parse.parse_ports_for_multiple_components(ports)
-        parameters = odtp_parse.parse_paramters_for_multiple_files(parameter_files)
         versions = odtp_parse.parse_versions(component_versions)
+        step_count = len(versions)
+        ports = odtp_parse.parse_ports_for_multiple_components(
+            ports=ports, step_count=step_count)
+        parameters = odtp_parse.parse_paramters_for_multiple_files(
+            parameter_files=parameter_files, step_count=step_count)
         execution_id, step_ids = db.add_execution(
             dt_id=dt_id,
             name=execution_name,
@@ -116,7 +119,7 @@ def execution_entry(
         if hasattr(e, "__notes__"):
             print(f"{','.join(e.__notes__)}") 
             raise typer.Abort()     
-    print("""SUCCESS: execution has been added: see above for the details.
+    print(f"""SUCCESS: execution has been added: see above for the details.
           execution id: {execution_id}
           step_ids: {step_ids}""")
 
