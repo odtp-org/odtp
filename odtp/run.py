@@ -83,7 +83,8 @@ class DockerManager:
         # REMPLACE env by the ones for step, execution, ...
         if step_id:
             parameters["ODTP_STEP_ID"] = step_id
-            parameters["ODTP_MONGO_SERVER"] = config["ODTP_MONGO_SERVER"]
+            #parameters["ODTP_MONGO_SERVER"] = config["ODTP_MONGO_URL"]
+            parameters["ODTP_MONGO_URL"] = config["ODTP_MONGO_URL"]
             parameters["ODTP_S3_SERVER"] = config["ODTP_S3_SERVER"]
             parameters["ODTP_BUCKET_NAME"] = config["ODTP_BUCKET_NAME"]
             parameters["ODTP_ACCESS_KEY"] = config["ODTP_ACCESS_KEY"]

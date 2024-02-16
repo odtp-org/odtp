@@ -14,7 +14,7 @@ config = dotenv_values(".env")
 class odtpDatabase:
     def __init__(self):
 
-        url = config["ODTP_MONGO_SERVER"]
+        url = config["ODTP_MONGO_URL"]
         db_name = "odtp"
         dbManager = MongoManager(url, db_name)
 
