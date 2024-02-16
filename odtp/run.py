@@ -30,9 +30,6 @@ class DockerManager:
         self.docker_image_name = image_name
         self.input_volume = os.path.join(self.project_folder, INPUT_DIR)
         self.output_volume = os.path.join(self.project_folder, OUTPUT_DIR)
-        self.ports = None
-        self.instance_name = None
-        self.parameters = None
 
     def prepare_component(self):
         self._checks_for_prepare()

@@ -1,18 +1,10 @@
 import os
-from .storage import s3Manager
-from .run import DockerManager
-from .db import MongoManager
-from .setup import odtpDatabase
+from odtp.run import DockerManager, OdtpRunSetupException
+import odtp.helpers.utils as odtp_utils
+import odtp.mongodb.db as db
 import logging
-
-from barfi import st_barfi, barfi_schemas, Block
 import zipfile
 
-# TODO: Extract barfi examples for 1 component run, 2 components run, Confluence 3 components, Divergence 3 components
-# TODO: Upper method that created the execution document. 
-    # def create_entry_in_db(self):
-    #     # This will create a execution entry in the database. Maybe this needs to happen outside this method. 
-    #     pass
 
 class WorkflowManager:
     def __init__(self, execution_data, working_path):
@@ -29,68 +21,63 @@ class WorkflowManager:
         self.steps_folder_paths = []
 
         for step_index in self.schema["workflowExecutorSchema"]:
-            step_index = int(step_index)
+            try: 
+                step_index = int(step_index)
 
-            component_id = self.schema["components"][step_index]["component"]
-            version_id = self.schema["components"][step_index]["version"]
+                version_id = self.schema["component_versions"][step_index]
+                version_doc = db.get_document_by_id(
+                    document_id=version_id, 
+                    collection=db.collection_versions
+                )
+                component_name = version_doc["component"]["componentName"]
+                component_version = version_doc["component_version"]
+                repo_link = version_doc["component"]["repoLink"]
+                commit_hash = version_doc["commitHash"]
 
-            odtpDB = odtpDatabase()
-            component_doc = odtpDB.dbManager.get_document_by_id_as_dict(component_id, "components")
-            odtpDB.close()
+                step_name = odtp_utils.get_execution_step_name(
+                    component_name=component_name, 
+                    component_version=component_version, 
+                    step_index=step_index
+                )
 
-            odtpDB = odtpDatabase()
-            version_doc = odtpDB.dbManager.get_document_by_id_as_dict(version_id, "versions")
-            odtpDB.close()
+                # Create folder structure
+                step_folder_path = os.path.join(self.working_path, step_name)
+                self.steps_folder_paths.append(step_folder_path)
 
-            step_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["component_version"], step_index)
+                image_name = step_name
 
-            # Create folder structure
-            step_folder_path = os.path.join(self.working_path, step_name)
-            self.steps_folder_paths.append(step_folder_path)
-
-            image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["component_version"], step_index)
-
-            self.image_names.append(image_name)
-            self.repo_urls.append(component_doc["repoLink"])
-            self.commits.append(version_doc["commitHash"])
-            self.instance_names.append(image_name)
-
-
+                self.image_names.append(image_name)
+                self.repo_urls.append(repo_link)
+                self.commits.append(commit_hash)
+                self.instance_names.append(image_name)
+            except Exception as e:
+                raise OdtpRunSetupException(
+                    f"Workflowmanager could not be intialized: Exception occured: {e}"
+                )    
 
     def prepare_workflow(self):
-        # This method will download all needed files and components to run the workflow
-        # It will Build the images needed too. 
-        
+        """
+        This method will download all needed files and components to run the workflow
+        It will Build the images needed too. 
+        """  
         for step_index in self.schema["workflowExecutorSchema"]:
             step_index = int(step_index)
 
-            # component_id = self.schema["components"][step_index]["component"]
-            # version_id = self.schema["components"][step_index]["version"]
-
-            # odtpDB = odtpDatabase()
-            # component_doc = odtpDB.dbManager.get_document_by_id_as_dict(component_id, "components")
-            # odtpDB.close()
-
-            # odtpDB = odtpDatabase()
-            # version_doc = odtpDB.dbManager.get_document_by_id_as_dict(version_id, "versions")
-            # odtpDB.close()
-
-            # step_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
-
             # Create folder structure
             # step_folder_path = os.path.join(self.working_path, step_name)
-            os.makedirs(self.steps_folder_paths[step_index], exist_ok=True)
-
-            #self.steps_folder_paths.append(step_folder_path)
-
-            #image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
+            os.makedirs(
+                self.steps_folder_paths[step_index], 
+                exist_ok=True
+            )
 
             # By now the image_name is just the name of the component and the version
-            componentManager = DockerManager(repo_url=self.repo_urls[step_index],
-                                             commit_hash=self.commits[step_index],
-                                             image_name=self.image_names[step_index],
-                                             project_folder=self.steps_folder_paths[step_index])
-            
+            componentManager = DockerManager(
+                repo_url=self.repo_urls[step_index],
+                commit_hash=self.commits[step_index],
+                image_name=self.image_names[step_index],
+                project_folder=self.steps_folder_paths[step_index]
+            )
+            componentManager.create_project_folder_structure()
             componentManager.download_repo()
             componentManager.build_image()
 
@@ -123,9 +110,10 @@ class WorkflowManager:
 
             step_id = self.execution["steps"][step_index]
 
-            odtpDB = odtpDatabase()
-            step_doc = odtpDB.dbManager.get_document_by_id_as_dict(step_id, "steps")
-            odtpDB.close()
+            step_doc = db.get_document_by_id(
+                document_id=step_id, 
+                collection=db.collection_steps
+            )
 
             ports = step_doc["ports"]
             parameters = step_doc["parameters"]
@@ -138,7 +126,7 @@ class WorkflowManager:
                 # Specify the path to the output.zip file and the actual_input_path
                 output_zip_path = os.path.join(previous_output_path, 'odtp-output.zip')
                 actual_input_path = os.path.join(self.steps_folder_paths[step_index], 'odtp-input')
-
+                
                 logging.info(output_zip_path)
                 logging.info(actual_input_path)
                 
@@ -154,17 +142,20 @@ class WorkflowManager:
             # Change image_name by Component ID_version
             # image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
             # By now the image_name is just the name of the component and the version
-            componentManager = DockerManager(repo_url=self.repo_urls[step_index], 
-                                    image_name=self.image_names[step_index], 
-                                    project_folder=self.steps_folder_paths[step_index])
+            componentManager = DockerManager(
+                repo_url=self.repo_urls[step_index], 
+                image_name=self.image_names[step_index], 
+                project_folder=self.steps_folder_paths[step_index]
+            )
             
             # instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
             #logging.info(env_files[step_index])
-            componentManager.run_component(parameters,
-                                           ports=ports,
-                                           instance_name=self.instance_names[step_index],
-                                           step_id=self.execution["steps"][step_index])
-
+            componentManager.run_component(
+                parameters,
+                ports=ports,
+                instance_name=self.instance_names[step_index],
+                step_id=self.execution["steps"][step_index]
+            )
 
     def run_task(self):
         # Implement the logic of running one single task. 
@@ -194,74 +185,3 @@ class WorkflowManager:
     def restart_workflow(self):
         # This will restart the execution of the workflow. 
         pass
-
-class BarfiManager:
-    """This class check all the components available in the components database, and prepare the Barfi class"""
-    def __init__(self):
-        self.blocks = []
-        pass
-
-    def addBlock(self, name, inputs, outputs, options, dockerfunc):
-        b = Block(name="name")
-        for option in options:
-            # Different types of blocks contains different options parameters
-            if option["type"] == "display":
-                b.add_option(name=option["name"],
-                             type=option["type"],
-                             value=option["value"])
-            elif option["type"] == "select":
-                b.add_option(name=option["name"],
-                            type=option["type"],
-                            value=option["value"],
-                            items=option["items"])
-            elif option["type"] == "input":
-                b.add_option(name=option["name"],
-                             type=option["type"],
-                             value=option["value"])
-            elif option["type"] == "integer":
-                b.add_option(name=option["name"],
-                             type=option["type"],
-                             value=option["value"])
-            elif option["type"] == "checkbox":
-                b.add_option(name=option["name"],
-                             type=option["type"],
-                             value=option["value"])
-            elif option["type"] == "slider":
-                b.add_option(name=option["name"],
-                             type=option["type"],
-                             value=option["value"],
-                             min=option["min"],
-                             max=option["max"])
-                
-        for input in inputs:
-            b.add_input(name=input["name"])
-
-        for output in outputs:
-            b.add_output(name=output["name"])
-
-        def barfiFunc(self):
-            # Here we need to build the docker method that will be send to run
-            envStringList = []
-            for option in options:
-                optionValue = self.get_option(name=option["name"])
-                envStringList.append("{}={}".format(option['name'], optionValue))
-
-
-            # Actually Inputs/Outputs will not be managed by Barfi
-            for input in inputs:
-                inputValue = self.get_interface(name=input["name"])
-                # Need to be copied in a folder. How this works on Barfi?
-
-            for output in outputs:
-                self.set_interface(name=output["name"], 
-                                   value=output["value"])
-
-            # Run the Component
-            # 1. Copy input files
-            # 2. Run component
-
-        b.add_compute(barfiFunc)
-            
-        self.blocks.append(b)
-
-
