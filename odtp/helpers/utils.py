@@ -18,6 +18,6 @@ def get_workflow(versions):
     return(list(range(len(versions))))
 
 def get_execution_step_name(component_name, component_version, step_index=None):
-    if not step_index:
+    if step_index is None:
         return f"{component_name}_{component_version}"
-    return f"{component_name}_{component_version}_{step_index}"
+    return f"{step_index}_{component_name}_{component_version}"

@@ -39,10 +39,14 @@ class WorkflowManager:
                     component_version=component_version, 
                     step_index=step_index
                 )
+                
+                print(step_name)
 
                 # Create folder structure
                 step_folder_path = os.path.join(self.working_path, step_name)
                 self.steps_folder_paths.append(step_folder_path)
+
+                print(self.steps_folder_paths)
 
                 image_name = step_name
 
