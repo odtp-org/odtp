@@ -77,9 +77,8 @@ class WorkflowManager:
                 image_name=self.image_names[step_index],
                 project_folder=self.steps_folder_paths[step_index]
             )
-            componentManager.create_project_folder_structure()
-            componentManager.download_repo()
-            componentManager.build_image()
+
+            componentManager.prepare_component()
 
             logging.info("COMPONENTS DOWNLOADED AND BUILT")
 

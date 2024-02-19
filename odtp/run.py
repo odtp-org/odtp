@@ -33,6 +33,7 @@ class DockerManager:
 
     def prepare_component(self):
         self._checks_for_prepare()
+        self._create_project_folder_structure()
         self._download_repo()
         self._build_image()    
 
