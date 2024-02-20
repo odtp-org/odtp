@@ -66,6 +66,17 @@ def parse_ports_for_one_component(ports):
     else:
         return ports
 
+def parse_component_ports(ports):
+    if not ports:
+        return None
+    try:
+        ports = ports.split(",")
+    except Exception as e:
+        raise OdtpParamterParsingException(f"Parsing of ports {ports} failed")
+    else:
+        return ports
+
+
 
 def parse_versions(component_versions):
     return component_versions.split(",")

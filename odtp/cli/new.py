@@ -49,11 +49,11 @@ def odtp_component_entry(
         help="""You may specify the type of the component as either 'ephemeral or persistent'"""
     )] = db_utils.COMPONENT_TYPE_EPHERMAL,    
     ports: Annotated[str, typer.Option(
-        help="Specify ports seperated by a plus sign i.e. 8501:8501+8201:8201"
+        help="Specify ports seperated by a comma i.e. 8501,8201"
     )] = None,
 ):  
     try:
-        ports = odtp_parse.parse_ports_for_one_component(ports)       
+        ports = odtp_parse.parse_component_ports(ports)
         component_id, version_id = \
             db.add_component_version(
                 component_name=name,

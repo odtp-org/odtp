@@ -2,7 +2,8 @@ import re
 import json
 
 
-PORT_PATTERN = "\d{2,4}:\d{2,4}"
+PORT_PATTERN = "\d{2,4}"
+PORT_MAPPING_PATTERN = f"{PORT_PATTERN}:{PORT_PATTERN}"
 COMPONENT_TYPE_PERSISTENT = "persistent"
 COMPONENT_TYPE_EPHERMAL = "ephemeral"
 
@@ -24,7 +25,7 @@ def check_ports_for_execution(ports):
     if not isinstance(ports, list):
         raise OdtpDbMongoDBValidationException(f"ports '{ports}' are not a list")
     for list_of_ports in ports: 
-        check_ports_for_component(ports=list_of_ports)   
+        check_ports_for_component(ports=list_of_ports)
 
 
 def check_ports_for_component(ports):
@@ -33,8 +34,8 @@ def check_ports_for_component(ports):
     if not isinstance(ports, list):
         raise OdtpDbMongoDBValidationException(f"some component ports '{ports}' are not a list")
     for port in ports:
-        if not re.match(PORT_PATTERN, port):
-            raise OdtpDbMongoDBValidationException(f"'{port}' is not a valid port")    
+        if not re.match(PORT_MAPPING_PATTERN, port):
+            raise OdtpDbMongoDBValidationException(f"'{port}' is not a valid port mapping")
 
 
 def check_parameters_for_execution(parameters):
@@ -56,3 +57,13 @@ def check_component_type(type):
         raise OdtpDbMongoDBValidationException(
             f"{type} should be either {COMPONENT_TYPE_EPHERMAL} or {COMPONENT_TYPE_PERSISTENT}"
         )
+
+
+def check_component_ports(ports):
+    if not ports:
+        return True
+    if not isinstance(ports, list):
+        raise OdtpDbMongoDBValidationException(f"component ports '{ports}' are not a list")
+    for port in ports:
+        if not re.match(PORT_PATTERN, port):
+            raise OdtpDbMongoDBValidationException(f"'{port}' is not a valid port")

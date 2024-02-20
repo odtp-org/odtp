@@ -147,7 +147,7 @@ def add_component_version(
 
     # check first
     try:    
-        mongodb_utils.check_ports_for_component(ports)
+        mongodb_utils.check_component_ports(ports)
         mongodb_utils.check_component_type(type) 
         commit_hash = git_helpers.check_commit_for_repo(
             repo_url=repository, 
