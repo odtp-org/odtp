@@ -164,7 +164,7 @@ class DockerManager:
         else:
             ports_args = [""]
 
-        docker_run_command = ["docker", "run", "-it", "--name", instance_name, 
+        docker_run_command = ["docker", "run", "--rm", "-it", "--name", instance_name, 
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + [self.docker_image_name]
         
