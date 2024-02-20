@@ -140,7 +140,7 @@ class WorkflowManager:
 
 
             # Change image_name by Component ID_version
-            # image_name = "{}_{}_{}".format(component_doc["componentName"], version_doc["version"], step_index)
+            # image_name = "{}_{}_{}".format(step_index, component_doc["componentName"], version_doc["version"])
             # By now the image_name is just the name of the component and the version
             componentManager = DockerManager(
                 repo_url=self.repo_urls[step_index], 

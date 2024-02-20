@@ -134,7 +134,7 @@ class DockerManager:
         logging.info(f"RUN: Creating Docker volume {volume_name}")
         subprocess.run(["docker", "volume", "create", volume_name])
         
-    def run_component(self, parameters, ports, instance_name, step_id=None):
+    def run_component(self, parameters, ports, instance_name, step_id=None, debug=False):
         """
         Run a Docker component with the specified parameters.
 
@@ -160,7 +160,6 @@ class DockerManager:
         env_args = [f"-e \"{key}={value}\"" for key, value in parameters.items()]
 
         if ports:
-            logging.info(ports)
             ports_args = [f"-p {port_pair}" for port_pair in ports]
         else:
             ports_args = [""]
@@ -170,8 +169,9 @@ class DockerManager:
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + [self.docker_image_name]
         
         command_string = ' '.join(docker_run_command)
-        logging.info("Command to be executed:")
-        logging.info(command_string) 
+
+        if debug:
+            logging.debug(f"Command to be executed: {command_string}")
 
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
