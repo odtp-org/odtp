@@ -9,7 +9,7 @@ class OdtpParamterParsingException(Exception):
 
 def parse_paramters_for_one_file(parameter_file):
     if not parameter_file:
-        return None
+        return {}
     if not os.path.isfile(parameter_file):
         raise OdtpParamterParsingException(f"Parsing of file {parameter_file} failed: file path not valid")
     try:   
