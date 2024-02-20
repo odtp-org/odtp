@@ -96,14 +96,14 @@ def execution_entry(
         help="List the files containing the parameters by step separated by commas"
     )] = None,     
     ports: Annotated[str, typer.Option(
-        help="""Specify ports pairs separated by commas within the same step and + between steps i.e. 
+        help="""Specify ports mappings separated by plus within the same step and , between steps i.e. 
         9001:9001+8501:8501,8080:8001+6000:6000"""
     )] = None,    
 ):  
     try:
         versions = odtp_parse.parse_versions(component_versions)
         step_count = len(versions)
-        ports = odtp_parse.parse_ports_for_multiple_components(
+        ports = odtp_parse.parse_port_mappings_for_multiple_components(
             ports=ports, step_count=step_count)
         parameters = odtp_parse.parse_paramters_for_multiple_files(
             parameter_files=parameter_files, step_count=step_count)

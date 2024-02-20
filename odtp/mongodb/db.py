@@ -265,7 +265,7 @@ def add_execution(
         db = client[ODTP_MONGO_DB]  
         try:
             mongodb_utils.check_parameters_for_execution(parameters)
-            mongodb_utils.check_ports_for_execution(ports)
+            mongodb_utils.check_port_mappings_for_execution(ports)
             check_document_ids_in_collection(document_ids=versions, collection=collection_versions)
             check_document_id_in_collection(document_id=dt_id, collection=collection_digital_twins)
             workflow = odtp_utils.get_workflow(versions)

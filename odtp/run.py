@@ -76,7 +76,7 @@ class DockerManager:
         except Exception as e:
             raise OdtpRunSetupException(f"parameters are not transformable to json: {parameters}")
         
-        db_utils.check_ports_for_component(ports)
+        db_utils.check_port_mappings_for_component_runs(ports)
         self._check_image_exists()
 
     def _download_repo(self):

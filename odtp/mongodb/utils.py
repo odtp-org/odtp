@@ -19,16 +19,16 @@ def get_list_from_cursor(cursor):
     return document_list
 
 
-def check_ports_for_execution(ports):
+def check_port_mappings_for_execution(ports):
     if not ports:
         return True
     if not isinstance(ports, list):
         raise OdtpDbMongoDBValidationException(f"ports '{ports}' are not a list")
     for list_of_ports in ports: 
-        check_ports_for_component(ports=list_of_ports)
+        check_port_mappings_for_component_runs(ports=list_of_ports)
 
 
-def check_ports_for_component(ports):
+def check_port_mappings_for_component_runs(ports):
     if not ports:
         return True
     if not isinstance(ports, list):

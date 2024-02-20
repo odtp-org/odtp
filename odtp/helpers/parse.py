@@ -39,14 +39,14 @@ def parse_paramters_for_multiple_files(parameter_files, step_count):
         return parameters_output
 
 
-def parse_ports_for_multiple_components(ports, step_count):
+def parse_port_mappings_for_multiple_components(ports, step_count):
     if not ports:
         return [None for i in range(step_count)]
     try:
         ports_output = []
         ports_per_step = ports.split(",")
         for ports in ports_per_step:
-            ports_output.append(parse_ports_for_one_component(ports))
+            ports_output.append(parse_port_mappings_for_one_component(ports))
         if not len(ports_output) == step_count:
             raise OdtpParamterParsingException(
                 "Invalid ports specification: not as many ports definition  as steps: {ports}")
@@ -56,7 +56,7 @@ def parse_ports_for_multiple_components(ports, step_count):
         return ports_output
     
 
-def parse_ports_for_one_component(ports):    
+def parse_port_mappings_for_one_component(ports):    
     if not ports:
         return None
     try:
