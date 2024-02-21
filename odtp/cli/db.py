@@ -5,7 +5,7 @@ import typer
 from typing_extensions import Annotated
 
 import odtp.mongodb.db as db
-import odtp.mongodb.utils as utils
+import odtp.helpers.utils as odtp_utils
 
 app = typer.Typer()
 
@@ -19,14 +19,14 @@ def get(
         db_output = db.get_document_by_id(document_id=id, collection=collection)
     else:
         db_output = db.get_collection(collection=collection)
-    utils.print_output_as_json(db_output)
+    odtp_utils.print_output_as_json(db_output)
 
 
 @app.command()
 def showAll():
     """show all content of the Mongo DB"""
     db_output = db.get_all_collections()
-    utils.print_output_as_json(db_output)
+    odtp_utils.print_output_as_json(db_output)
 
 
 @app.command()
@@ -39,7 +39,7 @@ def digitalTwins_for_user(
         item_id=user_id,
         ref_name=db.collection_digital_twins,
     )
-    utils.print_output_as_json(db_output)
+    odtp_utils.print_output_as_json(db_output)
 
 
 @app.command()
@@ -52,7 +52,7 @@ def executions_for_digitalTwin(
         item_id=dt_id,
         ref_name=db.collection_executions,
     )
-    utils.print_output_as_json(db_output)
+    odtp_utils.print_output_as_json(db_output)
 
 
 @app.command()
@@ -67,7 +67,7 @@ def steps_for_execution(
         item_id=execution_id,
         ref_name=db.collection_steps,
     )
-    utils.print_output_as_json(db_output)
+    odtp_utils.print_output_as_json(db_output)
 
 
 @app.command()

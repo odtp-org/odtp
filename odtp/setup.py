@@ -1,20 +1,17 @@
 """
 The goal of this script is to generate and initial mockup data for the instances.
 """
-from .db import MongoManager
-from .storage import s3Manager
+from odtp.db import MongoManager
+from odtp.storage import s3Manager
 
 import logging
-from dotenv import dotenv_values
-
-
-config = dotenv_values(".env")
+import odtp.helpers.settings as config
 
 
 class odtpDatabase:
     def __init__(self):
 
-        url = config["ODTP_MONGO_SERVER"]
+        url = config.ODTP_MONGO_SERVER
         db_name = "odtp"
         dbManager = MongoManager(url, db_name)
 
@@ -61,10 +58,10 @@ class odtpDatabase:
 
 class s3Database:
     def __init__(self):
-        s3Server = config["ODTP_S3_SERVER"]
-        bucketName = config["ODTP_BUCKET_NAME"]
-        accessKey = config["ODTP_ACCESS_KEY"]
-        secretKey = config["ODTP_SECRET_KEY"]
+        s3Server = config.ODTP_S3_SERVER
+        bucketName = config.ODTP_BUCKET_NAME
+        accessKey = config.ODTP_ACCESS_KEY
+        secretKey = config.ODTP_SECRET_KEY
 
         storageManager = s3Manager(s3Server, bucketName, accessKey, secretKey)
 

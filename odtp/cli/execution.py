@@ -5,7 +5,7 @@ import logging
 
 import typer
 
-from odtp.setup import odtpDatabase
+import odtp.mongodb.db as db
 from odtp.workflow import WorkflowManager
 
 app = typer.Typer()
@@ -22,15 +22,19 @@ def prepare(
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
-):
-    odtpDB = odtpDatabase()
-    execution_doc = odtpDB.dbManager.get_document_by_id_as_dict(
-        execution_id, "executions"
-    )
-    odtpDB.close()
-
-    flowManager = WorkflowManager(execution_doc, project_path)
-    flowManager.prepare_workflow()
+):  
+    try:
+        execution = db.get_document_by_id(
+            document_id=execution_id, 
+            collection=db.collection_executions
+        )
+        flowManager = WorkflowManager(execution, project_path)
+        flowManager.prepare_workflow()
+    except Exception as e:
+        print(f"ERROR: Prepare execution failed: {e}") 
+        raise typer.Abort()           
+    else:
+        print("SUCCESS: images for the execution have been build")    
 
 
 @app.command()
@@ -41,15 +45,19 @@ def run(
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
-):
-    odtpDB = odtpDatabase()
-    execution_doc = odtpDB.dbManager.get_document_by_id_as_dict(
-        execution_id, "executions"
-    )
-    odtpDB.close()
-
-    flowManager = WorkflowManager(execution_doc, project_path)
-    flowManager.run_workflow()
+): 
+    try:
+        execution = db.get_document_by_id(
+            document_id=execution_id, 
+            collection=db.collection_executions
+        )
+        flowManager = WorkflowManager(execution, project_path)
+        flowManager.run_workflow()
+    except Exception as e:
+        print(f"ERROR: Run execution failed: {e}")       
+        raise typer.Abort()
+    else:
+        print("SUCCESS: containers for the execution have been run")      
 
 
 if __name__ == "__main__":
