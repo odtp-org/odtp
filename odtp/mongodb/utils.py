@@ -1,6 +1,5 @@
-import re
 import json
-
+import re
 
 PORT_PATTERN = "\d{2,4}"
 PORT_MAPPING_PATTERN = f"{PORT_PATTERN}:{PORT_PATTERN}"
@@ -24,7 +23,7 @@ def check_port_mappings_for_execution(ports):
         return True
     if not isinstance(ports, list):
         raise OdtpDbMongoDBValidationException(f"ports '{ports}' are not a list")
-    for list_of_ports in ports: 
+    for list_of_ports in ports:
         check_port_mappings_for_component_runs(ports=list_of_ports)
 
 
@@ -32,10 +31,14 @@ def check_port_mappings_for_component_runs(ports):
     if not ports:
         return True
     if not isinstance(ports, list):
-        raise OdtpDbMongoDBValidationException(f"some component ports '{ports}' are not a list")
+        raise OdtpDbMongoDBValidationException(
+            f"some component ports '{ports}' are not a list"
+        )
     for port in ports:
         if not re.match(PORT_MAPPING_PATTERN, port):
-            raise OdtpDbMongoDBValidationException(f"'{port}' is not a valid port mapping")
+            raise OdtpDbMongoDBValidationException(
+                f"'{port}' is not a valid port mapping"
+            )
 
 
 def check_parameters_for_execution(parameters):
@@ -63,7 +66,9 @@ def check_component_ports(ports):
     if not ports:
         return True
     if not isinstance(ports, list):
-        raise OdtpDbMongoDBValidationException(f"component ports '{ports}' are not a list")
+        raise OdtpDbMongoDBValidationException(
+            f"component ports '{ports}' are not a list"
+        )
     for port in ports:
         if not re.match(PORT_PATTERN, port):
             raise OdtpDbMongoDBValidationException(f"'{port}' is not a valid port")
