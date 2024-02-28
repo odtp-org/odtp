@@ -30,6 +30,9 @@ def central():
     except:
         print("Error: Login not performed yet.")
 
-app.add_middleware(middleware.AuthMiddleware)
+url = "https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/certs"
+audience = "custodian"
+
+app.add_middleware(middleware.AuthMiddleware, url=url, audience=audience)
 central()
 
