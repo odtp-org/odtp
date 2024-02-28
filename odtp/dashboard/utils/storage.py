@@ -226,3 +226,41 @@ def storage_run_selection(execution_id, repo_url, commit_hash):
         app.storage.user["run_selection"] = json.dumps(run_selection)
     except Exception as e:
         ui.notify(f"storage update for run selection failed: {e}", type="negative")
+
+def reset(data_id): 
+    save_to_storage(data_id, {}, override=True)
+    
+def app_storage_is_set(value):
+    storage_entry_for_value = app.storage.user.get(value)
+    if storage_entry_for_value == "None" or not storage_entry_for_value:
+        return False
+    return True
+
+def save_to_storage(data_id, data_dict, override=False):
+    print("Saving to storage")
+    if app_storage_is_set(data_id) and override == False:
+        print("Data already exists")
+        print(data_id)
+        #this allows to update an object if it is already in the storage
+        data = get_from_storage(data_id)
+        data.update(data_dict)
+        data = json.dumps(data)
+        app.storage.user[data_id] = data
+    else: 
+        print("Data is new !")
+        print(data_id)
+        #this is to add a new object to the storage
+        data_json = json.dumps(data_dict)  
+        app.storage.user[data_id] = data_json
+
+
+def get_from_storage(data_id):
+    try:
+        object = app.storage.user.get(data_id)
+        if app_storage_is_set(data_id) and object:
+            return json.loads(object)
+    except Exception as e:
+        ui.notify(
+            f"'{data_id}' could not be retrieved from storage. Exception occured: {e}",
+            type="negative",
+        )

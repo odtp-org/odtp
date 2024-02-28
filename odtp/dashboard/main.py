@@ -1,5 +1,8 @@
 from nicegui import app, native, ui
 
+from odtp.dashboard.utils.storage import save_to_storage, get_from_storage
+from odtp.dashboard.utils.middleware import AuthMiddleware
+
 import odtp.dashboard.utils.ui_theme as ui_theme
 from odtp.dashboard.pages.page_about import content as about_page
 from odtp.dashboard.pages.page_components import content as components_page
@@ -7,6 +10,7 @@ from odtp.dashboard.pages.page_digital_twins import content as digital_twins_pag
 from odtp.dashboard.pages.page_executions import content as executions_page
 from odtp.dashboard.pages.page_run import content as run_page
 from odtp.dashboard.pages.page_user import content as user_page
+from odtp.dashboard.pages.page_signin import content as signin_page
 
 
 @ui.page("/")
@@ -20,6 +24,10 @@ def start():
     with ui_theme.frame("Users"):
         user_page()
 
+@ui.page("/signin")
+def start():
+    with ui_theme.frame("Profiles"):
+        signin_page()
 
 @ui.page("/components")
 def components():
@@ -46,5 +54,9 @@ def components():
 
 
 app.add_static_files("/static", "static")
+url = "https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/certs"
+audience = "custodian"
+app.add_middleware(AuthMiddleware, url=url, audience=audience)     
 
-ui.run(title="ODTP", storage_secret="private key to secure the browser session cookie")
+ui.run(title="ODTP", port=5000, storage_secret="private key to secure the browser session cookie")
+#"private key to secure the browser session cookie"
