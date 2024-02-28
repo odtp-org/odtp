@@ -2,6 +2,9 @@
 
 - v.0.2.0: Improvements in database and files management.
     - New MongoDB Schema.
+    - Setup uses pyproject.toml and set up method changed to poetry
+    - mongodb access function modified so that they can be used by both the gui and the cli
+    - additonal cli functions
     - ODTP digital Zoo compatibility. 
     - Automatic generation/deletion of initial volumes for docker. 
     - S3 extended functionality.
