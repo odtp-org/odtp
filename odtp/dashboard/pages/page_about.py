@@ -2,11 +2,12 @@ from nicegui import ui
 
 
 def content() -> None:
-    ui.markdown(
-        """
-                # OTDP (Open Digital Twin Project)
-                
-                ## What is a digital twin?
+    with ui.row().classes('fixed-center'):
+            ui.markdown(
                 """
-    )
-    ui.link("Check out the Documentation", "https://odtp-org.github.io/odtp-manuals/")
+                        # OTDP (Open Digital Twin Project)
+                        
+                        ## How to get started:
+                        """
+            )
+            ui.link("Check out our Documentation", "https://odtp-org.github.io/odtp-manuals/").classes('text-lg bg-100-teal')

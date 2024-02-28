@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from dotenv import dotenv_values
 
 odtp_config_file_path = Path(__file__).parent.parent.parent.joinpath(".env")
