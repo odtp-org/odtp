@@ -1,13 +1,12 @@
 ## Changelog
 
 - v.0.2.0: Improvements in database and files management.
-    - New MongoDB Schema.
+    - New MongoDB Schema supporting users, digital twins, executions, and steps. 
     - Setup uses pyproject.toml and set up method changed to poetry
-    - mongodb access function modified so that they can be used by both the gui and the cli
-    - additonal cli functions
-    - ODTP digital Zoo compatibility. 
-    - Automatic generation/deletion of initial volumes for docker. 
-    - S3 extended functionality.
+    - mongodb access function modified so that they can be used by both the GIU and the CLI
+    - CLI refactored with methods for creating and managing digital twins, and executions. 
+    - Automatic preparation of project folders for executions. 
+    - S3 uploading of outputs from each component.
     - Switch UI from Streamlit to Nicegui
 
 
