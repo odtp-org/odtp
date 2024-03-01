@@ -46,14 +46,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
             header = request.headers.get("authorization")
             jwt_token = header.split(" ")[1]
             print(jwt_token)
-            #decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
-            #decoded_jwt = jwt_decode_header(jwt_token)
-            decoded_jwt = jwt_decode_payload(jwt_token)
+            decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
             print(decoded_jwt)
             user_role = decoded_jwt["groups"]
             user_name = decoded_jwt["preferred_username"]
+            all_name = decoded_jwt["name"]
             user_email  = decoded_jwt["email"] 
             save_to_storage("login_user_name", {"value": user_name})
+            save_to_storage("login_name", {"value": all_name})
             save_to_storage("login_user_email", {"value": user_email})
             print(user_name)
             print(user_role)
