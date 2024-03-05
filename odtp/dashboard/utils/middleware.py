@@ -30,6 +30,9 @@ def jwt_decode_from_client(encoded: str, url:str, audience:str):
                          algorithms=["RS256", "HS256"])
     return payload
 
+
+    
+
 class AuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, url, audience):
         super().__init__(app)
@@ -37,9 +40,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self.audience = audience
     
     async def dispatch(self, request:Request, call_next):
-        print("test1")
-        print(self.url)
-        print(self.audience)
         if request.url.path in Client.page_routes.values() and request.url.path not in unrestricted_page_routes:
             print("test2")
             print(request.headers.keys())
@@ -55,9 +55,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
             save_to_storage("login_user_name", {"value": user_name})
             save_to_storage("login_name", {"value": all_name})
             save_to_storage("login_user_email", {"value": user_email})
-            print(user_name)
-            print(user_role)
-            print(user_email)
             if "odtp-provider" in user_role:
                 print("ODTP provider")
                 save_to_storage("login_user_role", {"value": "odtp-provider"})

@@ -26,7 +26,9 @@ FORM_STATE_STEP = "step"
 class ODTPFormValidationException(Exception):
     pass
 
-
+def reset_all () -> None: 
+    app.storage.clear()
+    
 def reset_storage_delete(keys):
     current_storage_keys = app.storage.user.keys()
     try:
@@ -229,6 +231,7 @@ def storage_run_selection(execution_id, repo_url, commit_hash):
 
 def reset(data_id): 
     save_to_storage(data_id, {}, override=True)
+    
     
 def app_storage_is_set(value):
     storage_entry_for_value = app.storage.user.get(value)

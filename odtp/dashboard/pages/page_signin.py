@@ -1,5 +1,5 @@
 from nicegui import Tailwind, ui
-from odtp.dashboard.utils.storage import get_from_storage
+from odtp.dashboard.utils.storage import get_from_storage, reset_storage_delete, reset_all
 from odtp.dashboard.utils.middleware import AuthMiddleware
 
 def content() -> None:
@@ -8,7 +8,7 @@ def content() -> None:
         username = get_from_storage("login_user_name")["value"]
         login_name = get_from_storage("login_name")["value"]
         user_email  = get_from_storage("login_user_email")["value"]
-        print(user_role)
+     
         with ui.row():
             ui.add_head_html('<link href="https://unpkg.com/eva-icons@1.1.3/style/eva-icons.css" rel="stylesheet" />')
             ui.icon('eva-github').classes('text-5xl')
@@ -34,8 +34,10 @@ def content() -> None:
     ui_logout()    
     
     
+    
 def ui_logout() -> None:
    url ='https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/logout?client_id=custodian&post_logout_redirect_uri=http://localhost:8000/' 
+   reset_all()
    ui.button(
       "Logout", 
       on_click=lambda: ui.open(url), 
