@@ -57,10 +57,12 @@ def components():
 app.add_static_files("/static", "static")
 url = "https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/certs"
 audience = "custodian"
-app.add_middleware(AuthMiddleware, url=url, audience=audience)    
+app.add_middleware(AuthMiddleware, url=url, audience=audience) 
+   
+ 
 
-controller = webbrowser.get('Firefox')
-controller.open('http://localhost:8000') 
+#controller = webbrowser.get('Firefox')
+#controller.open('http://localhost:8000') 
 
 ui.run(title="ODTP", show=False, port=5000, storage_secret="private key to secure the browser session cookie")
 #"private key to secure the browser session cookie"

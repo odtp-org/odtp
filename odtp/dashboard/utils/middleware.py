@@ -1,9 +1,10 @@
 import jwt
 from jwt import PyJWKClient
-from fastapi import Request
+from fastapi import Request, status, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from nicegui import Client
 from odtp.dashboard.utils.storage import save_to_storage
+from fastapi.responses import RedirectResponse
 
 
 unrestricted_page_routes = {'/', '/components', '/signin'}
@@ -38,8 +39,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.url = url
         self.audience = audience
+                       
     
     async def dispatch(self, request:Request, call_next):
+        # Get the client's IP address
+        client_ip = request.client.host
+        print(client_ip)
         if request.url.path in Client.page_routes.values() and request.url.path not in unrestricted_page_routes:
             print("test2")
             print(request.headers.keys())
@@ -52,9 +57,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
             user_name = decoded_jwt["preferred_username"]
             all_name = decoded_jwt["name"]
             user_email  = decoded_jwt["email"] 
+            user_gitrepo = decoded_jwt["Github_repo"]
             save_to_storage("login_user_name", {"value": user_name})
             save_to_storage("login_name", {"value": all_name})
             save_to_storage("login_user_email", {"value": user_email})
+            save_to_storage("login_user_git", {"value": user_gitrepo})
             if "odtp-provider" in user_role:
                 print("ODTP provider")
                 save_to_storage("login_user_role", {"value": "odtp-provider"})

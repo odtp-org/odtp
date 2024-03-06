@@ -1,6 +1,5 @@
 from nicegui import Tailwind, ui
 from odtp.dashboard.utils.storage import get_from_storage, reset_storage_delete, reset_all
-from odtp.dashboard.utils.middleware import AuthMiddleware
 
 def content() -> None:
     try: 
@@ -8,7 +7,8 @@ def content() -> None:
         username = get_from_storage("login_user_name")["value"]
         login_name = get_from_storage("login_name")["value"]
         user_email  = get_from_storage("login_user_email")["value"]
-     
+        user_git = get_from_storage("login_user_git")["value"]
+        print(user_role)
         with ui.row():
             ui.add_head_html('<link href="https://unpkg.com/eva-icons@1.1.3/style/eva-icons.css" rel="stylesheet" />')
             ui.icon('eva-github').classes('text-5xl')
@@ -25,7 +25,7 @@ def content() -> None:
            ui.label(user_email)
         with ui.row():
            ui.label("Github Repository").tailwind.font_weight('extrabold')
-           ui.label(user_role)
+           ui.label(user_git)
            
  
     except:
