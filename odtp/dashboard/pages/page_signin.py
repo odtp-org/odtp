@@ -1,5 +1,5 @@
 from nicegui import Tailwind, ui
-from odtp.dashboard.utils.storage import get_from_storage, reset_storage_delete, reset_all
+from odtp.dashboard.utils.storage import get_from_storage, save_to_storage, reset_all
 
 def content() -> None:
     try: 
@@ -38,6 +38,7 @@ def content() -> None:
 def ui_logout() -> None:
    url ='https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/logout?client_id=custodian&post_logout_redirect_uri=http://localhost:8000/' 
    reset_all()
+   save_to_storage("authenticated", {"value": False})
    ui.button(
       "Logout", 
       on_click=lambda: ui.open(url), 

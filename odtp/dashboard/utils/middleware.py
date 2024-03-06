@@ -1,10 +1,10 @@
-import jwt
+import jwt, logging
 from jwt import PyJWKClient
-from fastapi import Request, status, HTTPException
+from fastapi import Request, status, HTTPException, Cookie, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from nicegui import Client
-from odtp.dashboard.utils.storage import save_to_storage
-from fastapi.responses import RedirectResponse
+from nicegui import Client,app
+from odtp.dashboard.utils.storage import save_to_storage, get_from_storage
+from fastapi.responses import RedirectResponse, Response
 
 
 unrestricted_page_routes = {'/', '/components', '/signin'}
@@ -39,38 +39,74 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.url = url
         self.audience = audience
+       #app.on_disconnect(self.on_logout)
                        
     
     async def dispatch(self, request:Request, call_next):
         # Get the client's IP address
         client_ip = request.client.host
         print(client_ip)
-        if request.url.path in Client.page_routes.values() and request.url.path not in unrestricted_page_routes:
-            print("test2")
-            print(request.headers.keys())
-            header = request.headers.get("authorization")
+        is_id_token_cookie_present = await self.is_cookie_empty_or_exists(request, "SWISSDATACUSTODIAN_IDTOKEN")
+        print(is_id_token_cookie_present)
+        if not is_id_token_cookie_present:
+            print("test cookie")
+            if (
+                request.url.path in Client.page_routes.values() 
+                and request.url.path not in unrestricted_page_routes
+                ):
+                return RedirectResponse("http://localhost:8000/")
+        print(app.storage.browser)
+        #jwt_token = request.cookies.get("SWISSDATACUSTODIAN_IDTOKEN", "")
+        header = request.headers.get("authorization")
+        if header:
             jwt_token = header.split(" ")[1]
             print(jwt_token)
-            decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
-            print(decoded_jwt)
-            user_role = decoded_jwt["groups"]
-            user_name = decoded_jwt["preferred_username"]
-            all_name = decoded_jwt["name"]
-            user_email  = decoded_jwt["email"] 
-            user_gitrepo = decoded_jwt["Github_repo"]
-            save_to_storage("login_user_name", {"value": user_name})
-            save_to_storage("login_name", {"value": all_name})
-            save_to_storage("login_user_email", {"value": user_email})
-            save_to_storage("login_user_git", {"value": user_gitrepo})
-            if "odtp-provider" in user_role:
-                print("ODTP provider")
-                save_to_storage("login_user_role", {"value": "odtp-provider"})
-            elif "user" in user_role:
-                print("ODTP user")
-                save_to_storage("login_user_role", {"value": "user"})
-            else: 
-                print("Error: Role unknown")
-            
+            #if jwt_token:
+            try:
+                decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
+                user_role = decoded_jwt.get("groups", [])
+                user_name = decoded_jwt.get("preferred_username", "")
+                all_name = decoded_jwt.get("name", "")
+                user_email = decoded_jwt.get("email", "")
+                user_gitrepo = decoded_jwt.get("Github_repo", "")
+
+                save_to_storage("login_user_name", {"value": user_name})
+                save_to_storage("login_name", {"value": all_name})
+                save_to_storage("login_user_email", {"value": user_email})
+                save_to_storage("login_user_git", {"value": user_gitrepo})
+                save_to_storage("authenticated", {"value": True})
+
+                if "odtp-provider" in user_role:
+                    logging.info("ODTP provider")
+                    save_to_storage("login_user_role", {"value": "odtp-provider"})
+                elif "user" in user_role:
+                    logging.info("ODTP user")
+                    save_to_storage("login_user_role", {"value": "user"})
+                else:
+                    logging.error("Error: Role unknown")
+
+            except Exception as e:
+                logging.error(f"Error decoding JWT: {e}")
+        
+       
+         # Call on_logout here if needed
+        #await self.on_logout(request, Response, "SWISSDATACUSTODIAN_IDTOKEN")
+        
+        
         return await call_next(request)
         
+                
+    async def is_cookie_empty_or_exists(self,request, cookie_name):
+        cookie_value = request.cookies.get(cookie_name, "")
+        return bool(cookie_value)            
     
+   
+            
+            
+    async def on_logout(self, request, response, cookie_name):
+       print(app.storage.user)
+       authenticated_data = get_from_storage("authenticated")
+
+       if authenticated_data and not authenticated_data.get("value", False):
+               response.delete_cookie(key=cookie_name)
+               

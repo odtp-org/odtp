@@ -57,8 +57,8 @@ def components():
 app.add_static_files("/static", "static")
 url = "https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/certs"
 audience = "custodian"
-app.add_middleware(AuthMiddleware, url=url, audience=audience) 
-   
+app.add_middleware(AuthMiddleware, url=url, audience=audience)
+
  
 
 #controller = webbrowser.get('Firefox')
