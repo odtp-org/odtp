@@ -32,7 +32,7 @@ def jwt_decode_from_client(encoded: str, url:str, audience:str):
     return payload
 
 
-    
+  
 
 class AuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, url, audience):
@@ -64,26 +64,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             #if jwt_token:
             try:
                 decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
-                user_role = decoded_jwt.get("groups", [])
-                user_name = decoded_jwt.get("preferred_username", "")
-                all_name = decoded_jwt.get("name", "")
-                user_email = decoded_jwt.get("email", "")
-                user_gitrepo = decoded_jwt.get("Github_repo", "")
-
-                save_to_storage("login_user_name", {"value": user_name})
-                save_to_storage("login_name", {"value": all_name})
-                save_to_storage("login_user_email", {"value": user_email})
-                save_to_storage("login_user_git", {"value": user_gitrepo})
-                save_to_storage("authenticated", {"value": True})
-
-                if "odtp-provider" in user_role:
-                    logging.info("ODTP provider")
-                    save_to_storage("login_user_role", {"value": "odtp-provider"})
-                elif "user" in user_role:
-                    logging.info("ODTP user")
-                    save_to_storage("login_user_role", {"value": "user"})
-                else:
-                    logging.error("Error: Role unknown")
+                self.update_user_storage(decoded_jwt)
 
             except Exception as e:
                 logging.error(f"Error decoding JWT: {e}")
@@ -100,7 +81,27 @@ class AuthMiddleware(BaseHTTPMiddleware):
         cookie_value = request.cookies.get(cookie_name, "")
         return bool(cookie_value)            
     
-   
+    def update_user_storage(self, decoded_jwt):
+        user_role = decoded_jwt.get("groups", [])
+        user_name = decoded_jwt.get("preferred_username", "")
+        all_name = decoded_jwt.get("name", "")
+        user_email = decoded_jwt.get("email", "")
+        user_gitrepo = decoded_jwt.get("Github_repo", "")
+
+        save_to_storage("login_user_name", {"value": user_name})
+        save_to_storage("login_name", {"value": all_name})
+        save_to_storage("login_user_email", {"value": user_email})
+        save_to_storage("login_user_git", {"value": user_gitrepo})
+        save_to_storage("authenticated", {"value": True})
+        if "odtp-provider" in user_role:
+            logging.info("ODTP provider")
+            save_to_storage("login_user_role", {"value": "odtp-provider"})
+        elif "user" in user_role:
+            logging.info("ODTP user")
+            save_to_storage("login_user_role", {"value": "user"})
+        else:
+            logging.error("Error: Role unknown") 
+       
             
             
     async def on_logout(self, request, response, cookie_name):
