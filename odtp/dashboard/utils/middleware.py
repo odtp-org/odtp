@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse, Response
 import odtp.mongodb.db as db
 
 
-unrestricted_page_routes = {'/', '/components', '/signin'}
+unrestricted_page_routes = {'/', '/components'}
 
 def jwt_decode_header(encoded:str): 
     """Decodes the header of a JWT token. (Giving data like algorithm and token type as well as signature key: alg, typ, kid.)"""
@@ -55,43 +55,31 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.url = url
         self.audience = audience
-       #app.on_disconnect(self.on_logout)
                        
     
     async def dispatch(self, request:Request, call_next):
-        # Get the client's IP address
-        client_ip = request.client.host
-        print(client_ip)
-        is_id_token_cookie_present = await self.is_cookie_empty_or_exists(request, "SWISSDATACUSTODIAN_IDTOKEN")
-        print(is_id_token_cookie_present)
-        if not is_id_token_cookie_present:
-            print("test cookie")
+        authenticated_data = get_from_storage("authenticated")
+        if authenticated_data is None or not authenticated_data.get("value", False):
             if (
                 request.url.path in Client.page_routes.values() 
                 and request.url.path not in unrestricted_page_routes
                 ):
                 return RedirectResponse("http://localhost:8000/")
-        print(app.storage.browser)
-        #jwt_token = request.cookies.get("SWISSDATACUSTODIAN_IDTOKEN", "")
-        header = request.headers.get("authorization")
-        if header:
-            jwt_token = header.split(" ")[1]
-            print(jwt_token)
-            #if jwt_token:
-            try:
-                decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
-                print(decoded_jwt)
-                self.update_user_storage(decoded_jwt)
-
-            except Exception as e:
-                logging.error(f"Error decoding JWT: {e}")
-        
-       
-         # Call on_logout here if needed
-        #await self.on_logout(request, Response, "SWISSDATACUSTODIAN_IDTOKEN")
-        
-        
+            header = request.headers.get("authorization")
+            if header:
+                jwt_token = header.split(" ")[1]
+                print(jwt_token)
+                if jwt_token:
+                    try:
+                        decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
+                        self.update_user_storage(decoded_jwt)
+                    except Exception as e:
+                        logging.error(f"Error decoding JWT: {e}")
         return await call_next(request)
+        
+        
+        
+      
         
                 
     async def is_cookie_empty_or_exists(self,request, cookie_name):
@@ -131,10 +119,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
        
             
             
-    async def on_logout(self, request, response, cookie_name):
-       print(app.storage.user)
-       authenticated_data = get_from_storage("authenticated")
+    # async def on_logout(self, request, response, cookie_name):
+    #    print(app.storage.user)
+    #    authenticated_data = get_from_storage("authenticated")
 
-       if authenticated_data and not authenticated_data.get("value", False):
-               response.delete_cookie(key=cookie_name)
+    #    if authenticated_data and not authenticated_data.get("value", False):
+    #            response.delete_cookie(key=cookie_name)
                

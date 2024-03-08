@@ -51,7 +51,7 @@ def ui_workarea():
     )    
     
 def ui_logout() -> None:
-   url ='https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/logout?client_id=custodian&post_logout_redirect_uri=http://localhost:8000/' 
+   url ='https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/logout?client_id=custodian&post_logout_redirect_uri=http://localhost:8000/components' 
    reset_all()
    save_to_storage("authenticated", {"value": False})
    ui.button(
