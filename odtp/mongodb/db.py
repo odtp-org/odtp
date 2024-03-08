@@ -124,9 +124,21 @@ def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
         return documents
 
 
-def add_user(name, github, email):
+#Check if a user already exist
+def user_exists(sub):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        existing_user = db[collection_users].find_one({"sub": sub})
+        return existing_user is not None
+        
+        
+        
+        
+        
+def add_user(name, github, email,sub):
     """add new user and return id"""
     user_data = {
+        "sub": sub,
         "displayName": name,
         "email": email,
         "github": github,

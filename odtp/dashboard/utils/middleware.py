@@ -32,17 +32,22 @@ def jwt_decode_from_client(encoded: str, url:str, audience:str):
                          algorithms=["RS256", "HS256"])
     return payload
 
-def add_user( name_input, github_input, email_input):
-   
-    try:
-        user_id = db.add_user(
-            name=name_input, 
-            github=github_input, 
-            email=email_input,
-        )
-        print(f"A user with id {user_id} has been created")
-    except Exception as e:
-        print(f"The user could not be added in the database. An Exception occurred: {e}")
+def add_user( name_input, github_input, email_input, sub_input):
+    """ Add a neww uuser if it doesn't exist and return the user ID."""
+    if db.user_exists(sub_input):
+        logging.warning(f"User with email {sub_input} already exists")
+        return None
+    else:
+        try:
+            user_id = db.add_user(
+                sub=sub_input,
+                name=name_input, 
+                github=github_input, 
+                email=email_input,
+                )
+            print(f"A user with id {user_id} has been created")
+        except Exception as e:
+            print(f"The user could not be added in the database. An Exception occurred: {e}")
   
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -75,6 +80,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             #if jwt_token:
             try:
                 decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
+                print(decoded_jwt)
                 self.update_user_storage(decoded_jwt)
 
             except Exception as e:
@@ -93,13 +99,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return bool(cookie_value)            
     
     def update_user_storage(self, decoded_jwt):
+        sub = decoded_jwt.get("sub", "")
         user_role = decoded_jwt.get("groups", [])
         user_name = decoded_jwt.get("preferred_username", "")
         all_name = decoded_jwt.get("name", "")
         user_email = decoded_jwt.get("email", "")
         user_gitrepo = decoded_jwt.get("Github_repo", "")
         
-        print(user_name, user_email, user_gitrepo)
+        print(user_name, user_email, user_gitrepo, sub)
 
         save_to_storage("login_user_name", {"value": user_name})
         save_to_storage("login_name", {"value": all_name})
@@ -110,6 +117,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             name_input=user_name,
             github_input=user_gitrepo,
             email_input=user_email,
+            sub_input= sub, 
+            
             )
         if "odtp-provider" in user_role:
             logging.info("ODTP provider")
