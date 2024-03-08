@@ -1,5 +1,6 @@
 from nicegui import Tailwind, ui
 from odtp.dashboard.utils.storage import get_from_storage, save_to_storage, reset_all
+import odtp.mongodb.db as db
 
 def content() -> None:
    ui.markdown(
@@ -7,6 +8,10 @@ def content() -> None:
         ## Manage User Profile
         """
     )
+   with ui.right_drawer().style("background-color: #ebf1fa").props(
+        "bordered width=500"
+    ) as right_drawer:
+        ui_workarea()
    try: 
         user_role = get_from_storage("login_user_role")["value"]
         username = get_from_storage("login_user_name")["value"]
@@ -37,7 +42,13 @@ def content() -> None:
         
    ui_logout()    
     
-    
+@ui.refreshable
+def ui_workarea():
+    ui.markdown(
+        """
+        #### List of Digital Twin
+        """
+    )    
     
 def ui_logout() -> None:
    url ='https://auth.dev.swisscustodian.ch/auth/realms/odtp/protocol/openid-connect/logout?client_id=custodian&post_logout_redirect_uri=http://localhost:8000/' 
