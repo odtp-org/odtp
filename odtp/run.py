@@ -89,7 +89,8 @@ class DockerManager:
         logging.info(f"PREPARE: Downloading repository from {self.repo_url} to {self.repository_path}")
         subprocess.run(
             ["git", 
-             "clone", 
+             "clone",
+             "--recurse-submodules",
              self.repo_url, 
              os.path.join(self.project_folder, "repository")
             ]
