@@ -33,7 +33,7 @@ def jwt_decode_from_client(encoded: str, url:str, audience:str):
     return payload
 
 def add_user( name_input, github_input, email_input, sub_input):
-    """ Add a neww uuser if it doesn't exist and return the user ID."""
+    """ Add a new user if it doesn't exist and return the user ID."""
     if db.user_exists(sub_input):
         logging.warning(f"User with email {sub_input} already exists")
         return None
@@ -55,27 +55,62 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.url = url
         self.audience = audience
-                       
-    
     async def dispatch(self, request:Request, call_next):
-        authenticated_data = get_from_storage("authenticated")
-        if authenticated_data is None or not authenticated_data.get("value", False):
+        # Get the client's IP address
+        client_ip = request.client.host
+        print(client_ip)
+        is_id_token_cookie_present = await self.is_cookie_empty_or_exists(request, "SWISSDATACUSTODIAN_IDTOKEN")
+        print(is_id_token_cookie_present)
+        if not is_id_token_cookie_present:
+            print("test cookie")
             if (
                 request.url.path in Client.page_routes.values() 
                 and request.url.path not in unrestricted_page_routes
                 ):
                 return RedirectResponse("http://localhost:8000/")
-            header = request.headers.get("authorization")
-            if header:
-                jwt_token = header.split(" ")[1]
-                print(jwt_token)
-                if jwt_token:
-                    try:
-                        decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
-                        self.update_user_storage(decoded_jwt)
-                    except Exception as e:
-                        logging.error(f"Error decoding JWT: {e}")
-        return await call_next(request)
+        print(app.storage.browser)
+        #jwt_token = request.cookies.get("SWISSDATACUSTODIAN_IDTOKEN", "")
+        header = request.headers.get("authorization")
+        if header:
+            jwt_token = header.split(" ")[1]
+            print(jwt_token)
+            #if jwt_token:
+            try:
+                decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
+                self.update_user_storage(decoded_jwt)
+            except Exception as e:
+                logging.error(f"Error decoding JWT: {e}")
+        
+       
+         # Call on_logout here if needed
+        #await self.on_logout(request, Response, "SWISSDATACUSTODIAN_IDTOKEN")
+        
+        
+        return await call_next(request)                
+    
+    # async def dispatch(self, request:Request, call_next):
+    #     #authenticated_data = get_from_storage("authenticated")
+    #     #print(f"Authenticated {authenticated_data}")
+    #     #if authenticated_data and authenticated_data.get("value", False):
+    #     if not app.storage.user.get('authenticated', False):
+    #         print("Authenticated2")
+    #         if (
+    #         request.url.path in Client.page_routes.values() 
+    #         and request.url.path not in unrestricted_page_routes
+    #         ):
+    #            return RedirectResponse("http://localhost:8000/")
+    #         print("Authenticated3")
+    #         header = request.headers.get("authorization")
+    #         if header:
+    #            jwt_token = header.split(" ")[1]
+    #            print(jwt_token)
+    #            if jwt_token:
+    #                try:
+    #                    decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
+    #                    self.update_user_storage(decoded_jwt)
+    #                except Exception as e:
+    #                    logging.error(f"Error decoding JWT: {e}")
+    #     return await call_next(request) 
         
         
         
