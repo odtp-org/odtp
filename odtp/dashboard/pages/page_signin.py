@@ -51,7 +51,7 @@ def ui_workarea():
     )    
     
 def ui_logout() -> None:
-   url = 'http://localhost:8000/auth/logout?post_logout_redirect_uri=http://localhost:8000/components'
+   url = 'http://localhost:8000/auth/logout?post_logout_redirect_uri=http://localhost:5000/'
    reset_all()
    #save_to_storage("authenticated", {"value": False})
    ui.button(
