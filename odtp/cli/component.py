@@ -2,12 +2,34 @@
 This scripts contains odtp subcommands for 'components'
 """
 import typer
+import time
 from typing_extensions import Annotated
 
 from odtp.run import DockerManager
 import odtp.helpers.git as odtp_git
 import odtp.helpers.parse as odtp_parse
 import odtp.helpers.utils as odtp_utils
+import odtp.helpers.middleware as odtp_middleware
+
+current_user = None
+token_data = {'token': None, 'expiration_time': 0}
+
+
+def update_token_data(current_user):
+    token_data['token'] = current_user['preferred_username']
+    token_data['expiration_time'] = current_user['exp']
+    return token_data
+
+# def get_current_user():
+#     global current_user, token_data
+#     print (f"This current user {current_user}!")
+    
+#     if not token_data['token'] and time.time() > token_data['expiration_time']:
+#         #current_user = odtp_middleware.login()
+#         token_data['token'] = odtp_middleware.login()
+#         token_data['expiration_time'] = time.time() + 300
+#         print (f"odtp_middleware.login() {odtp_middleware.login()}!")
+#     return token_data['token']
 
 app = typer.Typer()
 
@@ -26,12 +48,22 @@ def prepare(
         ..., "--repository", help="Specify the git repository url"
     ),
 ):  
+    global current_user, token_data
+    if current_user is None:
+        current_user = odtp_middleware.login()
+        
+        print(f"Welcome {current_user['preferred_username']}!")
+        #cleqqtoken_data['token'] = current_user['preferred_username']
+        #token_data['expiration_time'] = current_user['exp']
+        #print(f"token_data {token_data}!")
+        token_data = update_token_data(current_user)
+        print(f"token_data {token_data}!")
     try:
         componentManager = DockerManager(
             repo_url=repository, 
             image_name=image_name, 
             project_folder=folder
-        )
+            )
         componentManager.prepare_component()
     except Exception as e:
         print(f"ERROR: Prepare component failed: {e}") 
@@ -63,25 +95,33 @@ def run(
         help="Specify port mappings seperated by a plus sign i.e. 8501:8501+8201:8201"
     )] = None,  
 ):
-    try:
-        componentManager = DockerManager(
-            project_folder=folder,
-            repo_url=repository,
-            commit_hash=commit, 
-            image_name=image_name, 
-        )
-        ports = odtp_parse.parse_port_mappings_for_one_component(ports) 
-        parameters = odtp_parse.parse_paramters_for_one_file(parameter_file)
-        componentManager.run_component(
-            parameters=parameters, 
-            ports=ports, 
-            instance_name=instance_name
-        )
-    except Exception as e:
-        print(f"ERROR: Run of component failed: {e}") 
-        raise typer.Abort()           
-    else:
-        print("SUCCESS: container for the component has been started")
+    global current_user
+    if current_user is None:
+        current_user = odtp_middleware.login()
+        
+        print(f"Welcome {current_user['preferred_username']}!")
+        token_data['token'] = current_user['preferred_username']
+        token_data['expiration_time'] = time.time() + 300
+        print(f"token_data {token_data}!")
+        try:
+            componentManager = DockerManager(
+                project_folder=folder,
+                repo_url=repository,
+                commit_hash=commit, 
+                image_name=image_name, 
+                )
+            ports = odtp_parse.parse_port_mappings_for_one_component(ports) 
+            parameters = odtp_parse.parse_paramters_for_one_file(parameter_file)
+            componentManager.run_component(
+                parameters=parameters, 
+                ports=ports, 
+                instance_name=instance_name
+                )
+        except Exception as e:
+            print(f"ERROR: Run of component failed: {e}") 
+            raise typer.Abort()           
+        else:
+            print("SUCCESS: container for the component has been started")
 
 
 #### TODO: Stop Component
