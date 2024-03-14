@@ -82,6 +82,7 @@ def login():
             current_user = jwt.decode(token_data['id_token'], algorithms=ALGORITHMS, options={"verify_signature": False})
             print(f"current_user {current_user}")
             authenticated = True
+            return current_user 
         elif token_data['error'] not in ('authorization_pending', 'slow_down'):
             print(token_data['error_description'])
             raise typer.Exit(code=1)

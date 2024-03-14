@@ -56,65 +56,28 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self.url = url
         self.audience = audience
     async def dispatch(self, request:Request, call_next):
-        # Get the client's IP address
-        client_ip = request.client.host
-        print(client_ip)
         is_id_token_cookie_present = await self.is_cookie_empty_or_exists(request, "SWISSDATACUSTODIAN_IDTOKEN")
-        print(is_id_token_cookie_present)
+        
+        """ Check if the token is in the browser otherwwise redirect to keycloack."""
+        
         if not is_id_token_cookie_present:
-            print("test cookie")
             if (
                 request.url.path in Client.page_routes.values() 
                 and request.url.path not in unrestricted_page_routes
                 ):
                 return RedirectResponse("http://localhost:8000/")
-        print(app.storage.browser)
-        #jwt_token = request.cookies.get("SWISSDATACUSTODIAN_IDTOKEN", "")
+            
+        """ Get the ID token from the header."""
         header = request.headers.get("authorization")
         if header:
             jwt_token = header.split(" ")[1]
-            print(jwt_token)
-            #if jwt_token:
             try:
                 decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
                 self.update_user_storage(decoded_jwt)
             except Exception as e:
                 logging.error(f"Error decoding JWT: {e}")
-        
-       
-         # Call on_logout here if needed
-        #await self.on_logout(request, Response, "SWISSDATACUSTODIAN_IDTOKEN")
-        
-        
+
         return await call_next(request)                
-    
-    # async def dispatch(self, request:Request, call_next):
-    #     #authenticated_data = get_from_storage("authenticated")
-    #     #print(f"Authenticated {authenticated_data}")
-    #     #if authenticated_data and authenticated_data.get("value", False):
-    #     if not app.storage.user.get('authenticated', False):
-    #         print("Authenticated2")
-    #         if (
-    #         request.url.path in Client.page_routes.values() 
-    #         and request.url.path not in unrestricted_page_routes
-    #         ):
-    #            return RedirectResponse("http://localhost:8000/")
-    #         print("Authenticated3")
-    #         header = request.headers.get("authorization")
-    #         if header:
-    #            jwt_token = header.split(" ")[1]
-    #            print(jwt_token)
-    #            if jwt_token:
-    #                try:
-    #                    decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
-    #                    self.update_user_storage(decoded_jwt)
-    #                except Exception as e:
-    #                    logging.error(f"Error decoding JWT: {e}")
-    #     return await call_next(request) 
-        
-        
-        
-      
         
                 
     async def is_cookie_empty_or_exists(self,request, cookie_name):
@@ -122,6 +85,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return bool(cookie_value)            
     
     def update_user_storage(self, decoded_jwt):
+        
+        """ Store ID token information into the nicegui storage."""
+        
         sub = decoded_jwt.get("sub", "")
         user_role = decoded_jwt.get("groups", [])
         user_name = decoded_jwt.get("preferred_username", "")
@@ -151,13 +117,3 @@ class AuthMiddleware(BaseHTTPMiddleware):
             save_to_storage("login_user_role", {"value": "user"})
         else:
             logging.error("Error: Role unknown") 
-       
-            
-            
-    # async def on_logout(self, request, response, cookie_name):
-    #    print(app.storage.user)
-    #    authenticated_data = get_from_storage("authenticated")
-
-    #    if authenticated_data and not authenticated_data.get("value", False):
-    #            response.delete_cookie(key=cookie_name)
-               

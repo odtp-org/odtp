@@ -10,6 +10,9 @@ from odtp.workflow import WorkflowManager
 from directory_tree import display_tree
 import odtp.helpers.environment as odtp_env
 from nicegui import ui
+import odtp.helpers.middleware as odtp_middleware
+
+current_user = None
 
 app = typer.Typer()
 
@@ -26,18 +29,20 @@ def prepare(
         ..., "--project-path", help="Specify the path for the execution"
     ),
 ):  
-    try:
-        execution = db.get_document_by_id(
-            document_id=execution_id, 
-            collection=db.collection_executions
-        )
-        flowManager = WorkflowManager(execution, project_path)
-        flowManager.prepare_workflow()
-    except Exception as e:
-        print(f"ERROR: Prepare execution failed: {e}") 
-        raise typer.Abort()           
-    else:
-        print("SUCCESS: images for the execution have been build")    
+    if current_user is None:
+        odtp_middleware.login()
+        try:
+            execution = db.get_document_by_id(
+                document_id=execution_id, 
+                collection=db.collection_executions
+                )
+            flowManager = WorkflowManager(execution, project_path)
+            flowManager.prepare_workflow()
+        except Exception as e:
+            print(f"ERROR: Prepare execution failed: {e}") 
+            raise typer.Abort()           
+        else:
+            print("SUCCESS: images for the execution have been build")    
 
 
 @app.command()
@@ -49,18 +54,20 @@ def run(
         ..., "--project-path", help="Specify the path for the execution"
     ),
 ): 
-    try:
-        execution = db.get_document_by_id(
-            document_id=execution_id, 
-            collection=db.collection_executions
-        )
-        flowManager = WorkflowManager(execution, project_path)
-        flowManager.run_workflow()
-    except Exception as e:
-        print(f"ERROR: Run execution failed: {e}")       
-        raise typer.Abort()
-    else:
-        print("SUCCESS: containers for the execution have been run")      
+    if current_user is None:
+        odtp_middleware.login()
+        try:
+            execution = db.get_document_by_id(
+                document_id=execution_id, 
+                collection=db.collection_executions
+                )
+            flowManager = WorkflowManager(execution, project_path)
+            flowManager.run_workflow()
+        except Exception as e:
+            print(f"ERROR: Run execution failed: {e}")       
+            raise typer.Abort()
+        else:
+            print("SUCCESS: containers for the execution have been run")      
 
 
 @app.command()
@@ -71,12 +78,14 @@ def output(
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
-): 
-    try:
-        display_tree(project_path)
-    except Exception as e:
-        print(f"ERROR: Output printing failed: {e}")       
-        raise typer.Abort()  
+):
+     if current_user is None:
+        odtp_middleware.login() 
+        try:
+            display_tree(project_path)
+        except Exception as e:
+            print(f"ERROR: Output printing failed: {e}")       
+            raise typer.Abort()  
 
 
 if __name__ == "__main__":
