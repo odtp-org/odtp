@@ -117,7 +117,7 @@ def run(
         
         print(f"Welcome {current_user['preferred_username']}!")
        
-        token_data = update_token_data(current_user)
+        token_data = odtp_middleware.update_token_data(current_user)
         print(f"token_data {token_data}!")
         try:
             componentManager = DockerManager(
