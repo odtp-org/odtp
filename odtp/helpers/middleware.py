@@ -2,6 +2,7 @@ import typer
 import requests
 import time
 import jwt
+import redis
 
 
 """
@@ -13,6 +14,50 @@ ALGORITHMS = ['RS256']
 CLIENT_SECRET = '95ZBagsIqS0ioTbwSwMFFwEgBXG1Fncn'
 
 current_user = None
+token_data = {'token': None, 'expiration_time': 0}
+
+# Initialize Redis client
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
+
+
+
+def clear_redis_cache():
+    """
+    Clear the Redis cache by deleting the key 'token_data'.
+    """
+    redis_client.delete('token_data')
+    print("Redis cache cleared successfully.")
+
+
+
+# Function to update token data
+def update_token_data(current_user):
+    # Clear Redis cache if expiration time is less than current time
+    token_data = redis_client.get('token_data')
+    if token_data:
+        token_data = eval(token_data.decode('utf-8'))
+        if 'expiration_time' in token_data:
+            expiration_time = token_data['expiration_time']
+            # Convert the struct_time objects to human-readable dates
+            expiration_time1 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(expiration_time))
+
+            current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+            if expiration_time1 < current_time:
+                clear_redis_cache()
+
+    # Retrieve token data from Redis cache if available
+    token_data_str = redis_client.get('token_data')
+    
+    if token_data_str:
+        return eval(token_data_str.decode('utf-8'))
+
+    # If token data not in cache or expired, update it and store in cache
+    token_data = {
+        'token': current_user['preferred_username'],
+        'expiration_time': current_user['exp']
+    }
+    redis_client.set('token_data', str(token_data))  # Store token data in Redis cache
+    return token_data
 
 
 def login():
