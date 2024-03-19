@@ -4,6 +4,7 @@ This scripts contains odtp subcommands for 'components'
 import typer
 import time
 import redis
+import json 
 from typing_extensions import Annotated
 
 from odtp.run import DockerManager
@@ -17,11 +18,6 @@ token_data = {'token': None, 'expiration_time': 0}
 
 # Initialize Redis client
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
-
-
-
-
-
 
 
 app = typer.Typer()
@@ -42,18 +38,24 @@ def prepare(
     ),
 ):  
     global current_user, token_data
+    token_data = redis_client.get('token_data')
+    print(f"token_data {token_data}!")
     if token_data:
-        print(f"token_data {token_data['token']}!")
+        print("token_data2")
+        # Decode byte string to dictionary
+        token_data_str = token_data.decode('utf-8')
+        #token_data = json.loads(token_data_str)
+        token_data_str_fixed = token_data_str.replace("'", "\"")
+        token_data = json.loads(token_data_str_fixed)
+        #if 'token' in token_data and 'expiration_time' in token_data:
         if token_data['token'] is None or token_data['expiration_time'] < time.time():
-            print("The dictionary is empty")
+            print(f"The dictionary is empty {token_data['token']}")
+            print(f"The dictionary is empty {token_data['expiration_time']}")
             current_user = odtp_middleware.login()
-        
-        
             print(f"Welcome {current_user['preferred_username']}!")
-      
             token_data = odtp_middleware.update_token_data(current_user)
             print(f"token_data {token_data}!")
-        else:
+    else:
             print("No token data found")
     try:
         print(f"Welcome {token_data}!")
@@ -94,19 +96,37 @@ def run(
     )] = None,  
 ):  
     global current_user, token_data
+    token_data = redis_client.get('token_data')
+    print(f"token_data {token_data}!")
     if token_data:
-        print(f"token_data {token_data['token']}!")
-        if token_data['token'] is None or token_data['expiration_time'] < time.time():
-            print("The dictionary is empty")
-            current_user = odtp_middleware.login()
-        
-        
-            print(f"Welcome {current_user['preferred_username']}!")
-      
-            token_data = odtp_middleware.update_token_data(current_user)
-            print(f"token_data {token_data}!")
+        # Decode byte string to dictionary
+        token_data_str = token_data.decode('utf-8')
+        #token_data = json.loads(token_data_str)
+        token_data_str_fixed = token_data_str.replace("'", "\"")
+        token_data = json.loads(token_data_str_fixed)
+        if 'token' in token_data and 'expiration_time' in token_data:
+            if token_data['token'] is None or token_data['expiration_time'] < time.time():
+                print("The dictionary is empty")
+                current_user = odtp_middleware.login()
+                print(f"Welcome {current_user['preferred_username']}!")
+                token_data = odtp_middleware.update_token_data(current_user)
+                print(f"token_data {token_data}!")
         else:
             print("No token data found")
+    # global current_user, token_data
+    # if token_data:
+    #     print(f"token_data {token_data['token']}!")
+    #     if token_data['token'] is None or token_data['expiration_time'] < time.time():
+    #         print("The dictionary is empty")
+    #         current_user = odtp_middleware.login()
+        
+        
+    #         print(f"Welcome {current_user['preferred_username']}!")
+      
+    #         token_data = odtp_middleware.update_token_data(current_user)
+    #         print(f"token_data {token_data}!")
+    #     else:
+    #         print("No token data found")
     
         try:
             componentManager = DockerManager(
