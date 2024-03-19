@@ -3,6 +3,7 @@ This scripts contains odtp subcommands for 'components'
 """
 import typer
 import time
+import redis
 from typing_extensions import Annotated
 
 from odtp.run import DockerManager
@@ -14,22 +15,46 @@ import odtp.helpers.middleware as odtp_middleware
 current_user = None
 token_data = {'token': None, 'expiration_time': 0}
 
+# Initialize Redis client
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
+def clear_redis_cache():
+    """
+    Clear the Redis cache by deleting the key 'token_data'.
+    """
+    redis_client.delete('token_data')
+    print("Redis cache cleared successfully.")
+
+
+
+# Function to update token data
 def update_token_data(current_user):
-    token_data['token'] = current_user['preferred_username']
-    token_data['expiration_time'] = current_user['exp']
-    return token_data
+    # Clear Redis cache if expiration time is less than current time
+    token_data = redis_client.get('token_data')
+    if token_data:
+        token_data = eval(token_data.decode('utf-8'))
+        if 'expiration_time' in token_data:
+            expiration_time = token_data['expiration_time']
+            # Convert the struct_time objects to human-readable dates
+            expiration_time1 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(expiration_time))
 
-# def get_current_user():
-#     global current_user, token_data
-#     print (f"This current user {current_user}!")
+            current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+            if expiration_time1 < current_time:
+                clear_redis_cache()
+
+    # Retrieve token data from Redis cache if available
+    token_data_str = redis_client.get('token_data')
     
-#     if not token_data['token'] and time.time() > token_data['expiration_time']:
-#         #current_user = odtp_middleware.login()
-#         token_data['token'] = odtp_middleware.login()
-#         token_data['expiration_time'] = time.time() + 300
-#         print (f"odtp_middleware.login() {odtp_middleware.login()}!")
-#     return token_data['token']
+    if token_data_str:
+        return eval(token_data_str.decode('utf-8'))
+
+    # If token data not in cache or expired, update it and store in cache
+    token_data = {
+        'token': current_user['preferred_username'],
+        'expiration_time': current_user['exp']
+    }
+    redis_client.set('token_data', str(token_data))  # Store token data in Redis cache
+    return token_data
 
 app = typer.Typer()
 
@@ -49,8 +74,12 @@ def prepare(
     ),
 ):  
     global current_user, token_data
-    if current_user is None:
+    print(f"token_data {token_data}!")
+    
+    if token_data['token'] is None or token_data['expiration_time'] < time.time():
+        print("The dictionary is empty")
         current_user = odtp_middleware.login()
+        
         
         print(f"Welcome {current_user['preferred_username']}!")
         #cleqqtoken_data['token'] = current_user['preferred_username']
@@ -59,6 +88,7 @@ def prepare(
         token_data = update_token_data(current_user)
         print(f"token_data {token_data}!")
     try:
+        print(f"Welcome {token_data}!")
         componentManager = DockerManager(
             repo_url=repository, 
             image_name=image_name, 
@@ -94,14 +124,35 @@ def run(
     ports: Annotated[str, typer.Option(
         help="Specify port mappings seperated by a plus sign i.e. 8501:8501+8201:8201"
     )] = None,  
-):
+):  
     global current_user
-    if current_user is None:
+    token_data = update_token_data(current_user)
+    print(f"token_data {token_data}!")
+    expiration_time_struct = time.localtime(token_data['expiration_time'])
+    expiration_time = token_data['expiration_time']
+    # Convert the expiration_time to a struct_time object
+    expiration_time_struct = time.localtime(expiration_time)
+    # Convert the expiration_time_struct to a Unix timestamp
+    expiration_timestamp = time.mktime(expiration_time_struct)
+    print(f"expiration_time_struct {expiration_timestamp}")
+    print(f"expiration_time_struct {time.time()}")
+    
+    # Convert the struct_time objects to human-readable dates
+    expiration_time1 = time.strftime("%Y-%m-%d %H:%M:%S", expiration_time_struct)
+    expiration_time2 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+
+    print("Expiration Time 1:", expiration_time1)
+    print("Expiration Time 2:",  expiration_time2)
+    if token_data['token'] is None or  expiration_time1  < expiration_time2:
+        print("The dictionary is empty")
         current_user = odtp_middleware.login()
         
+        
         print(f"Welcome {current_user['preferred_username']}!")
-        token_data['token'] = current_user['preferred_username']
-        token_data['expiration_time'] = time.time() + 300
+        #cleqqtoken_data['token'] = current_user['preferred_username']
+        #token_data['expiration_time'] = current_user['exp']
+        #print(f"token_data {token_data}!")
+        token_data = update_token_data(current_user)
         print(f"token_data {token_data}!")
         try:
             componentManager = DockerManager(
@@ -120,8 +171,8 @@ def run(
         except Exception as e:
             print(f"ERROR: Run of component failed: {e}") 
             raise typer.Abort()           
-        else:
-            print("SUCCESS: container for the component has been started")
+    else:
+        print("SUCCESS: container for the component has been started")
 
 
 #### TODO: Stop Component
