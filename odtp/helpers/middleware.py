@@ -34,6 +34,7 @@ def clear_redis_cache():
 def update_token_data(current_user):
     # Clear Redis cache if expiration time is less than current time
     token_data = redis_client.get('token_data')
+    print(f"Welcome {token_data}!")
     if token_data:
         token_data = eval(token_data.decode('utf-8'))
         if 'expiration_time' in token_data:

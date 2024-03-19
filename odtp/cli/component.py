@@ -42,18 +42,19 @@ def prepare(
     ),
 ):  
     global current_user, token_data
-    token_data = odtp_middleware.update_token_data(current_user)
-    print(f"token_data {token_data}!")
-    
-    if token_data['token'] is None or token_data['expiration_time'] < time.time():
-        print("The dictionary is empty")
-        current_user = odtp_middleware.login()
+    if token_data:
+        print(f"token_data {token_data['token']}!")
+        if token_data['token'] is None or token_data['expiration_time'] < time.time():
+            print("The dictionary is empty")
+            current_user = odtp_middleware.login()
         
         
-        print(f"Welcome {current_user['preferred_username']}!")
+            print(f"Welcome {current_user['preferred_username']}!")
       
-        token_data = odtp_middleware.update_token_data(current_user)
-        print(f"token_data {token_data}!")
+            token_data = odtp_middleware.update_token_data(current_user)
+            print(f"token_data {token_data}!")
+        else:
+            print("No token data found")
     try:
         print(f"Welcome {token_data}!")
         componentManager = DockerManager(
@@ -92,33 +93,21 @@ def run(
         help="Specify port mappings seperated by a plus sign i.e. 8501:8501+8201:8201"
     )] = None,  
 ):  
-    global current_user
-    token_data = odtp_middleware.update_token_data(current_user)
-    print(f"token_data {token_data}!")
-    expiration_time_struct = time.localtime(token_data['expiration_time'])
-    expiration_time = token_data['expiration_time']
-    # Convert the expiration_time to a struct_time object
-    expiration_time_struct = time.localtime(expiration_time)
-    # Convert the expiration_time_struct to a Unix timestamp
-    expiration_timestamp = time.mktime(expiration_time_struct)
-    print(f"expiration_time_struct {expiration_timestamp}")
-    print(f"expiration_time_struct {time.time()}")
+    global current_user, token_data
+    if token_data:
+        print(f"token_data {token_data['token']}!")
+        if token_data['token'] is None or token_data['expiration_time'] < time.time():
+            print("The dictionary is empty")
+            current_user = odtp_middleware.login()
+        
+        
+            print(f"Welcome {current_user['preferred_username']}!")
+      
+            token_data = odtp_middleware.update_token_data(current_user)
+            print(f"token_data {token_data}!")
+        else:
+            print("No token data found")
     
-    # Convert the struct_time objects to human-readable dates
-    expiration_time1 = time.strftime("%Y-%m-%d %H:%M:%S", expiration_time_struct)
-    expiration_time2 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
-
-    print("Expiration Time 1:", expiration_time1)
-    print("current time:",  expiration_time2)
-    if token_data['token'] is None or  expiration_time1  < expiration_time2:
-        print("The dictionary is empty")
-        current_user = odtp_middleware.login()
-        
-        
-        print(f"Welcome {current_user['preferred_username']}!")
-       
-        token_data = odtp_middleware.update_token_data(current_user)
-        print(f"token_data {token_data}!")
         try:
             componentManager = DockerManager(
                 project_folder=folder,
