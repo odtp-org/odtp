@@ -60,7 +60,6 @@ RUN pip3 install --upgrade pip && \
 
 # Add your application's source code
 COPY . /app
-COPY .env /usr/local/lib/python3.11/site-packages/.env
 
 WORKDIR /app
 
