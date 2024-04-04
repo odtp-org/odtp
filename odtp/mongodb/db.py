@@ -4,12 +4,13 @@ Connect to the Mongo DB
 import logging
 from datetime import datetime
 from pathlib import Path
+
 from bson import ObjectId
 from pymongo import MongoClient
 
-import odtp.mongodb.utils as mongodb_utils
-import odtp.helpers.utils as odtp_utils
 import odtp.helpers.git as git_helpers
+import odtp.helpers.utils as odtp_utils
+import odtp.mongodb.utils as mongodb_utils
 from odtp.helpers.settings import ODTP_MONGO_DB, ODTP_MONGO_SERVER
 
 collection_users = "users"
@@ -70,7 +71,8 @@ def get_document_by_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         cursor = db[collection].find(
-            {'_id': {'$in': [ObjectId(id) for id in document_ids]}})
+            {"_id": {"$in": [ObjectId(id) for id in document_ids]}}
+        )
         documents = mongodb_utils.get_list_from_cursor(cursor)
     return documents
 
@@ -79,10 +81,13 @@ def check_document_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         document_ids_in_db = db[collection].find(
-            {'_id': {'$in': [ObjectId(id) for id in document_ids]}}, {'_id':1})
-        document_ids_missing_in_db = [document_id
-                                  for document_id in document_ids
-                                  if document_id not in document_ids_in_db]
+            {"_id": {"$in": [ObjectId(id) for id in document_ids]}}, {"_id": 1}
+        )
+        document_ids_missing_in_db = [
+            document_id
+            for document_id in document_ids
+            if document_id not in document_ids_in_db
+        ]
         if not document_ids_missing_in_db:
             raise mongodb_utils.OdtpDbMongoDBValidationException(
                 f"document with {document_ids} does not exist in collection {collection}"
@@ -130,7 +135,9 @@ def add_user(name, github, email):
         "updated_at": datetime.utcnow(),
     }
     with MongoClient(ODTP_MONGO_SERVER) as client:
-        user_id = client[ODTP_MONGO_DB][collection_users].insert_one(user_data).inserted_id
+        user_id = (
+            client[ODTP_MONGO_DB][collection_users].insert_one(user_data).inserted_id
+        )
     logging.info("User added with ID {}".format(user_id))
     return user_id
 
@@ -147,17 +154,16 @@ def add_component_version(
     """add component and component version"""
 
     # check first
-    try:    
+    try:
         mongodb_utils.check_component_ports(ports)
-        mongodb_utils.check_component_type(type) 
+        mongodb_utils.check_component_type(type)
         commit_hash = git_helpers.check_commit_for_repo(
-            repo_url=repository, 
-            commit_hash=commit_hash
+            repo_url=repository, commit_hash=commit_hash
         )
     except Exception as e:
-        e.add_note('-> Component Version not valid: was not stored in mongodb')
-        raise(e)
-    
+        e.add_note("-> Component Version not valid: was not stored in mongodb")
+        raise (e)
+
     # after the check passed, enter to the mongodb
     if not odtp_version:
         odtp_version = odtp_utils.get_odtp_version()
@@ -166,7 +172,9 @@ def add_component_version(
         component = db[collection_components].find_one({"repoLink": repository})
         if component:
             component_id = component["_id"]
-            logging.info(f"Component with ID {component_id} already existed for repo {repository}")
+            logging.info(
+                f"Component with ID {component_id} already existed for repo {repository}"
+            )
         else:
             component_data = {
                 "author": "Test",
@@ -186,23 +194,27 @@ def add_component_version(
             ).inserted_id
             logging.info(f"Component added with ID {component_id}")
             component = db[collection_components].find_one({"_id": component_id})
-        version = db[collection_versions].find_one({
-            "commitHash": commit_hash, 
-            "componentId": component_id,
-        })
+        version = db[collection_versions].find_one(
+            {
+                "commitHash": commit_hash,
+                "componentId": component_id,
+            }
+        )
         if version:
-            logging.info(f"Version with ID {component_id} already existed".format(component_id))
+            logging.info(
+                f"Version with ID {component_id} already existed".format(component_id)
+            )
             raise mongodb_utils.OdtpDbMongoDBValidationException(
                 f"document for repository {repository} and commit {commit_hash} already exists"
             )
-        else:   
+        else:
             version_data = {
                 "componentId": component_id,
                 "component": {
                     "componentId": component_id,
-                    "componentName": component.get("componentName"), 
+                    "componentName": component.get("componentName"),
                     "repoLink": component.get("repoLink"),
-                    "type": component.get("type")
+                    "type": component.get("type"),
                 },
                 "odtp_version": odtp_version,
                 "component_version": component_version,
@@ -254,6 +266,16 @@ def add_digital_twin(userRef, name):
     return digital_twin_id
 
 
+def set_document_timestamp(document_id, collection_name, timestamp_name):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        collection = db[collection_name]
+        collection.update_one(
+            {"_id": ObjectId(document_id)},
+            {"$set": {timestamp_name: datetime.utcnow()}},
+        )
+
+
 def add_execution(
     dt_id,
     name,
@@ -263,12 +285,16 @@ def add_execution(
 ):
     """add and execution to the database"""
     with MongoClient(ODTP_MONGO_SERVER) as client:
-        db = client[ODTP_MONGO_DB]  
+        db = client[ODTP_MONGO_DB]
         try:
             mongodb_utils.check_parameters_for_execution(parameters)
             mongodb_utils.check_port_mappings_for_execution(ports)
-            check_document_ids_in_collection(document_ids=versions, collection=collection_versions)
-            check_document_id_in_collection(document_id=dt_id, collection=collection_digital_twins)
+            check_document_ids_in_collection(
+                document_ids=versions, collection=collection_versions
+            )
+            check_document_id_in_collection(
+                document_id=dt_id, collection=collection_digital_twins
+            )
             workflow = odtp_utils.get_workflow(versions)
             execution = {
                 "title": name,
@@ -283,7 +309,7 @@ def add_execution(
                 "start_timestamp": datetime.utcnow(),
                 "end_timestamp": datetime.utcnow(),
                 # Array of ObjectIds referencing Steps collection. Change in a future by DAG graph
-                "steps": [],    
+                "steps": [],
             }
             steps = []
             for i, version in enumerate(versions):
@@ -301,17 +327,17 @@ def add_execution(
                 }
                 steps.append(step)
             execution_id = append_execution_to_digital_twin(db, dt_id, execution)
-            logging.info(f"Execution added with ID {execution_id}")  
+            logging.info(f"Execution added with ID {execution_id}")
             steps_ids = []
             for step in steps:
                 step_id = append_step_to_execution(db, execution_id, step)
-                steps_ids.append(step_id) 
+                steps_ids.append(step_id)
             logging.info(f"STEPS added with ID {steps_ids}")
         except Exception as e:
-            e.add_note('-> Execution not valid: was not stored in mongodb')
-            raise(e)  
+            e.add_note("-> Execution not valid: was not stored in mongodb")
+            raise (e)
         else:
-            return (execution_id, steps_ids)    
+            return (execution_id, steps_ids)
 
 
 def append_execution_to_digital_twin(db, digital_twin_id, execution):

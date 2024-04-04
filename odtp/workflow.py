@@ -1,6 +1,7 @@
 import os
 from odtp.run import DockerManager, OdtpRunSetupException
 import odtp.helpers.utils as odtp_utils
+import odtp.helpers.environment as env_helpers
 import odtp.mongodb.db as db
 import logging
 import zipfile
@@ -13,7 +14,6 @@ class WorkflowManager:
         self.execution = execution_data
         self.schema = execution_data["workflowSchema"]
         self.working_path = working_path
-
         self.image_names = []
         self.repo_urls = []
         self.commits = []
@@ -55,12 +55,18 @@ class WorkflowManager:
                 raise OdtpRunSetupException(
                     f"Workflowmanager could not be intialized: Exception occured: {e}"
                 )    
+    
+
+    def check_env_for_prepare_workflow(self):
+        env_helpers.check_project_folder_empty(self.working_path)
+
 
     def prepare_workflow(self):
         """
         This method will download all needed files and components to run the workflow
         It will Build the images needed too. 
         """  
+        self.check_env_for_prepare_workflow()
         for step_index in self.schema["workflowExecutorSchema"]:
             step_index = int(step_index)
 

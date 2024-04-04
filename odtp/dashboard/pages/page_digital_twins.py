@@ -1,7 +1,7 @@
 import pandas as pd
-from nicegui import app, ui
+from nicegui import ui
 
-import odtp.dashboard.utils.format as format
+import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.mongodb.db as db
@@ -10,12 +10,20 @@ import odtp.mongodb.db as db
 def content() -> None:
     ui.markdown(
         """
-            # Manage Digital Twins
-            """
+        # Manage Digital Twins
+        """
     )
-    current_user = storage.get_active_object_from_storage("user")
-    with ui.right_drawer(fixed=False).style("background-color: #ebf1fa").props(
-        "bordered"
+    current_user = storage.get_active_object_from_storage(
+        storage.CURRENT_USER
+    )
+    if not current_user:
+        ui_theme.ui_add_first(
+            item_name="user",
+            page_link=ui_theme.PATH_USERS
+        )     
+        return
+    with ui.right_drawer().style("background-color: #ebf1fa").props(
+        "bordered width=500"
     ) as right_drawer:
         ui_workarea(current_user)
     if current_user:
@@ -48,7 +56,7 @@ def ui_digital_twins_table(current_user):
             df = pd.DataFrame(data=digital_twins)
             df["_id"] = df["_id"].astype("string")
             df["executions"] = (
-                df["executions"].apply(format.pd_lists_to_counts).astype("string")
+                df["executions"].apply(helpers.pd_lists_to_counts).astype("string")
             )
             df = df[["_id", "name", "status", "created_at", "updated_at", "executions"]]
             ui.table.from_pandas(df)
@@ -69,6 +77,13 @@ def ui_digital_twin_select(current_user) -> None:
             #### Select digital twin
             """
         )
+        current_digital_twin = storage.get_active_object_from_storage(
+            (storage.CURRENT_DIGITAL_TWIN)
+        )
+        if current_digital_twin:
+            value = current_digital_twin["digital_twin_id"]
+        else:
+            value = ""
         user_id = current_user["user_id"]
         digital_twins = db.get_sub_collection_items(
             collection=db.collection_users,
@@ -82,6 +97,7 @@ def ui_digital_twin_select(current_user) -> None:
         }
         ui.select(
             digital_twin_options,
+            value=value,
             label="digital twins",
             on_change=lambda e: store_selected_digital_twin_id(str(e.value)),
             with_input=True,
@@ -105,14 +121,15 @@ def ui_add_digital_twin(current_user):
         name_input = ui.input(
             label="Name",
             placeholder="name",
-            validation={"Can not be empty": lambda value: len(value.strip()) != 0},
+            validation={"Should be at least 6 characters long": lambda value: len(value.strip()) >= 6},
         ).classes("w-2/3")
 
         ui.button(
             "Add new digital twin",
             on_click=lambda: add_digital_twin(
-                name=name_input.value, user_id=current_user["user_id"]
+                name_input=name_input, user_id=current_user["user_id"]
             ),
+            icon="add",
         )
 
 
@@ -120,35 +137,44 @@ def ui_add_digital_twin(current_user):
 def ui_workarea(current_user):
     ui.markdown(
         """
-                ### Work Area
-                """
+        ### Work Area
+        """
     )
     try:
-        if not current_user:
-            ui.button("Select a user", on_click=lambda: ui.open(ui_theme.PATH_USERS))
-        else:
+        digital_twin = storage.get_active_object_from_storage(
+            storage.CURRENT_DIGITAL_TWIN
+        )
+        if not digital_twin:
             ui.markdown(
+                f"""
+                #### Current Selection
+                - **user**: {current_user.get("display_name")}
+                
+                #### Actions
+                - add a digital twin
+                - select a digital twin
+                - list digital twins
                 """
-                        #### User
-                        """
             )
-            ui.label(current_user.get("display_name"))
-            digital_twin = storage.get_active_object_from_storage("digital_twin")
-            if digital_twin:
-                ui.markdown(
-                    """
-                            #### Digital Twin
-                            """
-                )
-                digital_twin = storage.get_active_object_from_storage("digital_twin")
-                if digital_twin:
-                    ui.label(digital_twin.get("name"))
-                    ui.button(
-                        "Manage Executions",
-                        on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
-                    )
-            ui.button("Reset work area", on_click=lambda: app_storage_reset())
+            return            
+        ui.markdown(
+            f"""
+            #### Current Selection
+            - **user**: {current_user.get("display_name")}
+            - **digital twin**: {digital_twin.get("name")}
 
+            ##### Actions
+
+            - add digital twin
+            - select digital twin 
+            - list digital twins
+            """
+        )
+        ui.button(
+            "Manage Executions",
+            on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
+            icon="link",
+        )
     except Exception as e:
         ui.notify(
             f"Work area could not be loaded. An Exception occured: {e}", type="negative"
@@ -156,6 +182,8 @@ def ui_workarea(current_user):
 
 
 def store_selected_digital_twin_id(value):
+    if value == "None":
+        return
     try:
         storage.storage_update_digital_twin(digital_twin_id=value)
     except Exception as e:
@@ -163,40 +191,27 @@ def store_selected_digital_twin_id(value):
             f"Selected digital twin could not be stored. An Exception occured: {e}",
             type="negative",
         )
-    finally:
+    else:
+        storage.reset_storage_keep([storage.CURRENT_USER, storage.CURRENT_DIGITAL_TWIN])
         ui_workarea.refresh()
 
 
-def app_storage_reset():
+def add_digital_twin(name_input, user_id):
+    if not name_input.validate():
+        ui.notify("Fill in the form correctly before you can add a new digital twin", type="negative")
+        return
     try:
-        storage.app_storage_reset("digital_twin")
+        digital_twin_id = db.add_digital_twin(userRef=user_id, name=name_input.value)
+        ui.notify(
+            f"A digital_twin with id {digital_twin_id} has been created",
+            type="positive",
+        )
     except Exception as e:
         ui.notify(
-            f"Work area could not be reset. An Exception occured: {e}", type="negative"
+            f"The digital twin could not be added in the database. An Exception occured: {e}",
+            type="negative",
         )
-    finally:
-        ui_workarea.refresh()
-        ui_digital_twin_select.refresh()
-
-
-def add_digital_twin(name, user_id):
-    if name and user_id:
-        try:
-            digital_twin_id = db.add_digital_twin(userRef=user_id, name=name)
-            ui.notify(
-                f"A digital_twin with id {digital_twin_id} has been created",
-                type="positive",
-            )
-        except Exception as e:
-            ui.notify(
-                f"The digital twin could not be added in the database. An Exception occured: {e}",
-                type="negative",
-            )
-        finally:
-            ui_digital_twin_select.refresh()
-            ui_digital_twins_table.refresh()
-            ui_add_digital_twin.refresh()
     else:
-        ui.notify(
-            f"A digital twin can only be added once the form is filled", type="negative"
-        )
+        ui_digital_twin_select.refresh()
+        ui_digital_twins_table.refresh()
+        ui_add_digital_twin.refresh()

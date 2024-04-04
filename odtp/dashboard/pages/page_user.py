@@ -1,4 +1,4 @@
-from nicegui import app, ui
+from nicegui import ui
 
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
@@ -6,18 +6,19 @@ import odtp.mongodb.db as db
 
 
 def content() -> None:
-    with ui.right_drawer(fixed=False).style("background-color: #ebf1fa").props(
-        "bordered"
-    ) as right_drawer:
-        ui_workarea()
     ui.markdown(
         """
-                # Manage Users 
-                """
-    )
+        # Manage Users 
+        """
+    )    
+    with ui.right_drawer().style("background-color: #ebf1fa").props(
+        "bordered width=500"
+    ) as right_drawer:
+        ui_workarea()
+
     with ui.tabs().classes("w-full") as tabs:
-        select = ui.tab("Select a user")
-        add = ui.tab("Add a new user")
+        select = ui.tab("Select User")
+        add = ui.tab("Add User")
     with ui.tab_panels(tabs, value=select).classes("w-full"):
         with ui.tab_panel(select):
             ui_users_select()
@@ -29,14 +30,23 @@ def content() -> None:
 def ui_users_select() -> None:
     ui.markdown(
         """
-                #### Select your user
-                """
+        #### Select your user
+        """
     )
     try:
         users = db.get_collection(db.collection_users)
+        if not users:
+            ui_theme.ui_no_items_yet("users")
+            return
         user_options = {str(user["_id"]): user["displayName"] for user in users}
+        current_user = storage.get_active_object_from_storage((storage.CURRENT_USER))
+        if current_user:
+            value = current_user["user_id"]
+        else:
+            value = ui_theme.NO_SELECTION_INPUT      
         ui.select(
             user_options,
+            value=value,
             label="user",
             on_change=lambda e: store_selected_user(str(e.value)),
             with_input=True,
@@ -52,37 +62,37 @@ def ui_users_select() -> None:
 def ui_add_user():
     ui.markdown(
         """
-                    #### Add new user
-                    if you are not registered yet: create a new user as a first step.
-                    """
+        #### Add new user
+        if you are not registered yet: create a new user as a first step.
+        """
     )
     with ui.row():
         name_input = ui.input(
             label="Name",
             placeholder="name",
-            validation={"Can not be empty": lambda value: len(value.strip()) != 0},
+            validation={"Should be at least 6 characters long": lambda value: len(value.strip()) >= 6},
         )
 
         github_input = ui.input(
             label="Github User",
             placeholder="github username",
-            validation={"Can not be empty": lambda value: len(value.strip()) != 0},
+            validation={"Should be at least 6 characters long": lambda value: len(value.strip()) >= 6},
         )
 
         email_input = ui.input(
             label="Email",
             placeholder="email",
-            validation={
-                "Not a valid email, should contain @": lambda value: "@" in value
-            },
+            validation={"Not a valid email, should contain @ and have at least 6 characters": 
+                        lambda value: "@" in value and len(value.strip()) >= 6},
         )
         ui.button(
             "Add new user",
             on_click=lambda: add_user(
-                name=name_input.value,
-                github=github_input.value,
-                email=email_input.value,
+                name_input=name_input,
+                github_input=github_input,
+                email_input=email_input,
             ),
+            icon="add",
         )
 
 
@@ -90,67 +100,77 @@ def ui_add_user():
 def ui_workarea():
     ui.markdown(
         """
-                ### Work Area
-                """
+        ### Work Area
+        """
     )
     try:
-        user = storage.get_active_object_from_storage("user")
-        if user:
+        user = storage.get_active_object_from_storage(storage.CURRENT_USER)
+        if not user:
             ui.markdown(
+                f"""
+                #### Actions
+                - Add a user
+                - Select a user
                 """
-                        #### User
-                        """
             )
-            ui.label(user.get("display_name"))
-            ui.button(
-                "Manage Digital Twins",
-                on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
-            )
+            return            
+        ui.markdown(
+            f"""
+            #### Current Selection
+            - **user**: {user.get("display_name")}
+
+            ##### Actions
+
+            - add user
+            - select user
+            """
+        )
+        ui.button(
+            "Manage digital twins",
+            on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
+            icon="link",
+        )
     except Exception as e:
         ui.notify(
             f"Workarea could not be retrieved. An Exception occured: {e}",
             type="negative",
         )
-    ui.button("Reset work area", on_click=lambda: app_storage_reset())
 
 
 def store_selected_user(value):
+    if value == ui_theme.NO_SELECTION_VALUE:
+        return
     try:
         storage.storage_update_user(user_id=value)
-        storage.app_storage_reset("digital_twin")
-        print(app.storage.user.keys())
+        storage.reset_storage_keep([storage.CURRENT_USER])
     except Exception as e:
         ui.notify(
             f"Selected user could not be stored. An Exception occured: {e}",
             type="negative",
         )
-    finally:
+    else:
         ui_workarea.refresh()
 
 
-def add_user(name, github, email):
-    if name and github and email:
-        try:
-            user_id = db.add_user(name=name, github=github, email=email)
-            ui.notify(f"A user with id {user_id} has been created", type="positive")
-        except Exception as e:
-            ui.notify(
-                f"The user could not be added in the database. An Exception occured: {e}",
-                type="negative",
-            )
-        finally:
-            ui_users_select.refresh()
-            ui_add_user.refresh()
-    else:
-        ui.notify(f"A user can only be added once the form is filled", type="negative")
-
-
-def app_storage_reset():
+def add_user(name_input, github_input, email_input):
+    if not name_input.validate() or not github_input.validate() or not email_input.validate():
+        ui.notify("Fill in the form correctly before you can add a new user", type="negative")
+        return
     try:
-        storage.app_storage_reset("user")
+        user_id = db.add_user(
+            name=name_input.value, 
+            github=github_input.value, 
+            email=email_input.value,
+        )
+        ui.notify(f"A user with id {user_id} has been created", type="positive")
     except Exception as e:
         ui.notify(
-            f"Work area could not be reset. An Exception occured: {e}", type="negative"
+            f"The user could not be added in the database. An Exception occured: {e}",
+            type="negative",
         )
-    finally:
-        ui_workarea.refresh()
+    else:
+        ui_users_select.refresh()
+        ui_add_user.refresh()
+
+
+
