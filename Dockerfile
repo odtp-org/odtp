@@ -60,7 +60,6 @@ RUN pip3 install --upgrade pip && \
 
 # Add your application's source code
 COPY . /app
-COPY .env /usr/local/lib/python3.11/site-packages/.env
 
 WORKDIR /app
 
@@ -71,7 +70,7 @@ RUN pip3 install --upgrade pip && \
 RUN rm /usr/bin/python
 RUN ln -s /usr/local/bin/python3 /usr/bin/python
 
-WORKDIR /
+WORKDIR /app
 
 # Entry point in a sh session
 ENTRYPOINT ["sh"]

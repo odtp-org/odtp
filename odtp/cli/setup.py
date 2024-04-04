@@ -3,37 +3,27 @@ This scripts contains odtp subcommands for 'setup'
 """
 import typer
 
-from odtp.setup import odtpDatabase, s3Database
+from odtp.setup import s3Database
+import odtp.mongodb.db as db
 
 app = typer.Typer()
 
 
-
 @app.command()
-def initiate(mockup_data: bool = typer.Option(
-    False, "--mockup-data", help="Flag to indicate whether to use mockup data"
-    ),
-):
-    odtpDB = odtpDatabase()
-    odtpDB.run_initial_setup(mockup_data=mockup_data)
-
-    # Save all collections as JSON
-    odtpDB.dbManager.export_all_collections_as_json("odtpDB.json")
+def initiate():
+    db.init_collections()
 
     odtpS3 = s3Database()
     odtpS3.create_folders(["odtp"])
-
-    odtpDB.close()
     odtpS3.close()
 
-    print("ODTP DB/S3 and/or Mockup data generated")
+    print("ODTP DB/S3 data generated")
 
 
 
 @app.command()
 def delete():
-    odtpDB = odtpDatabase()
-    odtpDB.deleteAll()
+    db.delete_all()
 
     odtpS3 = s3Database()
     odtpS3.deleteAll()

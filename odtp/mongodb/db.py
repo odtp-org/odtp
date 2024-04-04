@@ -18,6 +18,7 @@ collection_versions = "versions"
 collection_digital_twins = "digitalTwins"
 collection_executions = "executions"
 collection_steps = "steps"
+collection_results = "results"
 
 
 def get_db():
@@ -356,3 +357,18 @@ def check_collections(collection):
         raise mongodb_utils.OdtpDbMongoDBValidationException(
             f"{collection} is not a valid mongo db collection"
         )
+
+def init_collections():
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        collection_names = db.list_collection_names()
+        for name in [
+            collection_users,
+            collection_components,
+            collection_digital_twins,
+            collection_results,
+            collection_versions,
+        ]:
+            if name not in collection_names:
+                db.create_collection(name)
+                logging.info(f"Collections has been created or exists: {name}")
