@@ -1,7 +1,3 @@
-"""
-The goal of this script is to generate and initial mockup data for the instances.
-"""
-from odtp.db import MongoManager
 from odtp.storage import s3Manager
 
 import logging
