@@ -10,8 +10,7 @@ services:
       - "8501:8501"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${DIGITAL_TWIN_PATH}:${DIGITAL_TWIN_PATH}
-    env_file: .env.compose  
+      - ${ODTP_PATH}:${ODTP_PATH}
     environment:
       ODTP_MONGO_SERVER: mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongodb-instance:27017/
       ODTP_S3_SERVER: ${ODTP_S3_SERVER}
@@ -42,7 +41,6 @@ services:
     image: mongo-express:1.0.2-18
     ports:
       - "8081:8081"
-    env_file: .env.compose  
     environment:
       ME_CONFIG_OPTIONS_EDITORTHEME: "ambiance"
       ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER}
@@ -57,7 +55,6 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    env_file: .env.compose  
     environment:
       MINIO_ROOT_USER: ${ODTP_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${ODTP_SECRET_KEY}
