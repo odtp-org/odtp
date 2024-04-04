@@ -28,7 +28,7 @@ services:
       - minion-instance
 
   mongodb-instance:
-    image: mongo
+    image: mongo:7.0.8
     ports:
       - "27017:27017"
     environment:
@@ -39,7 +39,7 @@ services:
       - ${MONGODB_PATH}:/data/db
 
   mongodb-express:
-    image: mongo-express
+    image: mongo-express:1.0.2-18
     ports:
       - "8081:8081"
     env_file: .env.compose  
@@ -53,7 +53,7 @@ services:
       - mongodb-instance
 
   minion-instance:
-    image: minio/minio
+    image: minio/minio:RELEASE.2024-03-30T09-41-56Z
     ports:
       - "9000:9000"
       - "9001:9001"
