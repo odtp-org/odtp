@@ -1,5 +1,11 @@
 ## Changelog
 
+
+- v.0.2.1: Add docker compose for easy setup
+    - add compose.yml: it can be build with `docker compose up -d`
+    - check `.env` file with `docker compose config`
+
+
 - v.0.2.0: Improvements in database and files management.
     - New MongoDB Schema supporting users, digital twins, executions, and steps. 
     - Setup uses pyproject.toml and set up method changed to poetry
