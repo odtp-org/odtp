@@ -24,7 +24,7 @@ services:
     depends_on:
       - mongodb-instance
       - mongodb-express
-      - minion-instance
+      - minio-instance
 
   mongodb-instance:
     image: mongo:7.0.8
@@ -50,7 +50,7 @@ services:
     depends_on:
       - mongodb-instance
 
-  minion-instance:
+  minio-instance:
     image: minio/minio:RELEASE.2024-03-30T09-41-56Z
     ports:
       - "9000:9000"
@@ -60,8 +60,9 @@ services:
       MINIO_ROOT_PASSWORD: ${ODTP_SECRET_KEY}
     command: server --console-address :9001 /data
     volumes:
-      - ${MINION_PATH}:/data
+      - ${MINIO_PATH}:/data
 
 volumes:
   mongodb_data:
-  minion_data:
+  minio_data:
+
