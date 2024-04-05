@@ -2,8 +2,10 @@
 
 
 - v.0.2.1: Add docker compose for easy setup
-    - add compose.yml: it can be build with `docker compose up -d`
+    - add compose.yml: it can be build with `docker compose up`
     - check `.env` file with `docker compose config`
+    - remove data mockup 
+    - environment variables now loaded from the environment
 
 
 - v.0.2.0: Improvements in database and files management.
