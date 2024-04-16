@@ -1,5 +1,6 @@
 ## Changelog
-
+- v.0.2.2: Bugs correction
+    - Including submodules when cloning file
 
 - v.0.2.1: Add docker compose for easy setup
     - add compose.yml: it can be build with `docker compose up`
