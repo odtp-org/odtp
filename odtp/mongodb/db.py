@@ -124,6 +124,15 @@ def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
         documents = mongodb_utils.get_list_from_cursor(cursor)
         return documents
 
+def get_document_id_by_field_value(field_path, field_value, collection):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        document = db[collection].find_one({field_path: field_value}, {"_id": 1})
+        if document:
+            return str(document["_id"])
+        else:
+            return None
+
 
 def add_user(name, github, email):
     """add new user and return id"""

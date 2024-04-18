@@ -3,6 +3,7 @@ import os
 
 from dotenv import dotenv_values
 
+import odtp.mongodb.db as db
 
 class OdtpParamterParsingException(Exception):
     pass
@@ -85,3 +86,24 @@ def parse_component_ports(ports):
 
 def parse_versions(component_versions):
     return component_versions.split(",")
+
+def parse_component_tags(component_tags):
+    steps_components_tags = component_tags.split(",")
+
+    versions_ids = []
+    for step_components_tag in steps_components_tags:
+        component_name = step_components_tag.split(":")[0]
+        component_version = step_components_tag.split(":")[1]
+
+        component_id = db.get_document_id_by_field_value("componentName", component_name, "components")
+        component_doc = db.get_document_by_id(component_id,"components")
+        for version in component_doc["versions"]:
+            version_doc = db.get_document_by_id(version, "versions")
+            if version_doc["component_version"] == component_version:
+                versions_ids.append(str(version_doc["_id"]))
+            else:
+                versions_ids.append(None)
+
+    print(versions_ids)
+    return versions_ids
+
