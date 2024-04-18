@@ -24,6 +24,8 @@ services:
       
     stdin_open: true
     tty: true
+    networks:
+      - odtp-network
     depends_on:
       - mongodb-instance
       - mongodb-express
@@ -36,7 +38,9 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${ODTP_MONGO_DB}
+      MONGO_INITDB_DATABASE: ${ODTP_MONGO_DB}   
+    networks:
+      - odtp-network
     volumes:
       - ${MONGODB_PATH}:/data/db
 
@@ -50,6 +54,8 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
       ME_CONFIG_MONGODB_URL: mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongodb-instance:27017/
       ME_CONFIG_MONGODB_ENABLE_ADMIN: true
+    networks:
+      - odtp-network
     depends_on:
       - mongodb-instance
 
@@ -62,6 +68,8 @@ services:
       MINIO_ROOT_USER: ${ODTP_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${ODTP_SECRET_KEY}
     command: server --console-address :9001 /data
+    networks:
+      - odtp-network
     volumes:
       - ${MINIO_PATH}:/data
 
@@ -69,3 +77,6 @@ volumes:
   mongodb_data:
   minio_data:
 
+networks:
+  odtp-network:
+    driver: bridge
