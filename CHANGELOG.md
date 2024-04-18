@@ -1,4 +1,7 @@
 ## Changelog
+- v.0.2.3: Feature
+    - Expose dashboard parameters: port and reload
+    
 - v.0.2.2: Bugs correction
     - Including submodules when cloning file
 
