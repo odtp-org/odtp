@@ -1,8 +1,14 @@
 ## Changelog
-- v0.2.2: Bugs correction
-    - Including submodules when cloning file
+
+- v0.2.4: Feature
     - Network added to compose so odtp components can use it
     - Introducing `secrets` compatibility
+
+- v.0.2.3: Feature
+    - Expose dashboard parameters: port and reload
+    
+- v.0.2.2: Bugs correction
+    - Including submodules when cloning file
 
 - v.0.2.1: Add docker compose for easy setup
     - add compose.yml: it can be build with `docker compose up`
