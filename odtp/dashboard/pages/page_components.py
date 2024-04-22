@@ -15,7 +15,7 @@ def content() -> None:
         ## Manage Components
         """
     )
-    with ui.right_drawer().style("background-color: #ebf1fa").props(
+    with ui.right_drawer().classes("bg-slate-50").props(
         "bordered width=500"
     ) as right_drawer:
         ui_workarea()
