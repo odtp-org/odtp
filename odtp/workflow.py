@@ -8,7 +8,7 @@ import zipfile
 
 
 class WorkflowManager:
-    def __init__(self, execution_data, working_path):
+    def __init__(self, execution_data, working_path, secrets):
         # This workflow will have one execution ID associated
         # This class should contain flags used to know the status of the workflow. 
         self.execution = execution_data
@@ -19,6 +19,7 @@ class WorkflowManager:
         self.commits = []
         self.instance_names = []
         self.steps_folder_paths = []
+        self.secrets = secrets
 
         for step_index in self.schema["workflowExecutorSchema"]:
             try: 
@@ -99,7 +100,7 @@ class WorkflowManager:
 
     def extract_parameters(self):
         # Implement the logic to extract parameters from the Barfi schema
-        # THese parameters will be send as environment variable.
+        # These parameters will be send as environment variable.
         self.paramenters = {}
         pass
 
@@ -115,6 +116,8 @@ class WorkflowManager:
             step_index = int(step_index)
 
             step_id = self.execution["steps"][step_index]
+
+            secrets = self.secrets[step_index]
 
             step_doc = db.get_document_by_id(
                 document_id=step_id, 
@@ -158,6 +161,7 @@ class WorkflowManager:
             #logging.info(env_files[step_index])
             componentManager.run_component(
                 parameters,
+                secrets,
                 ports=ports,
                 instance_name=self.instance_names[step_index],
                 step_id=self.execution["steps"][step_index]
