@@ -14,3 +14,15 @@ def pd_lists_to_counts(items_list):
     if not items_list:
         return 0
     return len([str(item) for item in items_list])
+
+
+def component_version_for_table(version):
+    component = version.get("component")
+    version_cleaned = {
+        "component": component.get("componentName"),
+        "repository": component.get("repoLink"),
+        "type": component.get("type"),
+        "version": version.get("component_version"),
+        "commit": version.get("commitHash")[:8]
+    }
+    return version_cleaned
