@@ -32,7 +32,7 @@ def content() -> None:
             page_link=ui_theme.PATH_DIGITAL_TWINS
         )     
         return
-    with ui.right_drawer(fixed=False).style("background-color: #ebf1fa").props(
+    with ui.right_drawer(fixed=False).classes("bg-slate-50").props(
         "bordered width=500"
     ):
         ui_workarea(

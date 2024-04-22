@@ -51,7 +51,7 @@ def content() -> None:
     with ui.dialog().props("full-width") as dialog, ui.card():
         result = ui.markdown()
         ui.button("Close", on_click=dialog.close)
-    with ui.right_drawer().style("background-color: #ebf1fa").props(
+    with ui.right_drawer().classes("bg-slate-50").props(
         "bordered width=500"
     ):
         ui_workarea(
