@@ -1,4 +1,9 @@
 ## Changelog
+
+- v0.2.4: Feature
+    - Network added to compose so odtp components can use it
+    - Introducing `secrets` compatibility
+
 - v.0.2.3: Feature
     - Expose dashboard parameters: port and reload
     

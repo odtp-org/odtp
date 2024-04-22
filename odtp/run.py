@@ -135,15 +135,14 @@ class DockerManager:
         logging.info(f"RUN: Creating Docker volume {volume_name}")
         subprocess.run(["docker", "volume", "create", volume_name])
         
-    def run_component(self, parameters, ports, instance_name, step_id=None, debug=False):
+    def run_component(self, parameters, secrets, ports, instance_name, step_id=None, debug=False):
         """
         Run a Docker component with the specified parameters.
 
         Args:
-            component (str): The name of the Docker component to run.
-            volume (str): The name of the Docker volume to mount.
+            secrets (dict): The secrets variables to pass to the Docker component.
             parameters (dict): The environment variables to pass to the Docker component.
-            name (str, optional): The name of the Docker container. Defaults to "odtp_component".
+            instance_name (str, optional): The name of the Docker container. Defaults to "odtp_component".
 
         Returns:
             str: The ID of the Docker run.
@@ -165,9 +164,15 @@ class DockerManager:
         else:
             ports_args = [""]
 
-        docker_run_command = ["docker", "run", "--rm", "-it", "--name", instance_name, 
+        if secrets:
+            secrets_args = [f"-e \"{key}={value}\"" for key, value in secrets.items()]
+        else:
+            secrets_args = [""]
+
+        docker_run_command = ["docker", "run", "--rm", "-it", "--name", instance_name,
+                              "--network", "odtp_odtp-network",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
-                              "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + [self.docker_image_name]
+                              "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
         
         command_string = ' '.join(docker_run_command)
 
