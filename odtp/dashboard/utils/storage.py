@@ -151,10 +151,12 @@ def storage_update_add_execution_step(
 
 
 def storage_update_add_component(repo_link):
+    """the repo link that gets stored for the component is taken from the
+    github api, so that repos are not stored double"""
     latest_commit = odtp_git.check_commit_for_repo(repo_link)
     repo_info = odtp_git.get_github_repo_info(repo_link)
     add_component = {
-        "repo_link": repo_link,
+        "repo_link": repo_info.get("html_url"),
         "latest_commit": latest_commit,
         "repo_info": repo_info,
     }

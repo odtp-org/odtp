@@ -61,6 +61,7 @@ def get_github_repo_info(repo_url):
             "license": content.get("license", {}).get("name"),
             "name": content.get("name"),
             "tag_url": github_api_tag_url,
+            "commits_url": content.get("commits_url"),
             "tagged_versions": tagged_versions,
         }
         return repo_info
@@ -79,3 +80,14 @@ def check_commit_for_repo(repo_url, commit_hash=None):
             if commit_hash in commits:
                 return commit_hash
     raise OdtpGithubException(f"Github repo {repo_url} has no commit {commit_hash}")
+
+
+def get_commit_of_component_version(repo_info, component_version):
+    tagged_versions = repo_info.get("tagged_versions")
+    if not tagged_versions:
+        raise OdtpGithubException(f"Github repo {repo_info.get('url')} has no versions.")
+    version_commit = [version["commit"] for version in tagged_versions
+                      if version["name"] == component_version]
+    if not version_commit:
+        raise OdtpGithubException(f"Github repo {repo_info.get('url')} has no version {component_version}")
+    return version_commit[0]
