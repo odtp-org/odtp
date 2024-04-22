@@ -76,21 +76,32 @@ def odtp_component_entry(
 
 @app.command()
 def digital_twin_entry(
-    user_id: str = typer.Option(..., "--user-id", help="Specify the user ID"),
-    name: str = typer.Option(..., "--name", help="Specify the name"),
+    user_id: str = typer.Option(None, "--user-id", help="Specify the user ID"),
+    user_email: str = typer.Option(None, "--user-email", help="Specify the email"),
+    name: str = typer.Option(..., "--name", help="Specify the digital twin name"),
 ):
+    if user_id is None and user_email is None:
+        raise typer.Exit("Please provide either --user-id or --user-email")
+
+    if user_email:
+        user_id = db.get_document_id_by_field_value("user_email", user_email, "users")
+
     dt_id = db.add_digital_twin(userRef=user_id, name=name)
     print(f"Digital Twin added with ID {dt_id}")
 
 
 @app.command()
 def execution_entry(
-    dt_id: str = typer.Option(
-        ..., "--digital-twin-id", help="Specify the digital twin ID"
-    ),
     execution_name: str = typer.Option(..., "--name", help="Specify the name of the execution"),
+    dt_name: str = typer.Option(None, "--digital-twin-name", help="Specify the digital twin name"),
+    dt_id: str = typer.Option(
+        None, "--digital-twin-id", help="Specify the digital twin ID"
+    ),
+    component_tags: str = typer.Option(
+        None, "--component-tags", help="Specify the components-tags (component-name:version) separated by commas"
+    ),
     component_versions: str = typer.Option(
-        ..., "--component-versions", help="Specify the version_ids separated by commas"
+        None, "--component-versions", help="Specify the version_ids separated by commas"
     ),
     parameter_files: Annotated[str, typer.Option(
         help="List the files containing the parameters by step separated by commas"
@@ -101,6 +112,18 @@ def execution_entry(
     )] = None,    
 ):  
     try:
+        if dt_name is None and dt_id is None:
+            raise typer.Exit("Please provide either --digital-twin-name or --digital-twin-id")
+
+        if component_tags is None and component_versions is None:
+            raise typer.Exit("Please provide either --component-tags or --component-versions")
+
+        if dt_name:
+            dt_id = db.get_document_id_by_field_value("name", dt_name, "digitalTwins")
+
+        if component_tags:
+            component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
+        
         versions = odtp_parse.parse_versions(component_versions)
         step_count = len(versions)
         ports = odtp_parse.parse_port_mappings_for_multiple_components(
