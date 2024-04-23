@@ -8,6 +8,7 @@ import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 import odtp.mongodb.utils as db_utils
 import odtp.helpers.utils as odtp_utils
+import odtp.helpers.git as odtp_git
 
 
 ## Adding listing so we can have multiple flags
@@ -36,31 +37,23 @@ def odtp_component_entry(
         help="Specify the repository"
     )],
     component_version: Annotated[str, typer.Option(
-        help="Specify the component version"
-    )],    
-    odtp_version: Annotated[str, typer.Option(
-        help="Specify the version of odtp"
-    )] = None,
-    commit: Annotated[str, typer.Option(
-        help="""You may specify the commit of the repository. If not provided 
-        the latest commit will be fetched"""
-    )] = None,
+        help="Specify the tagged component version. It needs to be available on the github repo"
+    )],
     type: Annotated[str, typer.Option(
         help="""You may specify the type of the component as either 'ephemeral or persistent'"""
     )] = db_utils.COMPONENT_TYPE_EPHERMAL,    
     ports: Annotated[str, typer.Option(
         help="Specify ports seperated by a comma i.e. 8501,8201"
     )] = None,
-):  
+):
     try:
         ports = odtp_parse.parse_component_ports(ports)
+        repo_info = odtp_git.get_github_repo_info(repository)
         component_id, version_id = \
             db.add_component_version(
                 component_name=name,
-                repository=repository,
-                odtp_version=odtp_version,
+                repo_info=repo_info,
                 component_version=component_version,
-                commit_hash=commit,
                 type=type,
                 ports=ports,
             )

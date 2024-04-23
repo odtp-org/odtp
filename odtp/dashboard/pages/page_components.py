@@ -5,7 +5,6 @@ import odtp.dashboard.utils.parse as parse
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.validators as validators
-import odtp.helpers.utils as odtp_utils
 import odtp.mongodb.db as db
 import odtp.mongodb.utils as db_utils
 
@@ -37,7 +36,6 @@ def content() -> None:
             ui_component_add()
 
 
-
 @ui.refreshable
 def ui_components_list() -> None:
     """lists all registered components with versions"""
@@ -47,7 +45,7 @@ def ui_components_list() -> None:
                 collection=db.collection_versions,
             )
             versions_cleaned = [helpers.component_version_for_table(version)
-                                for version in versions]
+                                for version in versions]                 
             if not versions:
                 ui.label("You don't have components yet. Start adding one.")
                 return
@@ -363,13 +361,15 @@ def cancel_component_entry():
 
 
 def store_new_component(repo_link_input):
-    if not repo_link_input.validate():
-        ui.notify("Provide a valid repo url you can add a new component", type="negative")
-        return
-    storage.storage_update_add_component(
-        repo_link_input.value,
-    )
-    ui_component_add.refresh()
+    try:
+        validators.validate_github_url(repo_link_input.value)
+    except Exception as e:    
+        ui.notify(f"Repo url {repo_link_input.value} is not a valid component repo", type="negative")
+    else:    
+        storage.storage_update_add_component(
+            repo_link_input.value,
+        )
+        ui_component_add.refresh()
 
 
 def register_new_version(
@@ -384,10 +384,8 @@ def register_new_version(
         ports = parse.parse_ports(ports_input.value)
         component_id, version_id = db.add_component_version(
             component_name=current_component.get("name"),
-            repository=current_component.get("repo_link"),
-            odtp_version=odtp_utils.get_odtp_version(),
+            repo_info=current_component.get("repo_info"),
             component_version=component_version_input.value[0],
-            commit_hash=component_version_input.value[1],
             type=current_component.get("type"),
             ports=ports,
         )
@@ -417,16 +415,14 @@ def register_new_component(
 ):
     if (not component_name_input.validate() or not component_version_input.validate()
         or not component_type_input.validate() or not ports_input.validate()):
-        ui.notify("Fill in the form correctly before you can add a new user", type="negative")
+        ui.notify("Fill in the form correctly before you can add a new component", type="negative")
         return
     try:
         ports = parse.parse_ports(ports_input.value)
         component_id, version_id = db.add_component_version(
             component_name=component_name_input.value,
-            repository=new_component.get("repo_link"),
-            odtp_version=odtp_utils.get_odtp_version(),
+            repo_info=new_component.get("repo_info"),
             component_version=component_version_input.value[0],
-            commit_hash=component_version_input.value[1],
             type=component_type_input.value,
             ports=ports,
         )
@@ -442,3 +438,7 @@ def register_new_component(
     else:
         storage.reset_storage_delete([storage.NEW_COMPONENT])
         ui_component_add.refresh()
+        ui_component_select.refresh()
+        ui_component_show.refresh()
+        ui_version_add.refresh()
+        ui_components_list.refresh()
