@@ -115,13 +115,19 @@ def execution_entry(
             dt_id = db.get_document_id_by_field_value("name", dt_name, "digitalTwins")
 
         if component_tags:
+            print(component_tags)
             component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
+            print(component_tags)
         
         versions = odtp_parse.parse_versions(component_versions)
+        print(versions)
         step_count = len(versions)
+        print(step_count)
         ports = odtp_parse.parse_port_mappings_for_multiple_components(
             ports=ports, step_count=step_count)
-        parameters = odtp_parse.parse_paramters_for_multiple_files(
+        print(ports)    
+        print(parameter_files)
+        parameters = odtp_parse.parse_parameters_for_multiple_files(
             parameter_files=parameter_files, step_count=step_count)
         execution_id, step_ids = db.add_execution(
             dt_id=dt_id,

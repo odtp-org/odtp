@@ -71,7 +71,7 @@ def run(
             image_name=image_name, 
         )
         ports = odtp_parse.parse_port_mappings_for_one_component(ports) 
-        parameters = odtp_parse.parse_paramters_for_one_file(parameter_file)
+        parameters = odtp_parse.parse_parameters_for_one_file(parameter_file)
         componentManager.run_component(
             parameters=parameters, 
             ports=ports, 
