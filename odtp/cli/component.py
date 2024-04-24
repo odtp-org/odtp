@@ -25,7 +25,7 @@ def prepare(
     repository: str = typer.Option(
         ..., "--repository", help="Specify the git repository url"
     ),
-):  
+):
     try:
         componentManager = DockerManager(
             repo_url=repository, 
@@ -67,19 +67,19 @@ def run(
         componentManager = DockerManager(
             project_folder=folder,
             repo_url=repository,
-            commit_hash=commit, 
-            image_name=image_name, 
+            commit_hash=commit,
+            image_name=image_name,
         )
-        ports = odtp_parse.parse_port_mappings_for_one_component(ports) 
+        ports = odtp_parse.parse_port_mappings_for_one_component(ports)
         parameters = odtp_parse.parse_paramters_for_one_file(parameter_file)
         componentManager.run_component(
-            parameters=parameters, 
-            ports=ports, 
+            parameters=parameters,
+            ports=ports,
             instance_name=instance_name
         )
     except Exception as e:
-        print(f"ERROR: Run of component failed: {e}") 
-        raise typer.Abort()           
+        print(f"ERROR: Run of component failed: {e}")
+        raise typer.Abort()
     else:
         print("SUCCESS: container for the component has been started")
 

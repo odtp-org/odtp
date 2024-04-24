@@ -2,4 +2,4 @@ __pycache__/
 .DS_Store
 .env
 .nicegui
-.env.bk
+credentials.json

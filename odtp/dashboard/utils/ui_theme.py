@@ -7,8 +7,9 @@ import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.helpers.utils as odtp_utils
 
-PATH_ABOUT = "/"
+PATH_ABOUT = "/" 
 PATH_USERS = "/users"
+PATH_SIGN = "/logout"
 PATH_DIGITAL_TWINS = "/digital-twins"
 PATH_COMPONENTS = "/components"
 PATH_EXECUTIONS = "/executions"
@@ -20,8 +21,6 @@ NO_SELECTION_INPUT = None
 def menu() -> None:
     ui.link("About", PATH_ABOUT).classes(replace="text-white")
     ui.link("Users", PATH_USERS).classes(replace="text-white")
-    ui.link("Digital Twins", PATH_DIGITAL_TWINS).classes(replace="text-white")
-    ui.link("Components", PATH_COMPONENTS).classes(replace="text-white")
     ui.link("Executions", PATH_EXECUTIONS).classes(replace="text-white")
     ui.link("Run", PATH_RUN).classes(replace="text-white")
 
@@ -34,6 +33,7 @@ def frame(navtitle: str):
     )
     with ui.header().classes("justify-between text-white"):
         ui.label("OTDP").classes("font-bold")
+        ui.link("Log out", PATH_SIGN).classes("text-left",replace="text-white")
         with ui.row():
             menu()
     yield

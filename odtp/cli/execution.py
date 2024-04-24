@@ -39,7 +39,7 @@ def prepare(
             execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
 
         execution = db.get_document_by_id(
-            document_id=execution_id, 
+            document_id=execution_id,
             collection=db.collection_executions
         )
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
@@ -47,10 +47,10 @@ def prepare(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.prepare_workflow()
     except Exception as e:
-        print(f"ERROR: Prepare execution failed: {e}") 
-        raise typer.Abort()           
+        print(f"ERROR: Prepare execution failed: {e}")
+        raise typer.Abort()
     else:
-        print("SUCCESS: images for the execution have been build")    
+        print("SUCCESS: images for the execution have been build")
 
 
 @app.command()
@@ -76,7 +76,7 @@ def run(
             execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
 
         execution = db.get_document_by_id(
-            document_id=execution_id, 
+            document_id=execution_id,
             collection=db.collection_executions
         )
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
@@ -86,10 +86,10 @@ def run(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.run_workflow()
     except Exception as e:
-        print(f"ERROR: Run execution failed: {e}")       
+        print(f"ERROR: Run execution failed: {e}")
         raise typer.Abort()
     else:
-        print("SUCCESS: containers for the execution have been run")      
+        print("SUCCESS: containers for the execution have been run")
 
 
 @app.command()
@@ -100,12 +100,12 @@ def output(
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
-): 
+):
     try:
         display_tree(project_path)
     except Exception as e:
-        print(f"ERROR: Output printing failed: {e}")       
-        raise typer.Abort()  
+        print(f"ERROR: Output printing failed: {e}")
+        raise typer.Abort()
 
 
 if __name__ == "__main__":

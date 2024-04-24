@@ -1,0 +1,62 @@
+import jwt, logging
+from jwt import PyJWKClient
+from fastapi import Request, status, HTTPException, Cookie, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+from nicegui import Client,app
+from odtp.dashboard.utils.storage import storage_update_user, get_from_storage
+from fastapi.responses import RedirectResponse, Response
+import odtp.mongodb.db as db
+import odtp.helpers.settings as config
+from odtp.helpers.settings import ODTP_KEYCLOAK_REDIRECT
+
+
+def jwt_decode_from_client(encoded: str, url:str, audience:str):
+    """Decodes the payload of a JWT token using a client and verifying . (Giving data like issuer, groups, etc.)"""
+    jwks_client = PyJWKClient(url)
+    signing_key = jwks_client.get_signing_key_from_jwt(encoded)
+    payload = jwt.decode(encoded, 
+                         signing_key.key, 
+                         audience=audience,
+                         algorithms=["RS256", "HS256"])
+    return payload
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, url, audience):
+        super().__init__(app)
+        self.url = url
+        self.audience = audience
+    async def dispatch(self, request:Request, call_next):
+        
+        header = request.headers.get("authorization")
+        if not header or not header.startswith("Bearer "):
+            return RedirectResponse(ODTP_KEYCLOAK_REDIRECT)
+            
+        """ Get the ID token from the header."""
+        if header:
+            jwt_token = header.split(" ")[1]
+            try:
+                decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
+                self.update_user_storage(decoded_jwt)
+            except Exception as e:
+                logging.error(f"Error decoding JWT: {e}")
+                return RedirectResponse(ODTP_KEYCLOAK_REDIRECT)
+
+        return await call_next(request)                
+           
+    
+    def update_user_storage(self, decoded_jwt):
+        user_data = {}  
+        for key in ("sub", "preferred_username", "email", "Github_repo"):
+            value = decoded_jwt.get(key, "")
+            user_data[key] = value 
+            storage_update_user(user_data)    
+        db.add_user(
+            name=user_data.get("preferred_username", ""),  
+            github=user_data.get("Github_repo", ""),       
+            email=user_data.get("email", ""),              
+            sub=user_data.get("sub", ""))
+
+       
+         
+        

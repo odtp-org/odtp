@@ -13,6 +13,7 @@ import odtp.helpers.utils as odtp_utils
 import odtp.mongodb.db as db
 
 CURRENT_USER = "user"
+AUTH_USER_SUB = "auth_user" 
 CURRENT_DIGITAL_TWIN = "digital_twin"
 CURRENT_EXECUTION = "execution"
 NEW_EXECUTION = "add_execution"
@@ -26,7 +27,9 @@ FORM_STATE_STEP = "step"
 class ODTPFormValidationException(Exception):
     pass
 
-
+def reset_all () -> None: 
+    app.storage.clear()
+    
 def reset_storage_delete(keys):
     current_storage_keys = app.storage.user.keys()
     try:
@@ -228,3 +231,35 @@ def storage_run_selection(execution_id, repo_url, commit_hash):
         app.storage.user["run_selection"] = json.dumps(run_selection)
     except Exception as e:
         ui.notify(f"storage update for run selection failed: {e}", type="negative")
+    
+def app_storage_is_set(value):
+    storage_entry_for_value = app.storage.user.get(value)
+    if storage_entry_for_value == "None" or not storage_entry_for_value:
+        return False
+    return True
+
+
+def storage_update_user(user_data):
+    try:
+        current_user = []
+        for user_id, data_dict in user_data.items():
+            current_user_data = json.dumps({user_id: data_dict})
+            current_user.append(current_user_data)
+        auth_user_infos = json.dumps(current_user)
+        app.storage.user[AUTH_USER_SUB] = auth_user_infos
+    except Exception as e:
+        ui.notify(
+            f"storage update failed: {e}", type="negative"
+        )
+        
+
+def get_from_storage(data_id):
+    try:
+        object = app.storage.user.get(data_id)
+        if app_storage_is_set(data_id) and object:
+            return json.loads(object)
+    except Exception as e:
+        ui.notify(
+            f"'{data_id}' could not be retrieved from storage. Exception occured: {e}",
+            type="negative",
+        )

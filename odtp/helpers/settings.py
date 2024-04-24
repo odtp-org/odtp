@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 load_dotenv()
 logging.info("environment variables loaded")
 
-
 class OdtpSettingsException(Exception):
     pass
 
@@ -20,5 +19,10 @@ try:
     ODTP_SECRET_KEY = os.getenv("ODTP_SECRET_KEY")
     ODTP_DASHBOARD_PORT = int(os.getenv("ODTP_DASHBOARD_PORT"))
     ODTP_DASHBOARD_RELOAD = eval(os.getenv("ODTP_DASHBOARD_RELOAD"))
+    ODTP_KEYCLOAK_URL = os.getenv("KEYCLOAK_URL")
+    ODTP_KEYCLOAK_AUDIENCE = os.getenv("KEYCLOAK_AUDIENCE")
+    ODTP_KEYCLOAK_LOGOUT = os.getenv("KEYCLOAK_LOGOUT")
+    ODTP_KEYCLOAK_REDIRECT = os.getenv("KEYCLOAK_REDIRECT")
+    NICEGUI_COOKIE_SECRET_KEY = os.getenv("COOKIE_SECRET_KEY")
 except Exception as e:
     raise OdtpSettingsException(f"Configuration of ODTP raised an exception {e}")
