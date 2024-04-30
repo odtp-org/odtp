@@ -24,7 +24,7 @@ def content() -> None:
         select = ui.tab("Select Component")
         add_version = ui.tab("Add Version")
         add_component = ui.tab("Add Component")
-    with ui.tab_panels(tabs, value=list).classes("w-full"):
+    with ui.tab_panels(tabs, value=select).classes("w-full"):
         with ui.tab_panel(list):
             ui_components_list()
         with ui.tab_panel(select):
@@ -343,7 +343,6 @@ def ui_workarea():
 def store_selected_component(value):
     try:
         storage.storage_update_component(component_id=value)
-        print("******** in store")
     except Exception as e:
         ui.notify(
             f"Selected component could not be stored. An Exception occured: {e}",
