@@ -91,11 +91,12 @@ def parse_component_tags(component_tags):
     version_ids = []
     steps_components_tags = component_tags.split(",")
     for step_components_tag in steps_components_tags:
+        print(step_components_tag)
         component_name = step_components_tag.split(":")[0]
         component_version = step_components_tag.split(":")[1]
         version_documents = db.get_component_version(
             component_name=component_name,
-            version_tag=component_version
+            version_tag=component_version,
         )
         if len(version_documents) > 1:
             raise OdtpParameterParsingException(
