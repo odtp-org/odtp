@@ -12,9 +12,6 @@ import odtp.helpers.environment as odtp_env
 from odtp.dashboard.utils.file_picker import local_file_picker
 
 
-HOME_DIRECTORY_USER = "~"
-
-
 def content() -> None:
     ui.markdown(
         """
@@ -24,12 +21,21 @@ def content() -> None:
     current_user = storage.get_active_object_from_storage(
         storage.CURRENT_USER
     )
+    user_workdir = storage.get_value_from_storage_for_key(
+        storage.CURRENT_USER_WORKDIR
+    )    
     if not current_user:
         ui_theme.ui_add_first(
             item_name="user",
             page_link=ui_theme.PATH_USERS
         )     
         return
+    if not user_workdir:
+        ui_theme.ui_add_first(
+            item_name="workdir",
+            page_link=ui_theme.PATH_USERS
+        )     
+        return        
     current_digital_twin = storage.get_active_object_from_storage(
         storage.CURRENT_DIGITAL_TWIN
     )
@@ -38,7 +44,7 @@ def content() -> None:
             item_name="digital twin",
             page_link=ui_theme.PATH_DIGITAL_TWINS
         )     
-        return
+        return   
     current_execution = storage.get_active_object_from_storage(
         storage.CURRENT_EXECUTION
     )
@@ -58,12 +64,13 @@ def content() -> None:
             current_user=current_user,
             current_digital_twin=current_digital_twin,
             current_execution=current_execution,
+            user_workdir=user_workdir
         )
-    ui_run(dialog, result, current_execution=current_execution)
+    ui_run(dialog, result, current_execution=current_execution, workdir=user_workdir)
 
 
 @ui.refreshable
-def ui_workarea(current_user, current_digital_twin, current_execution):
+def ui_workarea(current_user, current_digital_twin, current_execution, user_workdir):
     ui.markdown(
         """
         ### Work Area
@@ -84,14 +91,12 @@ def ui_workarea(current_user, current_digital_twin, current_execution):
             - **user**: {current_user.get("display_name")}
             - **digital twin**: {current_digital_twin.get("name")}"
             - **execution** {current_execution.get("title")}
+            - **working directory**: {user_workdir}
             - **project path**: {project_path}
             """
         )
         ui.mermaid(
-            f"""
-            graph TD;
-                {helpers.get_workflow_mairmaid(step_names)};
-            """
+            helpers.get_workflow_mermaid(step_names, init='graph TB;')
         )
         ui.markdown(
             f"""
@@ -106,8 +111,8 @@ def ui_workarea(current_user, current_digital_twin, current_execution):
         ui.notify(f"Workarea could not be loaded: an exception occured: {e}")
 
 
-async def pick_file() -> None:
-    root = HOME_DIRECTORY_USER
+async def pick_folder(workdir) -> None:
+    root = workdir
     result = await local_file_picker(root, multiple=False)
     if result:
         project_path = result[0]
@@ -116,38 +121,37 @@ async def pick_file() -> None:
 
 
 @ui.refreshable
-def ui_run(dialog, result, current_execution):
+def ui_run(dialog, result, current_execution, workdir):
     try:
         current_local_settings = storage.get_active_object_from_storage(
             storage.CURRENT_LOCAL_SETTINGS
         )
-        execution_id = current_execution.get("execution_id")        
-        with ui.row().classes("w-full no-wrap"):
-            with ui.column().classes("w-1/2"):
-                ui.markdown(
-                    f"""
-                    ##### Current project folder
-                    """
+        execution_id = current_execution.get("execution_id")  
+        with ui.column().classes("w-full"):
+            ui.markdown(
+                f"""
+                ##### Choose project folder
+                """
+            )
+            ui.button("Choose project folder", on_click=lambda: pick_folder(workdir), icon="folder")              
+        with ui.column().classes("w-full"):
+            ui.markdown(
+                f"""
+                ##### Current project folder
+                """
+            )
+            if current_local_settings:
+                project_path = current_local_settings.get("project_path")
+                ui_run_form(
+                    dialog=dialog,
+                    result=result,
+                    project_path=project_path,
+                    execution_id=execution_id,
                 )
-                if current_local_settings:
-                    project_path = current_local_settings.get("project_path")
-                    ui_run_form(
-                        dialog=dialog,
-                        result=result,
-                        project_path=project_path,
-                        execution_id=execution_id,
-                    )
-                else:
-                    with ui.row():
-                        ui.icon("east").classes("text-blue-800 text-lg")
-                        ui.label("start with an empty folder").classes("content-center")
-            with ui.column().classes("w-1/2"):
-                ui.markdown(
-                    f"""
-                    ##### Choose project folder
-                    """
-                )
-                ui.button("Choose folder", on_click=pick_file, icon="folder")
+            else:
+                with ui.row():
+                    ui.icon("east").classes("text-blue-800 text-lg")
+                    ui.label("start with an empty folder").classes("content-center")
     except Exception as e:
         ui.notify(f"page could not be loaded: an exception occured: {e}")
 
