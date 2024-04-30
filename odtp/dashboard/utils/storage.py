@@ -21,6 +21,7 @@ CURRENT_COMPONENT = "component"
 CURRENT_LOCAL_SETTINGS = "local_settings"
 FORM_STATE_START = "start"
 FORM_STATE_STEP = "step"
+CURRENT_USER_WORKDIR = "user_workdir"
 
 
 class ODTPFormValidationException(Exception):
@@ -86,68 +87,27 @@ def storage_update_local_settings(project_path):
         ui.notify(f"storage update for local settings failed: {e}", type="negative")
 
 
+def update_user_workdir(user_workdir_path):
+    app.storage.user[CURRENT_USER_WORKDIR] = user_workdir_path
+
+
 def storage_update_execution(execution_id):
-    try:
-        execution = db.get_document_by_id(
-            document_id=execution_id, collection=db.collection_executions
-        )
-        version_names = odtp_utils.get_version_names_for_execution(execution)
-        current_execution = {
-            "execution_id": execution_id,
-            "title": execution.get("title"),
-            "timestamp": execution.get("start_timestamp").strftime(
-                "%m/%d/%Y, %H:%M:%S"
-            ),
-            "versions": execution.get("component_versions"),
-            "step_names": version_names,
-            "steps": [str(step_id) for step_id in execution.get("steps")],
-        }
-        current_execution_as_json = json.dumps(current_execution)
-        app.storage.user[CURRENT_EXECUTION] = current_execution_as_json
-    except Exception as e:
-        ui.notify(f"storage update for execution failed: {e}", type="negative")
-
-
-def storage_update_add_execution_init(
-    name, version_tuples, digital_twin_id, form_state, parameter_count
-):
-    if form_state == FORM_STATE_START:
-        version_ids = [version_tuple[0] for version_tuple in version_tuples]
-        step_names = [version_tuple[2] for version_tuple in version_tuples]
-        add_execution = {
-            "name": name,
-            "versions": version_ids,
-            "step_names": step_names,
-            "digital_twin_id": digital_twin_id,
-            "step_count": len(version_ids),
-            "parameter_count": str(parameter_count),
-            "current_step_nr": "0",
-            "parameters": [],
-            "ports": [],
-        }
-        app.storage.user[NEW_EXECUTION] = json.dumps(add_execution)
-
-
-def storage_update_add_execution_step(
-    parameter_keys,
-    parameter_values,
-    ports_mapping_inputs,
-):
-
-    new_execution = get_active_object_from_storage(NEW_EXECUTION)
-    if not len(parameter_keys) == len(parameter_values):
-        raise ODTPFormValidationException("paramter key and value count must be equal")
-    parameters_step = {}
-    ports_step = []
-    for key, value in zip(parameter_keys, parameter_values):
-        parameters_step[key] = value
-    ports_step = parse.parse_ports(ports_mapping_inputs)
-    new_execution["parameters"].append(parameters_step)
-    new_execution["ports"].append(ports_step)
-    current_step_nr = int(new_execution["current_step_nr"])
-    current_step_nr += 1
-    new_execution["current_step_nr"] = str(current_step_nr)
-    app.storage.user[NEW_EXECUTION] = json.dumps(new_execution)
+    execution = db.get_document_by_id(
+        document_id=execution_id, collection=db.collection_executions
+    )
+    version_names = odtp_utils.get_version_names_for_execution(execution)
+    current_execution = {
+        "execution_id": execution_id,
+        "title": execution.get("title"),
+        "timestamp": execution.get("start_timestamp").strftime(
+            "%m/%d/%Y, %H:%M:%S"
+        ),
+        "versions": execution.get("component_versions"),
+        "step_names": version_names,
+        "steps": [str(step_id) for step_id in execution.get("steps")],
+    }
+    current_execution_as_json = json.dumps(current_execution)
+    app.storage.user[CURRENT_EXECUTION] = current_execution_as_json
 
 
 def storage_update_add_component(repo_link):
@@ -189,6 +149,10 @@ def get_active_object_from_storage(object_name):
             f"'{object_name}' could not be retrieved from storage. Exception occured: {e}",
             type="negative",
         )
+
+
+def get_value_from_storage_for_key(storage_key):
+    return app.storage.user.get(storage_key)     
 
 
 def storage_update_component(component_id):
