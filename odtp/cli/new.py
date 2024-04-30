@@ -121,7 +121,7 @@ def execution_entry(
         step_count = len(versions)
         ports = odtp_parse.parse_port_mappings_for_multiple_components(
             ports=ports, step_count=step_count)
-        parameters = odtp_parse.parse_paramters_for_multiple_files(
+        parameters = odtp_parse.parse_parameters_for_multiple_files(
             parameter_files=parameter_files, step_count=step_count)
         execution_id, step_ids = db.add_execution(
             dt_id=dt_id,

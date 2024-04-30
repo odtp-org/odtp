@@ -77,6 +77,17 @@ def get_document_by_ids_in_collection(document_ids, collection):
     return documents
 
 
+def get_component_version(component_name, version_tag):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        collection = collection_versions
+        cursor = db[collection].find(
+            {"component_version": version_tag, "component.componentName": component_name}
+        )
+        documents = mongodb_utils.get_list_from_cursor(cursor)
+    return documents
+
+
 def check_document_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
