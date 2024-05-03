@@ -1,5 +1,6 @@
 import pandas as pd
-from nicegui import ui
+import json
+from nicegui import ui, app
 
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
@@ -16,16 +17,19 @@ def content() -> None:
     current_user = storage.get_active_object_from_storage(
         storage.CURRENT_USER
     )
+    user_workdir = storage.get_value_from_storage_for_key(
+        storage.CURRENT_USER_WORKDIR
+    )      
     if not current_user:
         ui_theme.ui_add_first(
             item_name="user",
             page_link=ui_theme.PATH_USERS
         )     
-        return
+        return     
     with ui.right_drawer().classes("bg-slate-50").props(
         "bordered width=500"
     ) as right_drawer:
-        ui_workarea(current_user)
+        ui_workarea(current_user, user_workdir)
     if current_user:
         with ui.tabs().classes("w-full") as tabs:
             select = ui.tab("Select a digital twin")
@@ -99,7 +103,7 @@ def ui_digital_twin_select(current_user) -> None:
             digital_twin_options,
             value=value,
             label="digital twins",
-            on_change=lambda e: store_selected_digital_twin_id(str(e.value)),
+            on_change=lambda e: store_selected_digital_twin_id(digital_twin_id=str(e.value)),
             with_input=True,
         ).props("size=80")
     except Exception as e:
@@ -134,39 +138,34 @@ def ui_add_digital_twin(current_user):
 
 
 @ui.refreshable
-def ui_workarea(current_user):
+def ui_workarea(current_user, user_workdir):
+    current_digital_twin = storage.get_active_object_from_storage(
+        storage.CURRENT_DIGITAL_TWIN
+    )
+    if not user_workdir:
+        user_workdir_display = "-"
+    else:
+        user_workdir_display = user_workdir     
+    if not current_digital_twin: 
+        digital_twin_display = "-"  
+    else:
+        digital_twin_display = current_digital_twin.get("name")           
     ui.markdown(
         """
         ### Work Area
         """
     )
     try:
-        digital_twin = storage.get_active_object_from_storage(
-            storage.CURRENT_DIGITAL_TWIN
-        )
-        if not digital_twin:
-            ui.markdown(
-                f"""
-                #### Current Selection
-                - **user**: {current_user.get("display_name")}
-                
-                #### Actions
-                - add a digital twin
-                - select a digital twin
-                - list digital twins
-                """
-            )
-            return            
         ui.markdown(
             f"""
             #### Current Selection
             - **user**: {current_user.get("display_name")}
-            - **digital twin**: {digital_twin.get("name")}
-
-            ##### Actions
-
-            - add digital twin
-            - select digital twin 
+            - **digital twin**: {digital_twin_display}
+            - **work directory**: {user_workdir_display}
+            
+            #### Actions
+            - add a digital twin
+            - select a digital twin
             - list digital twins
             """
         )
@@ -177,22 +176,30 @@ def ui_workarea(current_user):
         )
     except Exception as e:
         ui.notify(
-            f"Work area could not be loaded. An Exception occured: {e}", type="negative"
+            f"Work area could not be loaded. An Exception happened: {e}", type="negative"
         )
 
 
-def store_selected_digital_twin_id(value):
-    if value == "None":
+def store_selected_digital_twin_id(digital_twin_id):
+    if not digital_twin_id or digital_twin_id == "":
         return
     try:
-        storage.storage_update_digital_twin(digital_twin_id=value)
+        digital_twin = db.get_document_by_id(
+            document_id=digital_twin_id, collection=db.collection_digital_twins
+        )
+        current_digital_twin = json.dumps(
+            {"digital_twin_id": digital_twin_id, "name": digital_twin.get("name")}
+        )
+        app.storage.user[storage.CURRENT_DIGITAL_TWIN] = current_digital_twin
     except Exception as e:
         ui.notify(
-            f"Selected digital twin could not be stored. An Exception occured: {e}",
+            f"Selected digital twin could not be stored. An Exception happened: {e}",
             type="negative",
         )
     else:
-        storage.reset_storage_keep([storage.CURRENT_USER, storage.CURRENT_DIGITAL_TWIN])
+        storage.reset_storage_keep(
+            [storage.CURRENT_USER, storage.CURRENT_DIGITAL_TWIN, storage.CURRENT_USER_WORKDIR]
+        )
         ui_workarea.refresh()
 
 
