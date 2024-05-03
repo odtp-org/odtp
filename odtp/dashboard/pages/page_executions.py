@@ -1,7 +1,6 @@
 import pandas as pd
 from nicegui import ui, app
 import json
-import yaml
 from odtp.dashboard.utils.file_picker import local_file_picker
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
@@ -149,10 +148,13 @@ def ui_execution_workflow_template_form(current_execution_to_add):
     if stepper and STEPPERS.index(stepper) < STEPPER_WORKFLOW_INDEX:
         return           
     step_count = current_execution_to_add.get("step_count")
-    component_versions = db.get_collection(collection=db.collection_versions)
+    component_versions = db.get_collection_sorted(
+        collection=db.collection_versions,
+        sort_tuples=[("component.componentName", db.ASCENDING), ("component_version", db.DESCENDING)]
+    )
     if not component_versions:
         ui.label("There are no components yet.")
-        return
+        return     
     select_options = {}
     for version in component_versions:
         version_display_name = helpers.get_execution_step_display_name(
@@ -602,7 +604,8 @@ def ui_execution_select(current_digital_twin) -> None:
             sub_collection=db.collection_executions,
             item_id=digital_twin_id,
             ref_name=db.collection_executions,
-        )
+            sort_by=[("start_timestamp", db.DESCENDING)]
+        )        
         if not executions:
             ui.label("You don't have executions yet. Start adding one.")
             return
@@ -772,14 +775,24 @@ def ui_workarea(current_digital_twin, current_user, user_workdir):
 
 
 def store_selected_execution(value):
+    execution_id = value
     try:
-        storage.reset_storage_keep(
-            [
-                storage.CURRENT_USER,
-                storage.CURRENT_DIGITAL_TWIN,
-            ]
+        execution = db.get_document_by_id(
+            document_id=execution_id, collection=db.collection_executions
         )
-        storage.storage_update_execution(execution_id=value)
+        version_names = odtp_utils.get_version_names_for_execution(execution)
+        current_execution = {
+            "execution_id": execution_id,
+            "title": execution.get("title"),
+            "timestamp": execution.get("start_timestamp").strftime(
+                "%m/%d/%Y, %H:%M:%S"
+            ),
+            "versions": execution.get("component_versions"),
+            "step_names": version_names,
+            "steps": [str(step_id) for step_id in execution.get("steps")],
+        }
+        current_execution_as_json = json.dumps(current_execution)
+        app.storage.user[storage.CURRENT_EXECUTION] = current_execution_as_json        
     except Exception as e:
         ui.notify(
             f"Selected execution could not be stored. An Exception occured: {e}",
