@@ -22,15 +22,18 @@ def component_version_for_table(version):
     component = version.get("component")
     version_cleaned = {
         "component": component.get("componentName"),
+        "version": version.get("component_version"),        
         "repository": component.get("repoLink"),
+        "commit": version.get("commitHash")[:8],
         "type": component.get("type"),
-        "version": version.get("component_version"),
-        "commit": version.get("commitHash")[:8]
     }
     return version_cleaned
 
 
-def get_execution_step_display_name(component_name, component_version):
+def get_execution_step_display_name(
+    component_name, 
+    component_version, 
+):
     display_name = f"{component_name}:{component_version}"
     return display_name    
 
