@@ -1,10 +1,11 @@
-from nicegui import ui
+from nicegui import ui, app
+import json
 
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.mongodb.db as db
 from odtp.dashboard.utils.file_picker import local_file_picker
-from odtp.helpers.settings import ODTP_WORKDIR
+from odtp.helpers.settings import ODTP_PATH
 
 
 def content() -> None:
@@ -45,7 +46,7 @@ def ui_users_select() -> None:
         if current_user:
             value = current_user["user_id"]
         else:
-            value = ui_theme.NO_SELECTION_INPUT      
+            value = ""      
         ui.select(
             user_options,
             value=value,
@@ -146,18 +147,24 @@ def ui_workarea():
         )
 
 
-def store_selected_user(value):
-    if value == ui_theme.NO_SELECTION_VALUE:
-        return
+def store_selected_user(user_id):
+    if user_id == "":
+        return 
     try:
-        storage.storage_update_user(user_id=value)
-        storage.reset_storage_keep([storage.CURRENT_USER])
+        user = db.get_document_by_id(
+            document_id=user_id, collection=db.collection_users
+        )
+        current_user = json.dumps(
+            {"user_id": user_id, "display_name": user.get("displayName")}
+        )
+        app.storage.user[storage.CURRENT_USER] = current_user        
     except Exception as e:
         ui.notify(
-            f"Selected user could not be stored. An Exception occured: {e}",
+            f"Selected user could not be stored. An Exception happened: {e}",
             type="negative",
         )
     else:
+        storage.reset_storage_keep([storage.CURRENT_USER])
         ui_workarea.refresh()
 
 
@@ -183,15 +190,10 @@ def add_user(name_input, github_input, email_input):
 
 
 async def pick_workdir() -> None:
-    root = ODTP_WORKDIR
+    root = ODTP_PATH
     result = await local_file_picker(root, multiple=False)
     if result:
-        user_workdir_path = result[0]
-        storage.update_user_workdir(user_workdir_path=user_workdir_path)
-        ui.notify(f"A new user workdir has been set {user_workdir_path}", type="positive")
+        workdir = result[0]
+        app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
+        ui.notify(f"A new user workdir has been set {workdir}", type="positive")
     ui_workarea.refresh()    
-
-
-def update_local_setup(project_path):
-    storage.storage_update_local_settings(project_path=project_path)
-   
