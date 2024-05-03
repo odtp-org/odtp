@@ -49,6 +49,7 @@ def get_git_tagged_versions(github_api_tag_url):
 
 def get_github_repo_info(repo_url):
     github_api_repo_url = f"{get_github_repo_url(repo_url)}"
+    print(github_api_repo_url)
     response = make_github_api_call(github_api_repo_url)
     if response.status_code == 200:
         content = json.loads(response.content)
