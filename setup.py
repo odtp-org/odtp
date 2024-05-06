@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='odtp',
-    version='0.2.2',
+    version='0.2.5',
     packages=find_packages(),
     description='Open Digital Twin Platform',
     long_description=open('README.md').read(),
