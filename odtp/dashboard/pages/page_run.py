@@ -449,7 +449,7 @@ def ui_check_status(execution, project_path, secrets_files):
     elif folder_status == FOLDER_HAS_OUTPUT:
         ui.button(
             "Check Output", 
-            on_click=lambda: set_stepper(STEPPER_RUN_EXECUTION), 
+            on_click=lambda: set_stepper(STEPPER_CHECK_OUTPUT), 
             icon="east",
         )                                                             
     if execution:
