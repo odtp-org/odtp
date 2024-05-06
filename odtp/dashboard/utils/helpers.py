@@ -64,8 +64,7 @@ def get_execution_select_options(digital_twin_id):
         sort_by=[("start_timestamp", db.DESCENDING)]
     )        
     if not executions:
-        ui.label("You don't have executions yet. Start adding one.")
-        return
+        return {}
     execution_options = {}
     for execution in executions:
         execution_options[

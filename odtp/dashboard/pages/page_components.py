@@ -1,8 +1,9 @@
 import json
 import pandas as pd
 from nicegui import ui, app
+import logging
 
-import odtp.dashboard.utils.parse as parse
+import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.validators as validators
@@ -46,6 +47,9 @@ def ui_components_list() -> None:
             versions = db.get_collection(
                 collection=db.collection_versions,
             )
+            if not versions:
+                ui_theme.ui_no_items_yet("Components")
+                return            
             versions_cleaned = [helpers.component_version_for_table(version)
                                 for version in versions]                 
             if not versions:
@@ -55,30 +59,32 @@ def ui_components_list() -> None:
             df = df.sort_values(by=["component", "version"], ascending=False)
             ui.table.from_pandas(df).classes("bg-violet-100")
         except Exception as e:
-            ui.notify(
-                f"Components table could not be loaded. An Exception occured: {e}",
-                type="negative",
+            logging.error(
+                f"Components table could not be loaded. An Exception occurted: {e}"
             )
 
 
 @ui.refreshable
 def ui_component_select() -> None:
     with ui.column().classes("w-full"):
-        ui.markdown(
-            """
-            #### Select a component
-            Select a component to see the versions of this component.
-            """
-        )
         try:
             current_component = storage.get_active_object_from_storage(
                 storage.CURRENT_COMPONENT
             )
+            components = db.get_collection(db.collection_components)
+            if not components:
+                ui_theme.ui_no_items_yet("Components")
+                return    
+            ui.markdown(
+                """
+                #### Select a component
+                Select a component to see the versions of this component.
+                """
+            )      
             if current_component:
                 value = current_component["component_id"]
             else:
-                value = None
-            components = db.get_collection(db.collection_components)
+                value = ""                                 
             components_options = {
                 str(component["_id"]): f"{component.get('componentName')}"
                 for component in components
@@ -92,9 +98,8 @@ def ui_component_select() -> None:
                     with_input=True,
                 ).classes("w-full")
         except Exception as e:
-            ui.notify(
-                f"Component selection could not be loaded. An Exception occured: {e}",
-                type="negative",
+            logging.error(
+                f"Component selection could not be loaded. An Exception occured: {e}"
             )
 
 
@@ -271,9 +276,8 @@ def ui_component_show():
                 component=current_component,
             )
     except Exception as e:
-        ui.notify(
-            f"Component details could not be loaded. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"Component details could not be loaded. An Exception occured: {e}"
         )
 
 
@@ -355,9 +359,8 @@ def store_selected_component(value):
     try:
         storage.storage_update_component(component_id=value)
     except Exception as e:
-        ui.notify(
-            f"Selected component could not be stored. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"Selected component could not be stored. An Exception occurred: {e}"
         )
     else:
         ui_workarea.refresh()
@@ -375,7 +378,7 @@ def store_new_component(repo_link_input):
     try:
         validators.validate_github_url(repo_link)    
     except Exception as e:    
-        ui.notify(e, type="negative")
+        logging.error(f"new component {repo_link_input.value} could not be stored: an error {e} occurred")
         return
     try:    
         latest_commit = odtp_git.check_commit_for_repo(repo_link)
@@ -387,7 +390,7 @@ def store_new_component(repo_link_input):
         }
         app.storage.user[storage.NEW_COMPONENT] = json.dumps(add_component)
     except Exception as e:
-        ui.notify(f"storage update for new component failed: {e}", type="negative")
+        logging.error(f"storage update for new component failed: {e}")
     else:    
         ui_component_add.refresh()
 
@@ -415,7 +418,7 @@ def register_new_version(
         )
     except Exception as e:
         ui.notify(
-            f"The component and version could not be added. An Exception occured: {e}",
+            f"The component and version could not be added. An Exception occurred: {e}",
             type="negative",
         )
     else:

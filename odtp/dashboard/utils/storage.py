@@ -1,7 +1,5 @@
 import json
-import os
-import re
-from datetime import datetime
+import logging
 
 from nicegui import app, ui
 
@@ -41,7 +39,7 @@ def reset_storage_delete(keys):
             if key in current_storage_keys:
                 del app.storage.user[key]
     except Exception as e:
-        ui.notify(
+        logging.error(
             f"""During reset storage delete with keys {keys} en execption {e} occured. 
                   Current keys in storage {app.storage.user.keys()}"""
         )
@@ -57,7 +55,7 @@ def reset_storage_keep(keys):
             if (key not in keys) and (key in current_storage_keys):
                 del app.storage.user[key]
     except Exception as e:
-        ui.notify(
+        logging.error(
             f"""During reset storage keep with keys {keys} en execption {e} occured. 
                   Current keys in storage {app.storage.user.keys()}"""
         )
@@ -69,9 +67,8 @@ def get_active_object_from_storage(object_name):
         if object:
             return json.loads(object)
     except Exception as e:
-        ui.notify(
-            f"'{object_name}' could not be retrieved from storage. Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"'{object_name}' could not be retrieved from storage. Exception occured: {e}"
         )
 
 
@@ -99,7 +96,7 @@ def storage_update_component(component_id):
         )
         app.storage.user[CURRENT_COMPONENT] = current_component
     except Exception as e:
-        ui.notify(
+        logging.error(
             f"storage update for {CURRENT_COMPONENT} failed: {e}", type="negative"
         )
 

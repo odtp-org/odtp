@@ -1,6 +1,7 @@
 import pandas as pd
 from nicegui import ui, app
 import json
+import logging
 from odtp.dashboard.utils.file_picker import local_file_picker
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
@@ -43,14 +44,16 @@ def content() -> None:
     )    
     if not current_user:
         ui_theme.ui_add_first(
-            item_name="user",
-            page_link=ui_theme.PATH_USERS
+            item_name="a user",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return
     if not user_workdir:
         ui_theme.ui_add_first(
-            item_name="workdir",
-            page_link=ui_theme.PATH_USERS
+            item_name="a working directory",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return        
     current_digital_twin = storage.get_active_object_from_storage(
@@ -58,10 +61,19 @@ def content() -> None:
     )
     if not current_digital_twin:
         ui_theme.ui_add_first(
-            item_name="digital twin",
-            page_link=ui_theme.PATH_DIGITAL_TWINS
+            item_name="a digital twin",
+            page_link=ui_theme.PATH_DIGITAL_TWINS,
+            action="select",
         )     
-        return   
+        return  
+    components = db.get_collection(collection=db.collection_components)
+    if not components:
+        ui_theme.ui_add_first(
+            item_name="Components",
+            page_link=ui_theme.PATH_COMPONENTS,
+            action="add",
+        )     
+        return     
     with ui.right_drawer(fixed=False).classes("bg-slate-50").props(
         "bordered width=500"
     ):
@@ -572,38 +584,39 @@ def save_new_execution(current_execution_to_add):
 @ui.refreshable
 def ui_execution_select(current_digital_twin) -> None:
     try:
-        ui.markdown(
-            """
-            #### Select Execution
-            """
-        )
         digital_twin_id = current_digital_twin["digital_twin_id"]
+        execution_options = helpers.get_execution_select_options(
+            digital_twin_id=digital_twin_id)   
+        if not execution_options:
+            ui_theme.ui_no_items_yet("Executions")
+            return    
         current_execution = storage.get_active_object_from_storage(
             storage.CURRENT_EXECUTION
         )
         if current_execution:
             selected_value = current_execution["execution_id"]
         else:
-            selected_value = None
-        execution_options = helpers.get_execution_select_options(
-            digital_twin_id=digital_twin_id)    
-        if execution_options:
-            ui.select(
-                execution_options,
-                value=selected_value,
-                label="executions",
-                on_change=lambda e: store_selected_execution(e.value),
-                with_input=True,
-            ).classes("w-full")
-            ui.button(
-                "Cancel Execution Selection",
-                on_click=lambda: cancel_execution_selection(),
-                icon="cancel",
-            )             
+            selected_value = None                       
+        ui.markdown(
+            """
+            #### Select Execution
+            """
+        )            
+        ui.select(
+            execution_options,
+            value=selected_value,
+            label="executions",
+            on_change=lambda e: store_selected_execution(e.value),
+            with_input=True,
+        ).classes("w-full")
+        ui.button(
+            "Cancel Execution Selection",
+            on_click=lambda: cancel_execution_selection(),
+            icon="cancel",
+        )             
     except Exception as e:
-        ui.notify(
-            f"Execution selection could not be loaded. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"Execution selection could not be loaded. An Exception occured: {e}"
         )
 
 
@@ -617,8 +630,8 @@ def ui_executions_table(current_digital_twin):
             ref_name=db.collection_executions,
         )
         if not executions:
-            ui.label("You don't have executions yet. Start adding one.")
-            return
+            ui_theme.ui_no_items_yet("Executions")
+            return  
         df = pd.DataFrame(data=executions)
         df["_id"] = df["_id"].astype("string")
         df["timestamp"] = df["start_timestamp"]
@@ -627,9 +640,8 @@ def ui_executions_table(current_digital_twin):
         df = df.sort_values(by="timestamp", ascending=False)
         ui.table.from_pandas(df)
     except Exception as e:
-        ui.notify(
-            f"Execution table could not be loaded. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"Execution table could not be loaded. An Exception occured: {e}"
         )
 
 
@@ -652,9 +664,8 @@ def ui_execution_details():
             parameters=current_parameters,
         )         
     except Exception as e:
-        ui.notify(
-            f"Execution details could not be loaded. An Exception occurred: {e}",
-            type="negative",
+        logging.error(
+            f"Execution details could not be loaded. An Exception occurred: {e}"
         )
 
 
@@ -712,9 +723,8 @@ def store_selected_execution(value):
             execution_id = value
         )
     except Exception as e:
-        ui.notify(
-            f"Selected execution could not be stored. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"Selected execution could not be stored. An Exception occured: {e}"
         )
     else:
         ui_execution_details.refresh()

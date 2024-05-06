@@ -22,8 +22,8 @@ NO_SELECTION_INPUT = None
 def menu() -> None:
     ui.link("About", PATH_ABOUT).classes(replace="text-white")
     ui.link("Users", PATH_USERS).classes(replace="text-white")
-    ui.link("Digital Twins", PATH_DIGITAL_TWINS).classes(replace="text-white")
     ui.link("Components", PATH_COMPONENTS).classes(replace="text-white")
+    ui.link("Digital Twins", PATH_DIGITAL_TWINS).classes(replace="text-white")
     ui.link("Executions", PATH_EXECUTIONS).classes(replace="text-white")
     ui.link("Run", PATH_RUN).classes(replace="text-white")
 
@@ -32,7 +32,7 @@ def menu() -> None:
 def frame(navtitle: str):
     """Custom page frame to share the same styling and behavior across all pages"""
     ui.colors(
-        primary="black", secondary="black", accent="black", positive="black"
+        primary="black", secondary="black", accent="black", positive="teal"
     )
     with ui.header().classes("justify-between text-white"):
         ui.label("OTDP").classes("font-bold")
@@ -41,10 +41,10 @@ def frame(navtitle: str):
     yield
 
 
-def ui_add_first(item_name, page_link):
-        ui.label(f"You need to select a {item_name} first").classes('text-lg')
+def ui_add_first(item_name, page_link, action="select"):
+        ui.label(f"You need to {action} {item_name} first").classes('text-lg')
         ui.button(
-            f"Select {item_name}",
+            f"{action} {item_name}",
             on_click=lambda: ui.open(page_link),
             icon="link",
         )

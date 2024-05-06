@@ -13,6 +13,7 @@ import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.utils.validators as validators
 import odtp.helpers.environment as odtp_env
 from odtp.dashboard.utils.file_picker import local_file_picker
+import odtp.mongodb.db as db
 
 
 STEPPERS = (
@@ -36,6 +37,7 @@ FOLDER_EMPTY = "empty"
 FOLDER_PREPARED = "prepared"
 FOLDER_HAS_OUTPUT = "output"
 FOLDER_DOES_NOT_MATCH = "no_match"
+FOLDER_NOT_SET = "not_set"
 
 
 folder_status_msg = {
@@ -61,13 +63,15 @@ def content() -> None:
     if not current_user:
         ui_theme.ui_add_first(
             item_name="user",
-            page_link=ui_theme.PATH_USERS
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return
     if not workdir:
         ui_theme.ui_add_first(
-            item_name="workdir",
-            page_link=ui_theme.PATH_USERS
+            item_name="working directory",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return        
     current_digital_twin = storage.get_active_object_from_storage(
@@ -75,10 +79,24 @@ def content() -> None:
     )
     if not current_digital_twin:
         ui_theme.ui_add_first(
-            item_name="digital twin",
-            page_link=ui_theme.PATH_DIGITAL_TWINS
+            item_name="a digital twin",
+            page_link=ui_theme.PATH_DIGITAL_TWINS,
+            action="select",
         )     
-        return    
+        return 
+    executions = db.get_sub_collection_items(
+        collection=db.collection_digital_twins,
+        sub_collection=db.collection_executions,
+        item_id=current_digital_twin["digital_twin_id"],
+        ref_name=db.collection_executions
+    )  
+    if not executions:
+        ui_theme.ui_add_first(
+            item_name="Executions",
+            page_link=ui_theme.PATH_EXECUTIONS,
+            action="create",
+        )     
+        return                         
     with ui.dialog().props("full-width") as dialog, ui.card():
         result = ui.markdown()
         ui.button("Close", on_click=dialog.close)
@@ -106,34 +124,55 @@ def ui_workarea(current_user, current_digital_twin, workdir):
         ### Work Area
         """
     )
+    with ui.expansion('General Settings'):
+        ui.markdown(
+            f"""
+            #### General Settings
+            - **user**: {current_user.get("display_name")}
+            - **digital twin**: {current_digital_twin.get("name")}"
+            - **working directory**: {workdir}
+            """
+        )    
     try:
         project_path = storage.get_value_from_storage_for_key(
-            storage.CURRENT_PROJECT_PATH)
+            storage.CURRENT_PROJECT_PATH)  
         execution = storage.get_active_object_from_storage(
             storage.EXECUTION_FOR_RUN
         )  
         secrets_files = storage.get_active_object_from_storage(
             storage.SECRETS_FILES
-        )  
-        stepper = storage.get_value_from_storage_for_key(
-            storage.RUN_STEP
         )
-        with ui.expansion('General Settings'):
-            ui.markdown(
+        with ui.row().classes("w-full"): 
+            ui.markdown(               
                 f"""
-                #### General Settings
-                - **user**: {current_user.get("display_name")}
-                - **digital twin**: {current_digital_twin.get("name")}"
-                - **working directory**: {workdir}
-                """
-            )
-        ui_check_status(
-            execution, 
-            project_path,
-            secrets_files,
-        )
+                #### Access Steps"""
+            )   
+        with ui.row().classes("w-full"):        
+            ui.button(
+                "Select Execution", 
+                on_click=lambda: set_stepper(STEPPER_SELECT_EXECUTION), 
+                icon="east",
+            )                 
+        if not execution:
+            return 
+        with ui.column():                                            
+            ui.button(
+                "Add secrets", 
+                on_click=lambda: set_stepper(STEPPER_ADD_SECRETS), 
+                icon="east",
+            ).props('flat') 
+            ui.button(
+                "Select Folder", 
+                on_click=lambda: set_stepper(STEPPER_SELECT_FOLDER), 
+                icon="east",
+            ).props('flat')
+        ui_workarea_execution(execution)     
+        ui_workarea_secrets(secrets_files)  
+        ui_workarea_project_folder(project_path, execution)  
+        folder_status = get_folder_status(project_path, execution)
+        ui_run_button(folder_status)            
     except Exception as e:
-        ui.notify(f"an exception occurred {e}")    
+        logging.error(f"Workarea could not be loaded. An exception occurred {e}")    
 
 
 @ui.refreshable 
@@ -146,16 +185,22 @@ def ui_stepper(dialog, result, current_digital_twin, workdir):
     secrets_files = storage.get_active_object_from_storage(
         storage.SECRETS_FILES
     ) 
-    stepper = storage.get_value_from_storage_for_key(
+    stepper_value = storage.get_value_from_storage_for_key(
         storage.RUN_STEP
     )
-    digital_twin_id = current_digital_twin["digital_twin_id"]           
-    with ui.stepper(value=STEPPERS[stepper]).props('vertical').classes('w-full') as stepper:
-        with ui.step(STEPPERS[STEPPER_SELECT_EXECUTION]):
-            with ui.stepper_navigation():
-                ui.button('Next', on_click=stepper.next)             
+    digital_twin_id = current_digital_twin["digital_twin_id"]
+    if not stepper_value:
+        stepper_value = STEPPER_SELECT_EXECUTION 
+    if project_path and execution:
+        folder_status = get_folder_status(project_path, execution)  
+    else:
+        folder_status = FOLDER_NOT_SET          
+    with ui.stepper(value=STEPPERS[stepper_value]).props('vertical').classes('w-full') as stepper:
+        with ui.step(STEPPERS[STEPPER_SELECT_EXECUTION]):           
             ui_execution_select(execution, digital_twin_id, stepper) 
-            ui_execution_details()          
+            ui_execution_details()  
+            with ui.stepper_navigation():
+                ui.button('Next', on_click=stepper.next)                      
         with ui.step(STEPPERS[STEPPER_ADD_SECRETS]):
             with ui.stepper_navigation():
                 with ui.row():
@@ -171,35 +216,65 @@ def ui_stepper(dialog, result, current_digital_twin, workdir):
                 ui.button('Back', on_click=stepper.previous).props('flat')                              
         with ui.step(STEPPERS[STEPPER_PREPARE_EXECUTION]):
             with ui.stepper_navigation():
-                ui_prepare_execution(
-                    dialog=dialog,
-                    result=result,
-                    project_path=project_path,
-                    execution=execution,
-                )
+                if folder_status == FOLDER_EMPTY: 
+                    ui_prepare_execution(
+                        dialog=dialog,
+                        result=result,
+                        project_path=project_path,
+                        execution=execution,
+                    )
+                else:
+                    with ui.row().classes("w-full"):
+                        ui.markdown(f"""
+                            - Folder: **{folder_status}**
+
+                            {folder_status_msg[folder_status]}"""
+                        )  
+                    with ui.row().classes("w-full"):    
+                        ui_run_button(folder_status)                       
             with ui.stepper_navigation():
                 ui.button('Next', on_click=stepper.next)
                 ui.button('Back', on_click=stepper.previous).props('flat')                
         with ui.step(STEPPERS[STEPPER_RUN_EXECUTION]):
             with ui.stepper_navigation():
-                ui_run_execution(
+                if folder_status == FOLDER_PREPARED: 
+                    ui_run_execution(
+                        dialog=dialog,
+                        result=result,
+                        project_path=project_path,
+                        execution=execution,
+                        secrets_files=secrets_files,
+                    )
+                else:
+                    with ui.row().classes("w-full"):
+                        ui.markdown(f"""
+                            - Folder: **{folder_status}**
+
+                            {folder_status_msg[folder_status]}"""
+                        )  
+                    with ui.row().classes("w-full"):    
+                        ui_run_button(folder_status)  
+            with ui.stepper_navigation():
+                ui.button('Next', on_click=stepper.next)
+                ui.button('Back', on_click=stepper.previous).props('flat')
+        with ui.step(STEPPERS[STEPPER_CHECK_OUTPUT]):
+            if folder_status == FOLDER_HAS_OUTPUT:
+                ui_check_output(
                     dialog=dialog,
                     result=result,
                     project_path=project_path,
                     execution=execution,
                 )
+            else: 
+                with ui.row().classes("w-full"):   
+                    ui.markdown(f"""
+                        - Folder: **{folder_status}**
+
+                        {folder_status_msg[folder_status]}"""
+                    )
+                with ui.row().classes("w-full"):                      
+                    ui_run_button(folder_status) 
             with ui.stepper_navigation():
-                ui.button('Next', on_click=stepper.next)
-                ui.button('Back', on_click=stepper.previous).props('flat')
-        with ui.step(STEPPERS[STEPPER_CHECK_OUTPUT]):
-            ui_check_output(
-                dialog=dialog,
-                result=result,
-                project_path=project_path,
-                execution=execution,
-            )
-            with ui.stepper_navigation():
-                ui.button('Done', on_click=lambda: ui.notify('Yay!', type='positive'))
                 ui.button('Back', on_click=stepper.previous).props('flat')    
 
 
@@ -273,24 +348,21 @@ async def pick_secrets_file(step_nr, workdir, execution) -> None:
         if not current_secrets_files:
             step_count = len(execution.get("steps"))
             current_secrets_files = {
-                "execution_id": ["execution_id"],
+                "execution_id": execution["execution_id"],
                 "secret_files": ["" for i in range(step_count) ],
-                "ready": False,
             }
         current_secrets_files["secret_files"][step_nr] = file_path
         app.storage.user[storage.SECRETS_FILES] = json.dumps(current_secrets_files)
-    app.storage.user[storage.RUN_STEP] = STEPPER_ADD_SECRETS    
+    app.storage.user[storage.RUN_STEP] = STEPPER_ADD_SECRETS   
+    ui.notify("The secrets files have been set for the selected execution", type="positive") 
     ui_stepper.refresh()
     ui_workarea.refresh()
 
 
 def remove_secrets_files(stepper) -> None:
-    if stepper != STEPPER_SELECT_EXECUTION:
-        #app.storage.user[storage.RUN_STEP] = STEPPER_ADD_SECRETS
-        pass
-    else:
-        app.storage.user[storage.RUN_STEP] = STEPPER_SELECT_EXECUTION 
+    app.storage.user[storage.RUN_STEP] = STEPPER_ADD_SECRETS 
     storage.reset_storage_delete([storage.SECRETS_FILES])
+    ui.notify("The secrets files have been removed for the selected execution", type="positive")
     ui_stepper.refresh() 
     ui_workarea.refresh()   
 
@@ -349,7 +421,10 @@ def ui_prepare_folder(workdir, project_path):
 
 
 def cancel_execution_selection(stepper):
-    storage.reset_storage_delete([storage.EXECUTION_FOR_RUN])
+    storage.reset_storage_delete([
+        storage.EXECUTION_FOR_RUN, storage.CURRENT_PROJECT_PATH, storage.SECRETS_FILES
+    ])
+    app.storage.user[storage.RUN_STEP] = STEPPER_SELECT_EXECUTION
     ui_stepper.refresh()
     ui_workarea.refresh()
 
@@ -361,6 +436,7 @@ async def pick_folder(workdir) -> None:
         project_path = result[0]
         app.storage.user[storage.CURRENT_PROJECT_PATH] = project_path
         ui.notify(f"A new project folder has been set {project_path}", type="positive")
+        app.storage.user[storage.RUN_STEP] = STEPPER_SELECT_FOLDER 
         ui_workarea.refresh()
         ui_stepper.refresh()
 
@@ -407,51 +483,7 @@ def get_folder_status(project_path, execution):
         return FOLDER_DOES_NOT_MATCH
 
 
-def ui_check_status(execution, project_path, secrets_files):  
-    folder_status = get_folder_status(project_path, execution)   
-    if not execution:
-        with ui.row():
-            ui.icon("east").classes("text-blue-800 text-lg")
-            ui.label("NEXT: Select Execution").classes("content-center")  
-    with ui.row(): 
-        ui.markdown(               
-            f"""
-            #### Access Steps"""
-        )   
-    with ui.column():                   
-        ui.button(
-            "Select Execution", 
-            on_click=lambda: set_stepper(STEPPER_SELECT_EXECUTION), 
-            icon="east",
-        ).props('flat')                          
-        ui.button(
-            "Add secrets", 
-            on_click=lambda: set_stepper(STEPPER_ADD_SECRETS), 
-            icon="east",
-        ).props('flat') 
-        ui.button(
-            "Select Folder", 
-            on_click=lambda: set_stepper(STEPPER_SELECT_FOLDER), 
-            icon="east",
-        ).props('flat')  
-    if folder_status == FOLDER_EMPTY:
-        ui.button(
-            "Prepare Execution", 
-            on_click=lambda: set_stepper(STEPPER_PREPARE_EXECUTION), 
-            icon="east",
-        )
-    elif folder_status == FOLDER_PREPARED:
-        ui.button(
-            "Run Execution", 
-            on_click=lambda: set_stepper(STEPPER_RUN_EXECUTION), 
-            icon="east",
-        ) 
-    elif folder_status == FOLDER_HAS_OUTPUT:
-        ui.button(
-            "Check Output", 
-            on_click=lambda: set_stepper(STEPPER_RUN_EXECUTION), 
-            icon="east",
-        )                                                             
+def ui_workarea_execution(execution):
     if execution:
         with ui.row(): 
             ui.markdown(               
@@ -468,7 +500,10 @@ def ui_check_status(execution, project_path, secrets_files):
                             - **Execution**: {execution.get("title")}
                             - **Steps**: {execution.get("version_tags")}
                             """
-                        ).classes("w-full")                   
+                        ).classes("w-full")     
+
+
+def ui_workarea_secrets(secrets_files):                         
     if secrets_files:
         with ui.row():
             with ui.expansion('Add Secret Files', icon="check").classes('text-green-800'): 
@@ -481,10 +516,9 @@ def ui_check_status(execution, project_path, secrets_files):
                             - **secret files** {secrets_files["secret_files"]}
                             """
                         )
-    else:
-        with ui.row():
-            ui.icon("info").classes("text-blue-800 text-lg")
-            ui.label("Secrets have not been added")                           
+
+
+def ui_workarea_project_folder(project_path, execution):
     if project_path:
         folder_status = get_folder_status(project_path, execution) 
         with ui.row():
@@ -499,25 +533,44 @@ def ui_check_status(execution, project_path, secrets_files):
                             """
                         )  
             ui.markdown(f"""
-            - Folder: **{folder_status}**
+                - Folder: **{folder_status}**
 
-            {folder_status_msg[folder_status]}
-            """
-            )                       
-    
+                {folder_status_msg[folder_status]}"""
+            ) 
+
+
+def ui_run_button(folder_status):                  
+    if folder_status == FOLDER_EMPTY:
+        ui.button(
+            "Prepare Execution", 
+            on_click=lambda: set_stepper(STEPPER_PREPARE_EXECUTION), 
+            icon="east",
+        )
+    elif folder_status == FOLDER_PREPARED:
+        ui.button(
+            "Run Execution", 
+            on_click=lambda: set_stepper(STEPPER_RUN_EXECUTION), 
+            icon="east",
+        ) 
+    elif folder_status == FOLDER_HAS_OUTPUT:
+        ui.button(
+            "Check Output", 
+            on_click=lambda: set_stepper(STEPPER_CHECK_OUTPUT), 
+            icon="east",
+        )                                                                                      
+
       
 def store_selected_execution(value, stepper):
     execution_id = value
     try:
         storage.store_execution_selection(storage.EXECUTION_FOR_RUN, value)   
     except Exception as e:
-        ui.notify(
-            f"Selected execution could not be stored. An Exception occurred: {e}",
-            type="negative",
+        logging.error(
+            f"Selected execution could not be stored. An Exception occurred: {e}"
         )
     else:
         app.storage.user[storage.RUN_STEP] = STEPPER_SELECT_EXECUTION
-        remove_secrets_files(stepper)
+        storage.reset_storage_delete([storage.CURRENT_PROJECT_PATH, storage.SECRETS_FILES])
         ui_stepper.refresh()
         ui_workarea.refresh()
 
@@ -531,8 +584,7 @@ def ui_prepare_execution(dialog, result, project_path, execution):
         f"--project-path {project_path}",
         f"--execution-id {execution['execution_id']}",
     ]  
-    cli_prepare_command = f"odtp execution prepare {'  '.join(cli_parameters)}"   
-    logging.info(cli_prepare_command)    
+    cli_prepare_command = f"odtp execution prepare {'  '.join(cli_parameters)}"      
     with ui.row().classes("w-full"):
         ui.markdown(f"""
             ###### Prepare the Execution: 
@@ -541,7 +593,8 @@ def ui_prepare_execution(dialog, result, project_path, execution):
             - build Docker images 
             - create folder structure
             """
-        )   
+        ) 
+        ui.label(cli_prepare_command).classes("font-mono")        
     with ui.row().classes("w-full"):         
         ui.button(
             "Prepare execution",
@@ -550,7 +603,7 @@ def ui_prepare_execution(dialog, result, project_path, execution):
         ).props("no-caps")   
 
 
-def ui_run_execution(dialog, result, project_path, execution):
+def ui_run_execution(dialog, result, project_path, execution, secrets_files):
     if not execution:
         return
     if not project_path:
@@ -558,9 +611,16 @@ def ui_run_execution(dialog, result, project_path, execution):
     cli_parameters = [
         f"--project-path {project_path}",
         f"--execution-id {execution['execution_id']}",
-    ]   
-    cli_run_command = f"odtp execution run {'  '.join(cli_parameters)}"   
-    logging.info(cli_run_command)    
+    ] 
+    secrets_files_match = (secrets_files and secrets_files.get("secret_files") and (
+        secrets_files["execution_id"] == execution['execution_id'])
+    )
+    if secrets_files_match:
+        secrets_files_for_run = ",".join(secrets_files['secret_files'])   
+        cli_parameters.append(
+            f"--secrets-files {secrets_files_for_run}",
+        )           
+    cli_run_command = f"odtp execution run {'  '.join(cli_parameters)}"     
     with ui.row().classes("w-full"):
         ui.markdown(f"""
             ###### Run the Execution: 
@@ -568,7 +628,8 @@ def ui_run_execution(dialog, result, project_path, execution):
             - Run docker images as containers
             - write output 
             """
-        )   
+        )
+        ui.label(cli_run_command).classes("font-mono")   
     with ui.row().classes("w-full"):         
         ui.button(
             "Run execution",
@@ -586,8 +647,8 @@ def ui_check_output(dialog, result, project_path, execution):
         f"--project-path {project_path}",
         f"--execution-id {execution['execution_id']}",
     ]  
-    cli_output_command = f"odtp execution output {'  '.join(cli_parameters)}"    
-    logging.info(cli_output_command)    
+    cli_output_command = f"odtp execution output {'  '.join(cli_parameters)}" 
+    ui.label(cli_output_command).classes("font-mono")  
     with ui.row().classes("w-full"):
         ui.markdown(f"""
             ###### Check output: 

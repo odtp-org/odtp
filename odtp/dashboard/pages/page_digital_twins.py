@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import logging
 from nicegui import ui, app
 
 import odtp.dashboard.utils.helpers as helpers
@@ -22,8 +23,9 @@ def content() -> None:
     )      
     if not current_user:
         ui_theme.ui_add_first(
-            item_name="user",
-            page_link=ui_theme.PATH_USERS
+            item_name="a user",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return     
     with ui.right_drawer().classes("bg-slate-50").props(
@@ -45,17 +47,19 @@ def content() -> None:
 @ui.refreshable
 def ui_digital_twins_table(current_user):
     try:
-        ui.markdown(
-            """
-            #### Users digital twins
-            """
-        )
         digital_twins = db.get_sub_collection_items(
             collection=db.collection_users,
             sub_collection=db.collection_digital_twins,
             item_id=current_user["user_id"],
             ref_name=db.collection_digital_twins,
         )
+        if not digital_twins: 
+            return
+        ui.markdown(
+            """
+            #### Users digital twins
+            """
+        )            
         if digital_twins:
             df = pd.DataFrame(data=digital_twins)
             df["_id"] = df["_id"].astype("string")
@@ -64,12 +68,9 @@ def ui_digital_twins_table(current_user):
             )
             df = df[["_id", "name", "status", "created_at", "updated_at", "executions"]]
             ui.table.from_pandas(df)
-        else:
-            ui.label("You don't have digital twins yet. Start adding one.")
     except Exception as e:
-        ui.notify(
-            f"Digital Twin table could not be loaded. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"Digital Twin table could not be loaded. An Exception occured: {e}"
         )
 
 
@@ -95,6 +96,9 @@ def ui_digital_twin_select(current_user) -> None:
             item_id=user_id,
             ref_name=db.collection_digital_twins,
         )
+        if not digital_twins:
+            ui_theme.ui_no_items_yet("Digital Twins")
+            return
         digital_twin_options = {
             str(digital_twin["_id"]): digital_twin.get("name")
             for digital_twin in digital_twins
@@ -107,9 +111,8 @@ def ui_digital_twin_select(current_user) -> None:
             with_input=True,
         ).props("size=80")
     except Exception as e:
-        ui.notify(
-            f"Digital Twin Selection could not be loaded. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"Digital Twin Selection could not be loaded. An Exception occured: {e}"
         )
 
 
@@ -175,8 +178,8 @@ def ui_workarea(current_user, user_workdir):
             icon="link",
         )
     except Exception as e:
-        ui.notify(
-            f"Work area could not be loaded. An Exception happened: {e}", type="negative"
+        logging.error(
+            f"Work area could not be loaded. An Exception happened: {e}"
         )
 
 
@@ -192,9 +195,8 @@ def store_selected_digital_twin_id(digital_twin_id):
         )
         app.storage.user[storage.CURRENT_DIGITAL_TWIN] = current_digital_twin
     except Exception as e:
-        ui.notify(
-            f"Selected digital twin could not be stored. An Exception happened: {e}",
-            type="negative",
+        logging.error(
+            f"Selected digital twin could not be stored. An Exception happened: {e}"
         )
     else:
         storage.reset_storage_keep(
@@ -215,7 +217,7 @@ def add_digital_twin(name_input, user_id):
         )
     except Exception as e:
         ui.notify(
-            f"The digital twin could not be added in the database. An Exception occured: {e}",
+            f"The digital twin could not be added in the database. An Exception occurred: {e}",
             type="negative",
         )
     else:
