@@ -23,8 +23,9 @@ def content() -> None:
     )      
     if not current_user:
         ui_theme.ui_add_first(
-            item_name="user",
-            page_link=ui_theme.PATH_USERS
+            item_name="a user",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return     
     with ui.right_drawer().classes("bg-slate-50").props(

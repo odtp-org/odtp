@@ -13,6 +13,7 @@ import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.utils.validators as validators
 import odtp.helpers.environment as odtp_env
 from odtp.dashboard.utils.file_picker import local_file_picker
+import odtp.mongodb.db as db
 
 
 STEPPERS = (
@@ -61,13 +62,15 @@ def content() -> None:
     if not current_user:
         ui_theme.ui_add_first(
             item_name="user",
-            page_link=ui_theme.PATH_USERS
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return
     if not workdir:
         ui_theme.ui_add_first(
-            item_name="workdir",
-            page_link=ui_theme.PATH_USERS
+            item_name="working directory",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return        
     current_digital_twin = storage.get_active_object_from_storage(
@@ -75,10 +78,24 @@ def content() -> None:
     )
     if not current_digital_twin:
         ui_theme.ui_add_first(
-            item_name="digital twin",
-            page_link=ui_theme.PATH_DIGITAL_TWINS
+            item_name="a digital twin",
+            page_link=ui_theme.PATH_DIGITAL_TWINS,
+            action="select",
         )     
-        return    
+        return 
+    executions = db.get_sub_collection_items(
+        collection=db.collection_digital_twins,
+        sub_collection=db.collection_executions,
+        item_id=current_digital_twin["digital_twin_id"],
+        ref_name=db.collection_executions
+    )  
+    if not executions:
+        ui_theme.ui_add_first(
+            item_name="Executions",
+            page_link=ui_theme.PATH_EXECUTIONS,
+            action="create",
+        )     
+        return                         
     with ui.dialog().props("full-width") as dialog, ui.card():
         result = ui.markdown()
         ui.button("Close", on_click=dialog.close)

@@ -44,14 +44,16 @@ def content() -> None:
     )    
     if not current_user:
         ui_theme.ui_add_first(
-            item_name="user",
-            page_link=ui_theme.PATH_USERS
+            item_name="a user",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return
     if not user_workdir:
         ui_theme.ui_add_first(
-            item_name="workdir",
-            page_link=ui_theme.PATH_USERS
+            item_name="a working directory",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
         )     
         return        
     current_digital_twin = storage.get_active_object_from_storage(
@@ -59,10 +61,19 @@ def content() -> None:
     )
     if not current_digital_twin:
         ui_theme.ui_add_first(
-            item_name="digital twin",
-            page_link=ui_theme.PATH_DIGITAL_TWINS
+            item_name="a digital twin",
+            page_link=ui_theme.PATH_DIGITAL_TWINS,
+            action="select",
         )     
-        return   
+        return  
+    components = db.get_collection(collection=db.collection_components)
+    if not components:
+        ui_theme.ui_add_first(
+            item_name="Components",
+            page_link=ui_theme.PATH_COMPONENTS,
+            action="add",
+        )     
+        return     
     with ui.right_drawer(fixed=False).classes("bg-slate-50").props(
         "bordered width=500"
     ):

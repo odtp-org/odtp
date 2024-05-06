@@ -41,10 +41,10 @@ def frame(navtitle: str):
     yield
 
 
-def ui_add_first(item_name, page_link):
-        ui.label(f"You need to select a {item_name} first").classes('text-lg')
+def ui_add_first(item_name, page_link, action="select"):
+        ui.label(f"You need to {action} {item_name} first").classes('text-lg')
         ui.button(
-            f"Select {item_name}",
+            f"{action} {item_name}",
             on_click=lambda: ui.open(page_link),
             icon="link",
         )
