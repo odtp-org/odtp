@@ -104,20 +104,6 @@ def storage_update_component(component_id):
         )
 
 
-def storage_run_selection(execution_id, repo_url, commit_hash):
-    run_selection = {
-        "execution_id": execution_id,
-        "repo_url": repo_url,
-        "commit_hash": commit_hash,
-    }
-    if not run_selection:
-        app.storage.user["run_selection"] = "None"
-    try:
-        app.storage.user["run_selection"] = json.dumps(run_selection)
-    except Exception as e:
-        ui.notify(f"storage update for run selection failed: {e}", type="negative")
-
-
 def store_execution_selection(storage_key, execution_id):  
     execution = db.get_document_by_id(
         document_id=execution_id, collection=db.collection_executions
