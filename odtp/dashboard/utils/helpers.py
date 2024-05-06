@@ -1,3 +1,6 @@
+import odtp.mongodb.db as db
+
+
 def get_workflow_mermaid(step_names, init="graph TB;"):
     mermaid_graph = init
     step_count = len(step_names)
@@ -50,3 +53,22 @@ def get_value_from_parameters(current_component_parameters, index):
         return ""    
     parameters_values_as_list = list(current_component_parameters.values())
     return parameters_values_as_list[index]           
+
+
+def get_execution_select_options(digital_twin_id):
+    executions = db.get_sub_collection_items(
+        collection=db.collection_digital_twins,
+        sub_collection=db.collection_executions,
+        item_id=digital_twin_id,
+        ref_name=db.collection_executions,
+        sort_by=[("start_timestamp", db.DESCENDING)]
+    )        
+    if not executions:
+        ui.label("You don't have executions yet. Start adding one.")
+        return
+    execution_options = {}
+    for execution in executions:
+        execution_options[
+            str(execution["_id"])
+        ] = f"{execution['start_timestamp'].strftime('%d/%m/%y')} {execution.get('title')}"
+    return execution_options

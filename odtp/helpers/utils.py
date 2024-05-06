@@ -26,13 +26,13 @@ def get_execution_step_name(component_name, component_version, step_index=None):
     return f"{step_index}_{component_name}_{component_version}"
 
 
-def get_version_name_dict_for_version_ids(version_ids):
+def get_version_name_dict_for_version_ids(version_ids, naming_function=get_execution_step_name):
     versions = db.get_document_by_ids_in_collection(
         collection=db.collection_versions, document_ids=version_ids
     )
     versions_dict = {}
     for version in versions:
-        version_display_name = get_execution_step_name(
+        version_display_name = naming_function(
             component_name=version["component"]["componentName"],
             component_version=version["component_version"],
         )
@@ -40,8 +40,8 @@ def get_version_name_dict_for_version_ids(version_ids):
     return versions_dict
 
 
-def get_version_names_for_execution(execution):
+def get_version_names_for_execution(execution, naming_function=get_execution_step_name):
     version_ids = execution["workflowSchema"]["component_versions"]
-    version_dict = get_version_name_dict_for_version_ids(version_ids)
+    version_dict = get_version_name_dict_for_version_ids(version_ids, naming_function=naming_function)
     version_names = [version_dict[version_id] for version_id in version_ids]
     return version_names

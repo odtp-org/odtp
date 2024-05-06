@@ -82,7 +82,6 @@ def run(
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
         secrets = odtp_parse.parse_parameters_for_multiple_files(
             parameter_files=secrets_files, step_count=step_count)
-        print(secrets)
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.run_workflow()
     except Exception as e:

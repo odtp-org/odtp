@@ -23,6 +23,9 @@ FORM_STATE_START = "start"
 FORM_STATE_STEP = "step"
 CURRENT_USER_WORKDIR = "user_workdir"
 CURRENT_PROJECT_PATH = "project_path"
+EXECUTION_FOR_RUN = "execution_for_run"
+RUN_STEP = "run_step"
+SECRETS_FILES = "secrets_files"
 
 
 class ODTPFormValidationException(Exception):
@@ -101,15 +104,43 @@ def storage_update_component(component_id):
         )
 
 
-def storage_run_selection(execution_id, repo_url, commit_hash):
-    run_selection = {
+def store_execution_selection(storage_key, execution_id):  
+    execution = db.get_document_by_id(
+        document_id=execution_id, collection=db.collection_executions
+    )
+    version_tags = odtp_utils.get_version_names_for_execution(
+        execution=execution,
+        naming_function=helpers.get_execution_step_display_name,
+    )
+    step_ids = [str(step_id) for step_id in execution["steps"]]
+    step_documents = db.get_document_by_ids_in_collection(
+        document_ids=step_ids, collection=db.collection_steps
+    )
+    step_dict = {}
+    for step_document in step_documents:
+        step_dict[str(step_document["_id"])] = step_document
+    ports = []
+    parameters = []
+    outputs = []
+    inputs = []
+    for step_id in step_ids:
+        parameters.append(step_dict[step_id].get("parameters", {}))
+        ports.append(step_dict[step_id].get("ports", []))
+        outputs.append(step_dict[step_id].get("output", {}))
+        inputs.append(step_dict[step_id].get("input", {}))     
+    current_execution = {
         "execution_id": execution_id,
-        "repo_url": repo_url,
-        "commit_hash": commit_hash,
+        "title": execution.get("title"),
+        "timestamp": execution.get("start_timestamp").strftime(
+            "%m/%d/%Y, %H:%M:%S"
+        ),
+        "versions": execution.get("component_versions"),
+        "version_tags": version_tags,
+        "steps": step_ids,
+        "ports": ports,
+        "parameters": parameters,
+        "outputs": outputs,
+        "inputs": inputs,    
     }
-    if not run_selection:
-        app.storage.user["run_selection"] = "None"
-    try:
-        app.storage.user["run_selection"] = json.dumps(run_selection)
-    except Exception as e:
-        ui.notify(f"storage update for run selection failed: {e}", type="negative")
+    current_execution_as_json = json.dumps(current_execution)
+    app.storage.user[storage_key] = current_execution_as_json 

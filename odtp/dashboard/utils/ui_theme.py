@@ -6,6 +6,8 @@ from nicegui import app, ui
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.helpers.utils as odtp_utils
+import odtp.mongodb.db as db
+
 
 PATH_ABOUT = "/"
 PATH_USERS = "/users"
@@ -50,3 +52,33 @@ def ui_add_first(item_name, page_link):
 
 def ui_no_items_yet(item_name_plural):
     ui.label(f"There are no {item_name_plural} yet. Start adding {item_name_plural}").classes('text-lg')
+
+
+def ui_execution_display(
+    execution_title,
+    version_tags,
+    ports,
+    parameters,
+):
+    ui.label(f"Execution Title: {execution_title}").classes("text-lg w-full")
+    table_columns = [
+        {'name': 'key', 'label': 'Parameter type / name', 'field': 'key'},
+        {'name': 'value', 'label': 'value', 'field': 'value'},
+    ]    
+    if not version_tags:
+        return  
+    with ui.grid(columns=2):
+        with ui.column():    
+            ui.mermaid(
+                helpers.get_workflow_mermaid(version_tags, init='graph TB;')
+            )
+        with ui.column(): 
+            for k, version_tag in enumerate(version_tags):
+                rows = []
+                if ports and ports[k]:    
+                    for port_mapping in ports[k]:
+                        rows.append({'key': 'port-mapping', 'value': port_mapping})
+                if parameters and parameters:
+                    for key, value in parameters[k].items():
+                        rows.append({'key': key, 'value': value},)
+                ui.table(columns=table_columns, rows=rows, row_key='key', title=version_tag)
