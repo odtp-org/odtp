@@ -1,5 +1,6 @@
 from nicegui import ui, app
 import json
+import logging
 
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
@@ -55,9 +56,8 @@ def ui_users_select() -> None:
             with_input=True,
         ).props("size=80")
     except Exception as e:
-        ui.notify(
-            f"User selection could not be loaded. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"User selection could not be loaded. An Exception occured: {e}"
         )
 
 
@@ -141,9 +141,8 @@ def ui_workarea():
             icon="folder"
         )
     except Exception as e:
-        ui.notify(
-            f"Workarea could not be retrieved. An Exception occured: {e}",
-            type="negative",
+        logging.error(
+            f"Workarea could not be retrieved. An Exception occured: {e}"
         )
 
 
@@ -159,9 +158,8 @@ def store_selected_user(user_id):
         )
         app.storage.user[storage.CURRENT_USER] = current_user        
     except Exception as e:
-        ui.notify(
-            f"Selected user could not be stored. An Exception happened: {e}",
-            type="negative",
+        logging.error(
+            f"Selected user could not be stored. An Exception happened: {e}"
         )
     else:
         storage.reset_storage_keep([storage.CURRENT_USER])
@@ -181,7 +179,7 @@ def add_user(name_input, github_input, email_input):
         ui.notify(f"A user with id {user_id} has been created", type="positive")
     except Exception as e:
         ui.notify(
-            f"The user could not be added in the database. An Exception occured: {e}",
+            f"The user could not be added in the database. An Exception occurred: {e}",
             type="negative",
         )
     else:
@@ -190,10 +188,16 @@ def add_user(name_input, github_input, email_input):
 
 
 async def pick_workdir() -> None:
-    root = ODTP_PATH
-    result = await local_file_picker(root, multiple=False)
-    if result:
-        workdir = result[0]
-        app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
-        ui.notify(f"A new user workdir has been set {workdir}", type="positive")
-    ui_workarea.refresh()    
+    try:
+        root = ODTP_PATH
+        result = await local_file_picker(root, multiple=False)
+        if result:
+            workdir = result[0]
+            app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
+            ui.notify(f"A new user workdir has been set {workdir}", type="positive")
+    except Exception as e:
+        logging.error(
+            f"Work directory could not be picked: an Exception occurred: {e}"
+        )
+    else:            
+        ui_workarea.refresh()    
