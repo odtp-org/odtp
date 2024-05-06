@@ -9,7 +9,7 @@ from odtp.dashboard.utils.file_picker import local_file_picker
 from odtp.helpers.settings import ODTP_PATH
 
 
-def content() -> None:
+def content() -> None:  
     ui.markdown(
         """
         # Manage Users 
@@ -109,6 +109,8 @@ def ui_workarea():
     try:
         user = storage.get_active_object_from_storage(storage.CURRENT_USER)
         workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)
+        if not workdir:
+            workdir = ODTP_PATH
         if not user:
             ui.markdown(
                 f"""
@@ -140,6 +142,11 @@ def ui_workarea():
             on_click=pick_workdir, 
             icon="folder"
         )
+        ui.button(
+            "Reset Work directory to default", 
+            on_click=reset_workdir, 
+            icon="folder"
+        ).props('flat')       
     except Exception as e:
         logging.error(
             f"Workarea could not be retrieved. An Exception occured: {e}"
@@ -194,10 +201,16 @@ async def pick_workdir() -> None:
         if result:
             workdir = result[0]
             app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
-            ui.notify(f"A new user workdir has been set {workdir}", type="positive")
+            ui.notify(f"A new user workdir has been set to {workdir}", type="positive")
     except Exception as e:
         logging.error(
             f"Work directory could not be picked: an Exception occurred: {e}"
         )
     else:            
         ui_workarea.refresh()    
+
+
+def reset_workdir():
+    app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
+    ui.notify(f"User workdir has been set to {ODTP_PATH}", type="positive")
+    ui_workarea.refresh()
