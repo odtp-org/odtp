@@ -3,16 +3,14 @@ import os.path
 import shlex
 import sys
 
-from nicegui import ui
+from nicegui import ui, app
 
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
+import odtp.dashboard.utils.validators as validators
 import odtp.helpers.environment as odtp_env
 from odtp.dashboard.utils.file_picker import local_file_picker
-
-
-HOME_DIRECTORY_USER = "~"
 
 
 def content() -> None:
@@ -24,12 +22,21 @@ def content() -> None:
     current_user = storage.get_active_object_from_storage(
         storage.CURRENT_USER
     )
+    user_workdir = storage.get_value_from_storage_for_key(
+        storage.CURRENT_USER_WORKDIR
+    )    
     if not current_user:
         ui_theme.ui_add_first(
             item_name="user",
             page_link=ui_theme.PATH_USERS
         )     
         return
+    if not user_workdir:
+        ui_theme.ui_add_first(
+            item_name="workdir",
+            page_link=ui_theme.PATH_USERS
+        )     
+        return        
     current_digital_twin = storage.get_active_object_from_storage(
         storage.CURRENT_DIGITAL_TWIN
     )
@@ -38,7 +45,7 @@ def content() -> None:
             item_name="digital twin",
             page_link=ui_theme.PATH_DIGITAL_TWINS
         )     
-        return
+        return   
     current_execution = storage.get_active_object_from_storage(
         storage.CURRENT_EXECUTION
     )
@@ -58,25 +65,21 @@ def content() -> None:
             current_user=current_user,
             current_digital_twin=current_digital_twin,
             current_execution=current_execution,
+            user_workdir=user_workdir
         )
-    ui_run(dialog, result, current_execution=current_execution)
+    ui_run(dialog, result, current_execution=current_execution, workdir=user_workdir)
 
 
 @ui.refreshable
-def ui_workarea(current_user, current_digital_twin, current_execution):
+def ui_workarea(current_user, current_digital_twin, current_execution, user_workdir):
     ui.markdown(
         """
         ### Work Area
         """
     )
     try:
-        current_local_settings = storage.get_active_object_from_storage(
-            storage.CURRENT_LOCAL_SETTINGS
-        )
-        if current_local_settings:
-            project_path = current_local_settings.get("project_path")
-        else:    
-            project_path = ""
+        current_project_path = storage.get_value_from_storage_for_key(
+            storage.CURRENT_PROJECT_PATH)
         step_names = current_execution.get("step_names")
         ui.markdown(
             f"""
@@ -84,14 +87,12 @@ def ui_workarea(current_user, current_digital_twin, current_execution):
             - **user**: {current_user.get("display_name")}
             - **digital twin**: {current_digital_twin.get("name")}"
             - **execution** {current_execution.get("title")}
-            - **project path**: {project_path}
+            - **working directory**: {user_workdir}
+            - **project path**: {current_project_path}
             """
         )
         ui.mermaid(
-            f"""
-            graph TD;
-                {helpers.get_workflow_mairmaid(step_names)};
-            """
+            helpers.get_workflow_mermaid(step_names, init='graph TB;')
         )
         ui.markdown(
             f"""
@@ -106,50 +107,83 @@ def ui_workarea(current_user, current_digital_twin, current_execution):
         ui.notify(f"Workarea could not be loaded: an exception occured: {e}")
 
 
-async def pick_file() -> None:
-    root = HOME_DIRECTORY_USER
+async def pick_folder(workdir) -> None:
+    root = workdir
     result = await local_file_picker(root, multiple=False)
     if result:
         project_path = result[0]
-        update_local_setup(project_path=project_path)
+        app.storage.user[storage.CURRENT_PROJECT_PATH] = project_path
         ui.notify(f"A new project folder has been set {project_path}", type="positive")
+        ui_workarea.refresh()
+        ui_run.refresh()
 
+
+def create_folder(workdir, folder_name_input):
+    if not folder_name_input.validate():
+        return
+    try:
+        folder_name = folder_name_input.value
+        project_path = os.path.join(workdir, folder_name)
+        os.mkdir(project_path)
+    except Exception as e:
+        ui.notify(f"The project directory could not be created: an exception occurred: {e}", type="negative")
+    else:        
+        app.storage.user[storage.CURRENT_PROJECT_PATH] = project_path
+        ui.notify(
+            f"project directory {project_path} has been created and set as project directory", type="positive")
+        ui_workarea.refresh()
+        ui_run.refresh()
+ 
 
 @ui.refreshable
-def ui_run(dialog, result, current_execution):
+def ui_run(dialog, result, current_execution, workdir):
     try:
-        current_local_settings = storage.get_active_object_from_storage(
-            storage.CURRENT_LOCAL_SETTINGS
-        )
-        execution_id = current_execution.get("execution_id")        
-        with ui.row().classes("w-full no-wrap"):
-            with ui.column().classes("w-1/2"):
-                ui.markdown(
-                    f"""
-                    ##### Current project folder
-                    """
+        current_project_path = storage.get_value_from_storage_for_key(
+            storage.CURRENT_PROJECT_PATH)
+        execution_id = current_execution.get("execution_id")  
+        with ui.row().classes("w-full"):
+            ui.markdown(
+                f"""
+                ##### Choose project folder
+                """
+            )
+        with ui.row().classes("w-full"):    
+            ui.button(
+                "Choose project folder", 
+                on_click=lambda: pick_folder(workdir), 
+                icon="folder"
+            )  
+        with ui.row().classes("w-full"):       
+            project_folder_input = ui.input(
+                label="Project folder name", 
+                placeholder="execution",
+                validation={f"Please provide a folder name does not yet exist in the working directory":
+                    lambda value: validators.validate_folder_does_not_exist(value, workdir)},                
+            )      
+            ui.button(
+                "Create project folder", 
+                on_click=lambda: create_folder(workdir, project_folder_input), 
+                icon="folder",
+            )            
+        with ui.column().classes("w-full"):
+            ui.markdown(
+                f"""
+                ##### Current project folder
+                """
+            )
+            if current_project_path:
+                ui_run_form(
+                    dialog=dialog,
+                    result=result,
+                    project_path=current_project_path,
+                    execution_id=execution_id,
                 )
-                if current_local_settings:
-                    project_path = current_local_settings.get("project_path")
-                    ui_run_form(
-                        dialog=dialog,
-                        result=result,
-                        project_path=project_path,
-                        execution_id=execution_id,
-                    )
-                else:
-                    with ui.row():
-                        ui.icon("east").classes("text-blue-800 text-lg")
-                        ui.label("start with an empty folder").classes("content-center")
-            with ui.column().classes("w-1/2"):
-                ui.markdown(
-                    f"""
-                    ##### Choose project folder
-                    """
-                )
-                ui.button("Choose folder", on_click=pick_file, icon="folder")
+            else:
+                with ui.row():
+                    ui.icon("east").classes("text-blue-800 text-lg")
+                    ui.label("start with an empty folder").classes("content-center")
     except Exception as e:
-        ui.notify(f"page could not be loaded: an exception occured: {e}")
+        ui.notify(f"page could not be loaded: an exception occurred: {e}")
 
 
 def ui_run_form(execution_id, project_path, dialog, result):
@@ -228,12 +262,6 @@ def ui_run_form(execution_id, project_path, dialog, result):
         on_click=lambda: run_command(cli_output_command, dialog, result),
         icon="info",
     ).props("no-caps")
-
-
-def update_local_setup(project_path):
-    storage.storage_update_local_settings(project_path=project_path)
-    ui_workarea.refresh()
-    ui_run.refresh()
 
 
 async def run_command(command: str, dialog, result) -> None:

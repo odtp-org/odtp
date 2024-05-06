@@ -21,6 +21,8 @@ CURRENT_COMPONENT = "component"
 CURRENT_LOCAL_SETTINGS = "local_settings"
 FORM_STATE_START = "start"
 FORM_STATE_STEP = "step"
+CURRENT_USER_WORKDIR = "user_workdir"
+CURRENT_PROJECT_PATH = "project_path"
 
 
 class ODTPFormValidationException(Exception):
@@ -42,7 +44,7 @@ def reset_storage_delete(keys):
         )
 
 
-def reset_storage_keep(keys):
+def reset_storage_keep(keys):   
     current_storage_keys = app.storage.user.keys()
     try:
         if not isinstance(keys, list):
@@ -58,127 +60,6 @@ def reset_storage_keep(keys):
         )
 
 
-def storage_update_digital_twin(digital_twin_id):
-    try:
-        digital_twin = db.get_document_by_id(
-            document_id=digital_twin_id, collection=db.collection_digital_twins
-        )
-        current_digital_twin = json.dumps(
-            {"digital_twin_id": digital_twin_id, "name": digital_twin.get("name")}
-        )
-        app.storage.user[CURRENT_DIGITAL_TWIN] = current_digital_twin
-    except Exception as e:
-        ui.notify(
-            f"storage update for {CURRENT_DIGITAL_TWIN} failed: {e}", type="negative"
-        )
-
-
-def storage_update_local_settings(project_path):
-    try:
-        if CURRENT_LOCAL_SETTINGS in app.storage.user.keys():
-            local_settings = get_active_object_from_storage(CURRENT_LOCAL_SETTINGS)
-        else:
-            local_settings = {}
-        if project_path:
-            local_settings["project_path"] = project_path
-            app.storage.user[CURRENT_LOCAL_SETTINGS] = json.dumps(local_settings)
-    except Exception as e:
-        ui.notify(f"storage update for local settings failed: {e}", type="negative")
-
-
-def storage_update_execution(execution_id):
-    try:
-        execution = db.get_document_by_id(
-            document_id=execution_id, collection=db.collection_executions
-        )
-        version_names = odtp_utils.get_version_names_for_execution(execution)
-        current_execution = {
-            "execution_id": execution_id,
-            "title": execution.get("title"),
-            "timestamp": execution.get("start_timestamp").strftime(
-                "%m/%d/%Y, %H:%M:%S"
-            ),
-            "versions": execution.get("component_versions"),
-            "step_names": version_names,
-            "steps": [str(step_id) for step_id in execution.get("steps")],
-        }
-        current_execution_as_json = json.dumps(current_execution)
-        app.storage.user[CURRENT_EXECUTION] = current_execution_as_json
-    except Exception as e:
-        ui.notify(f"storage update for execution failed: {e}", type="negative")
-
-
-def storage_update_add_execution_init(
-    name, version_tuples, digital_twin_id, form_state, parameter_count
-):
-    if form_state == FORM_STATE_START:
-        version_ids = [version_tuple[0] for version_tuple in version_tuples]
-        step_names = [version_tuple[2] for version_tuple in version_tuples]
-        add_execution = {
-            "name": name,
-            "versions": version_ids,
-            "step_names": step_names,
-            "digital_twin_id": digital_twin_id,
-            "step_count": len(version_ids),
-            "parameter_count": str(parameter_count),
-            "current_step_nr": "0",
-            "parameters": [],
-            "ports": [],
-        }
-        app.storage.user[NEW_EXECUTION] = json.dumps(add_execution)
-
-
-def storage_update_add_execution_step(
-    parameter_keys,
-    parameter_values,
-    ports_mapping_inputs,
-):
-
-    new_execution = get_active_object_from_storage(NEW_EXECUTION)
-    if not len(parameter_keys) == len(parameter_values):
-        raise ODTPFormValidationException("paramter key and value count must be equal")
-    parameters_step = {}
-    ports_step = []
-    for key, value in zip(parameter_keys, parameter_values):
-        parameters_step[key] = value
-    ports_step = parse.parse_ports(ports_mapping_inputs)
-    new_execution["parameters"].append(parameters_step)
-    new_execution["ports"].append(ports_step)
-    current_step_nr = int(new_execution["current_step_nr"])
-    current_step_nr += 1
-    new_execution["current_step_nr"] = str(current_step_nr)
-    app.storage.user[NEW_EXECUTION] = json.dumps(new_execution)
-
-
-def storage_update_add_component(repo_link):
-    """the repo link that gets stored for the component is taken from the
-    github api, so that repos are not stored double"""
-    latest_commit = odtp_git.check_commit_for_repo(repo_link)
-    repo_info = odtp_git.get_github_repo_info(repo_link)
-    add_component = {
-        "repo_link": repo_info.get("html_url"),
-        "latest_commit": latest_commit,
-        "repo_info": repo_info,
-    }
-    try:
-        app.storage.user[NEW_COMPONENT] = json.dumps(add_component)
-    except Exception as e:
-        ui.notify(f"storage update for new component failed: {e}", type="negative")
-
-
-def storage_update_user(user_id):
-    try:
-        user = db.get_document_by_id(
-            document_id=user_id, collection=db.collection_users
-        )
-        current_user = json.dumps(
-            {"user_id": user_id, "display_name": user.get("displayName")}
-        )
-        app.storage.user[CURRENT_USER] = current_user
-    except Exception as e:
-        ui.notify(f"{CURRENT_USER} could not be set. Exception {e} occured")
-
-
 def get_active_object_from_storage(object_name):
     try:
         object = app.storage.user.get(object_name)
@@ -189,6 +70,10 @@ def get_active_object_from_storage(object_name):
             f"'{object_name}' could not be retrieved from storage. Exception occured: {e}",
             type="negative",
         )
+
+
+def get_value_from_storage_for_key(storage_key):
+    return app.storage.user.get(storage_key)     
 
 
 def storage_update_component(component_id):

@@ -1,8 +1,11 @@
-from nicegui import ui
+from nicegui import ui, app
+import json
 
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.mongodb.db as db
+from odtp.dashboard.utils.file_picker import local_file_picker
+from odtp.helpers.settings import ODTP_PATH
 
 
 def content() -> None:
@@ -43,7 +46,7 @@ def ui_users_select() -> None:
         if current_user:
             value = current_user["user_id"]
         else:
-            value = ui_theme.NO_SELECTION_INPUT      
+            value = ""      
         ui.select(
             user_options,
             value=value,
@@ -105,6 +108,7 @@ def ui_workarea():
     )
     try:
         user = storage.get_active_object_from_storage(storage.CURRENT_USER)
+        workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)
         if not user:
             ui.markdown(
                 f"""
@@ -118,6 +122,7 @@ def ui_workarea():
             f"""
             #### Current Selection
             - **user**: {user.get("display_name")}
+            - **work directory**: {workdir}
 
             ##### Actions
 
@@ -130,6 +135,11 @@ def ui_workarea():
             on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
             icon="link",
         )
+        ui.button(
+            "Set Work directory", 
+            on_click=pick_workdir, 
+            icon="folder"
+        )
     except Exception as e:
         ui.notify(
             f"Workarea could not be retrieved. An Exception occured: {e}",
@@ -137,18 +147,24 @@ def ui_workarea():
         )
 
 
-def store_selected_user(value):
-    if value == ui_theme.NO_SELECTION_VALUE:
-        return
+def store_selected_user(user_id):
+    if user_id == "":
+        return 
     try:
-        storage.storage_update_user(user_id=value)
-        storage.reset_storage_keep([storage.CURRENT_USER])
+        user = db.get_document_by_id(
+            document_id=user_id, collection=db.collection_users
+        )
+        current_user = json.dumps(
+            {"user_id": user_id, "display_name": user.get("displayName")}
+        )
+        app.storage.user[storage.CURRENT_USER] = current_user        
     except Exception as e:
         ui.notify(
-            f"Selected user could not be stored. An Exception occured: {e}",
+            f"Selected user could not be stored. An Exception happened: {e}",
             type="negative",
         )
     else:
+        storage.reset_storage_keep([storage.CURRENT_USER])
         ui_workarea.refresh()
 
 
@@ -173,4 +189,11 @@ def add_user(name_input, github_input, email_input):
         ui_add_user.refresh()
 
 
-
+async def pick_workdir() -> None:
+    root = ODTP_PATH
+    result = await local_file_picker(root, multiple=False)
+    if result:
+        workdir = result[0]
+        app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
+        ui.notify(f"A new user workdir has been set {workdir}", type="positive")
+    ui_workarea.refresh()    
