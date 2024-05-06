@@ -114,9 +114,6 @@ def ui_workarea(current_user, current_digital_twin, workdir):
         )  
         secrets_files = storage.get_active_object_from_storage(
             storage.SECRETS_FILES
-        )  
-        stepper = storage.get_value_from_storage_for_key(
-            storage.RUN_STEP
         )
         with ui.expansion('General Settings'):
             ui.markdown(
@@ -146,11 +143,13 @@ def ui_stepper(dialog, result, current_digital_twin, workdir):
     secrets_files = storage.get_active_object_from_storage(
         storage.SECRETS_FILES
     ) 
-    stepper = storage.get_value_from_storage_for_key(
+    stepper_value = storage.get_value_from_storage_for_key(
         storage.RUN_STEP
     )
-    digital_twin_id = current_digital_twin["digital_twin_id"]           
-    with ui.stepper(value=STEPPERS[stepper]).props('vertical').classes('w-full') as stepper:
+    digital_twin_id = current_digital_twin["digital_twin_id"]
+    if not stepper_value:
+        stepper_value = STEPPER_SELECT_EXECUTION     
+    with ui.stepper(value=STEPPERS[stepper_value]).props('vertical').classes('w-full') as stepper:
         with ui.step(STEPPERS[STEPPER_SELECT_EXECUTION]):
             with ui.stepper_navigation():
                 ui.button('Next', on_click=stepper.next)             
