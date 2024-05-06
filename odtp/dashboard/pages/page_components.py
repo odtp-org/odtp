@@ -360,7 +360,7 @@ def store_selected_component(value):
         storage.storage_update_component(component_id=value)
     except Exception as e:
         logging.error(
-            f"Selected component could not be stored. An Exception occured: {e}"
+            f"Selected component could not be stored. An Exception occurred: {e}"
         )
     else:
         ui_workarea.refresh()
