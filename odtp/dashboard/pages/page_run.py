@@ -187,6 +187,7 @@ def ui_stepper(dialog, result, current_digital_twin, workdir):
                     result=result,
                     project_path=project_path,
                     execution=execution,
+                    secrets_files=secrets_files,
                 )
             with ui.stepper_navigation():
                 ui.button('Next', on_click=stepper.next)
@@ -273,9 +274,8 @@ async def pick_secrets_file(step_nr, workdir, execution) -> None:
         if not current_secrets_files:
             step_count = len(execution.get("steps"))
             current_secrets_files = {
-                "execution_id": ["execution_id"],
+                "execution_id": execution["execution_id"],
                 "secret_files": ["" for i in range(step_count) ],
-                "ready": False,
             }
         current_secrets_files["secret_files"][step_nr] = file_path
         app.storage.user[storage.SECRETS_FILES] = json.dumps(current_secrets_files)
@@ -511,9 +511,8 @@ def store_selected_execution(value, stepper):
     try:
         storage.store_execution_selection(storage.EXECUTION_FOR_RUN, value)   
     except Exception as e:
-        ui.notify(
-            f"Selected execution could not be stored. An Exception occurred: {e}",
-            type="negative",
+        logging.error(
+            f"Selected execution could not be stored. An Exception occurred: {e}"
         )
     else:
         app.storage.user[storage.RUN_STEP] = STEPPER_SELECT_EXECUTION
@@ -541,7 +540,8 @@ def ui_prepare_execution(dialog, result, project_path, execution):
             - build Docker images 
             - create folder structure
             """
-        )   
+        ) 
+        ui.label(cli_prepare_command).classes("font-mono")        
     with ui.row().classes("w-full"):         
         ui.button(
             "Prepare execution",
@@ -550,7 +550,7 @@ def ui_prepare_execution(dialog, result, project_path, execution):
         ).props("no-caps")   
 
 
-def ui_run_execution(dialog, result, project_path, execution):
+def ui_run_execution(dialog, result, project_path, execution, secrets_files):
     if not execution:
         return
     if not project_path:
@@ -558,7 +558,18 @@ def ui_run_execution(dialog, result, project_path, execution):
     cli_parameters = [
         f"--project-path {project_path}",
         f"--execution-id {execution['execution_id']}",
-    ]   
+    ] 
+    secrets_files_match = (secrets_files and secrets_files.get("secret_files") and (
+        secrets_files["execution_id"] == execution['execution_id'])
+    )
+    if secrets_files_match:
+        secrets_files_for_run = ",".join(secrets_files['secret_files'])   
+        cli_parameters.append(
+            f"--secrets-files {secrets_files_for_run}",
+        )     
+        logging.info("secrets matched")
+    else: 
+        logging.info("secrets did not matched")       
     cli_run_command = f"odtp execution run {'  '.join(cli_parameters)}"   
     logging.info(cli_run_command)    
     with ui.row().classes("w-full"):
@@ -568,7 +579,8 @@ def ui_run_execution(dialog, result, project_path, execution):
             - Run docker images as containers
             - write output 
             """
-        )   
+        )
+        ui.label(cli_run_command).classes("font-mono")   
     with ui.row().classes("w-full"):         
         ui.button(
             "Run execution",
@@ -586,7 +598,8 @@ def ui_check_output(dialog, result, project_path, execution):
         f"--project-path {project_path}",
         f"--execution-id {execution['execution_id']}",
     ]  
-    cli_output_command = f"odtp execution output {'  '.join(cli_parameters)}"    
+    cli_output_command = f"odtp execution output {'  '.join(cli_parameters)}" 
+    ui.label(cli_output_command).classes("font-mono")    
     logging.info(cli_output_command)    
     with ui.row().classes("w-full"):
         ui.markdown(f"""
