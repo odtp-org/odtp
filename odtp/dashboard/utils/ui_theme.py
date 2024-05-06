@@ -32,7 +32,7 @@ def menu() -> None:
 def frame(navtitle: str):
     """Custom page frame to share the same styling and behavior across all pages"""
     ui.colors(
-        primary="black", secondary="black", accent="black", positive="black"
+        primary="black", secondary="black", accent="black", positive="teal"
     )
     with ui.header().classes("justify-between text-white"):
         ui.label("OTDP").classes("font-bold")
