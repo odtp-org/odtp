@@ -3,7 +3,7 @@ import pandas as pd
 from nicegui import ui, app
 import logging
 
-import odtp.dashboard.utils.parse as parse
+import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.validators as validators
@@ -47,6 +47,9 @@ def ui_components_list() -> None:
             versions = db.get_collection(
                 collection=db.collection_versions,
             )
+            if not versions:
+                ui_theme.ui_no_items_yet("Components")
+                return            
             versions_cleaned = [helpers.component_version_for_table(version)
                                 for version in versions]                 
             if not versions:
@@ -57,28 +60,31 @@ def ui_components_list() -> None:
             ui.table.from_pandas(df).classes("bg-violet-100")
         except Exception as e:
             logging.error(
-                f"Components table could not be loaded. An Exception occured: {e}"
+                f"Components table could not be loaded. An Exception occurted: {e}"
             )
 
 
 @ui.refreshable
 def ui_component_select() -> None:
     with ui.column().classes("w-full"):
-        ui.markdown(
-            """
-            #### Select a component
-            Select a component to see the versions of this component.
-            """
-        )
         try:
             current_component = storage.get_active_object_from_storage(
                 storage.CURRENT_COMPONENT
             )
+            components = db.get_collection(db.collection_components)
+            if not components:
+                ui_theme.ui_no_items_yet("Components")
+                return    
+            ui.markdown(
+                """
+                #### Select a component
+                Select a component to see the versions of this component.
+                """
+            )      
             if current_component:
                 value = current_component["component_id"]
             else:
-                value = None
-            components = db.get_collection(db.collection_components)
+                value = ""                                 
             components_options = {
                 str(component["_id"]): f"{component.get('componentName')}"
                 for component in components
