@@ -45,7 +45,7 @@ def ui_users_select() -> None:
         user_options = {str(user["_id"]): user["displayName"] for user in users}
         current_user = storage.get_active_object_from_storage((storage.CURRENT_USER))
         if current_user:
-            value = current_user["user_id"]
+            value = str(current_user["user_id"])
         else:
             value = ""      
         ui.select(
