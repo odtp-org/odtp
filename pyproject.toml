@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "odtp"
-version = "0.2.1"
+version = "0.2.5"
 description = "A tool to deploy and manage open digital twins"
 authors = ["caviri <carlosvivarrios@gmail.com>", "sabinem <sabine.maennel@sdsc.ethz.ch>"]
 license = "AGPL 3.0"
@@ -19,7 +19,7 @@ st-pages = "^0.4.5"
 streamlit-card = "^1.0.0"
 pygwalker = "^0.3.17"
 streamlit-aggrid = "^0.3.4.post3"
-nicegui = "^1.4.12"
+nicegui = "1.4.22"
 directory-tree = "^0.0.4"
 
 [tool.poetry.group.dev.dependencies]

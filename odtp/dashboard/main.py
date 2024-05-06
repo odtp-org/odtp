@@ -52,5 +52,5 @@ ui.run(
     title="ODTP", 
     storage_secret="private key to secure the browser session cookie", 
     port=ODTP_DASHBOARD_PORT,
-    reload=ODTP_DASHBOARD_RELOAD
+    reload=ODTP_DASHBOARD_RELOAD,
 )

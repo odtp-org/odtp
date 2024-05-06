@@ -2,11 +2,11 @@
 Connect to the Mongo DB
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from bson import ObjectId
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING, DESCENDING
 
 import odtp.helpers.git as git_helpers
 import odtp.helpers.utils as odtp_utils
@@ -77,6 +77,15 @@ def get_document_by_ids_in_collection(document_ids, collection):
     return documents
 
 
+def get_collection_sorted(collection, sort_tuples):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        collection = collection_versions
+        cursor = db[collection].find().sort([("component.componentName", ASCENDING), ("component_version", DESCENDING)])
+        documents = mongodb_utils.get_list_from_cursor(cursor)
+    return documents
+
+
 def check_document_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
@@ -111,7 +120,7 @@ def delete_document_by_id(document_id, collection):
         logging.info(f"Document with ID {document_id} was deleted")
 
 
-def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
+def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort_by=None):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         collection_item = db[collection].find_one({"_id": ObjectId(item_id)})
@@ -121,8 +130,20 @@ def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
         if not sub_collection_ids:
             return []
         cursor = db[sub_collection].find({"_id": {"$in": sub_collection_ids}})
+        if sort_by:
+            cursor.sort(sort_by)
         documents = mongodb_utils.get_list_from_cursor(cursor)
         return documents
+
+
+def get_document_id_by_field_value(field_path, field_value, collection):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        document = db[collection].find_one({field_path: field_value}, {"_id": 1})
+        if document:
+            return str(document["_id"])
+        else:
+            return None
 
 
 def add_user(name, github, email):
@@ -131,8 +152,8 @@ def add_user(name, github, email):
         "displayName": name,
         "email": email,
         "github": github,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
     }
     with MongoClient(ODTP_MONGO_SERVER) as client:
         user_id = (
@@ -143,11 +164,9 @@ def add_user(name, github, email):
 
 
 def add_component_version(
+    repo_info,
     component_name,
-    repository,
-    odtp_version,
     component_version,
-    commit_hash,
     type,
     ports,
 ):
@@ -157,36 +176,39 @@ def add_component_version(
     try:
         mongodb_utils.check_component_ports(ports)
         mongodb_utils.check_component_type(type)
-        commit_hash = git_helpers.check_commit_for_repo(
-            repo_url=repository, commit_hash=commit_hash
+        commit_hash = git_helpers.get_commit_of_component_version(
+            repo_info=repo_info,
+            component_version=component_version,
         )
+        repo_url = repo_info.get("html_url")
+        tagged_versions = repo_info.get("tagged_versions")
+        version_commit = [version["commit"] for version in tagged_versions
+                          if version["name"] == component_version]
+        if not version_commit:
+            raise Exception("Version does not exist in repo")
     except Exception as e:
         e.add_note("-> Component Version not valid: was not stored in mongodb")
         raise (e)
-
-    # after the check passed, enter to the mongodb
-    if not odtp_version:
-        odtp_version = odtp_utils.get_odtp_version()
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
-        component = db[collection_components].find_one({"repoLink": repository})
+        component = db[collection_components].find_one({"repoLink": repo_url})
         if component:
             component_id = component["_id"]
             logging.info(
-                f"Component with ID {component_id} already existed for repo {repository}"
+                f"Component with ID {component_id} already existed for repo {repo_url}"
             )
         else:
             component_data = {
                 "author": "Test",
                 "componentName": component_name,
-                "repoLink": repository,
+                "repoLink": repo_url,
                 "status": "active",
                 "title": "Title for ComponentX",
                 "type": type,
                 "description": "Description for ComponentX",
                 "tags": ["tag1", "tag2"],
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc),
                 "versions": [],
             }
             component_id = (
@@ -196,16 +218,16 @@ def add_component_version(
             component = db[collection_components].find_one({"_id": component_id})
         version = db[collection_versions].find_one(
             {
-                "commitHash": commit_hash,
+                "component_version": component_version,
                 "componentId": component_id,
             }
         )
         if version:
             logging.info(
-                f"Version with ID {component_id} already existed".format(component_id)
+                f"Version {component_version} already existed"
             )
             raise mongodb_utils.OdtpDbMongoDBValidationException(
-                f"document for repository {repository} and commit {commit_hash} already exists"
+                f"document for repository {repo_url} and version {component_version} already exists"
             )
         else:
             version_data = {
@@ -216,7 +238,7 @@ def add_component_version(
                     "repoLink": component.get("repoLink"),
                     "type": component.get("type"),
                 },
-                "odtp_version": odtp_version,
+                "odtp_version": odtp_utils.get_odtp_version(),
                 "component_version": component_version,
                 "commitHash": commit_hash,
                 "dockerHubLink": "",
@@ -225,8 +247,8 @@ def add_component_version(
                 "description": "Description for Version v1.0",
                 "tags": ["tag1", "tag2"],
                 "ports": ports,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(timezone.utc),
             }
             # set optional properties
             if component_version:
@@ -247,8 +269,8 @@ def add_digital_twin(userRef, name):
         "name": name,
         "status": "active",
         "public": True,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
         "executions": [],
     }
     with MongoClient(ODTP_MONGO_SERVER) as client:
@@ -272,7 +294,7 @@ def set_document_timestamp(document_id, collection_name, timestamp_name):
         collection = db[collection_name]
         collection.update_one(
             {"_id": ObjectId(document_id)},
-            {"$set": {timestamp_name: datetime.utcnow()}},
+            {"$set": {timestamp_name: datetime.now(timezone.utc)}},
         )
 
 
@@ -306,17 +328,17 @@ def add_execution(
                     "component_versions": versions,
                     "workflowExecutorSchema": workflow,
                 },
-                "start_timestamp": datetime.utcnow(),
-                "end_timestamp": datetime.utcnow(),
+                "start_timestamp": datetime.now(timezone.utc),
+                "end_timestamp": datetime.now(timezone.utc),
                 # Array of ObjectIds referencing Steps collection. Change in a future by DAG graph
                 "steps": [],
             }
             steps = []
             for i, version in enumerate(versions):
                 step = {
-                    "timestamp": datetime.utcnow(),
-                    "start_timestamp": datetime.utcnow(),
-                    "end_timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
+                    "start_timestamp": datetime.now(timezone.utc),
+                    "end_timestamp": datetime.now(timezone.utc),
                     "type": "ephemeral",
                     "logs": [],
                     "inputs": {},

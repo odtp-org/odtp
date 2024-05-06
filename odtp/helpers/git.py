@@ -30,17 +30,39 @@ def make_github_api_call(url):
     return response
 
 
+def get_git_tagged_versions(github_api_tag_url):
+    if not github_api_tag_url:
+        return []
+    response = make_github_api_call(github_api_tag_url)
+    if response.status_code != 200:
+        return []
+    content = json.loads(response.content)
+    tagged_versions = []
+    for item in content:
+        item_dict = {
+            "name": item.get("name"),
+            "commit": item["commit"]["sha"],
+        }
+        tagged_versions.append(item_dict)
+    return tagged_versions
+
+
 def get_github_repo_info(repo_url):
     github_api_repo_url = f"{get_github_repo_url(repo_url)}"
     response = make_github_api_call(github_api_repo_url)
     if response.status_code == 200:
         content = json.loads(response.content)
+        github_api_tag_url = content.get("tags_url")
+        tagged_versions = get_git_tagged_versions(github_api_tag_url)
         repo_info = {
             "html_url": content.get("html_url"),
             "description": content.get("description"),
             "visibility": content.get("visibility"),
             "license": content.get("license", {}).get("name"),
             "name": content.get("name"),
+            "tag_url": github_api_tag_url,
+            "commits_url": content.get("commits_url"),
+            "tagged_versions": tagged_versions,
         }
         return repo_info
 
@@ -58,3 +80,14 @@ def check_commit_for_repo(repo_url, commit_hash=None):
             if commit_hash in commits:
                 return commit_hash
     raise OdtpGithubException(f"Github repo {repo_url} has no commit {commit_hash}")
+
+
+def get_commit_of_component_version(repo_info, component_version):
+    tagged_versions = repo_info.get("tagged_versions")
+    if not tagged_versions:
+        raise OdtpGithubException(f"Github repo {repo_info.get('url')} has no versions.")
+    version_commit = [version["commit"] for version in tagged_versions
+                      if version["name"] == component_version]
+    if not version_commit:
+        raise OdtpGithubException(f"Github repo {repo_info.get('url')} has no version {component_version}")
+    return version_commit[0]

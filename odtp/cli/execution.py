@@ -20,15 +20,24 @@ from typing import List
 
 
 @app.command()
-def prepare(
+def prepare(    
+    execution_name: str = typer.Option(
+        None, "--execution-name", help="Specify the name of the execution"
+    ),
     execution_id: str = typer.Option(
-        ..., "--execution-id", help="Specify the ID of the execution"
+        None, "--execution-id", help="Specify the ID of the execution"
     ),
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
 ):  
     try:
+        if execution_id is None and execution_name is None:
+            raise typer.Exit("Please provide either --execution-name or --execution-id")
+
+        if execution_name:
+            execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
+
         execution = db.get_document_by_id(
             document_id=execution_id, 
             collection=db.collection_executions
@@ -46,8 +55,11 @@ def prepare(
 
 @app.command()
 def run(
+    execution_name: str = typer.Option(
+        None, "--execution-name", help="Specify the name of the execution"
+    ),
     execution_id: str = typer.Option(
-        ..., "--execution-id", help="Specify the ID of the execution"
+        None, "--execution-id", help="Specify the ID of the execution"
     ),
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
@@ -57,12 +69,18 @@ def run(
     )] = None, 
 ): 
     try:
+        if execution_id is None and execution_name is None:
+            raise typer.Exit("Please provide either --execution-name or --execution-id")
+
+        if execution_name:
+            execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
+
         execution = db.get_document_by_id(
             document_id=execution_id, 
             collection=db.collection_executions
         )
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
-        secrets = odtp_parse.parse_paramters_for_multiple_files(
+        secrets = odtp_parse.parse_parameters_for_multiple_files(
             parameter_files=secrets_files, step_count=step_count)
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.run_workflow()
