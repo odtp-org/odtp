@@ -74,7 +74,7 @@ def content() -> None:
         select = ui.tab("Select an execution")
         add = ui.tab("Add an execution")
         table = ui.tab("Execution table")
-    with ui.tab_panels(tabs, value=add).classes("w-full"):
+    with ui.tab_panels(tabs, value=select).classes("w-full"):
         with ui.tab_panel(select):
             ui_execution_select(current_digital_twin)
             ui_execution_details()
@@ -197,7 +197,7 @@ def ui_execution_workflow_template_form(current_execution_to_add):
             on_click=lambda: execution_form_step_back(
                 current_execution_to_add=current_execution_to_add,
             ),
-        )     
+        ).props('flat')      
 
 
 def ui_execution_workflow_confirmation_form(current_execution_to_add):
@@ -226,7 +226,7 @@ def ui_execution_workflow_confirmation_form(current_execution_to_add):
                 on_click=lambda: execution_form_step_back(
                     current_execution_to_add=current_execution_to_add,
                 ),
-            )
+            ).props('flat') 
 
 
 def ui_execution_configuration_ports_form(current_execution_to_add):
@@ -268,7 +268,7 @@ def ui_execution_configuration_ports_form(current_execution_to_add):
                         placeholder="8001:8001"
                     )                
                     .classes("w-1/8 font-bold text-lg")
-                )   
+                )
         all_ports_inputs.append(ports_for_component)                        
     with ui.row().classes('w-full'):    
         ui.button(
@@ -283,7 +283,7 @@ def ui_execution_configuration_ports_form(current_execution_to_add):
             on_click=lambda: execution_form_step_back(
                 current_execution_to_add=current_execution_to_add,
             ),
-        )
+        ).props('flat') 
 
 
 def ui_execution_configuration_parameters_form(current_execution_to_add, user_workdir):
@@ -365,7 +365,7 @@ def ui_execution_configuration_parameters_form(current_execution_to_add, user_wo
             on_click=lambda: execution_form_step_back(
                 current_execution_to_add=current_execution_to_add,
             ),
-        )
+        ).props('flat') 
 
 
 def ui_execution_save_form(current_execution_to_add):
@@ -373,45 +373,30 @@ def ui_execution_save_form(current_execution_to_add):
         return     
     stepper = current_execution_to_add["stepper"]
     if stepper and STEPPERS.index(stepper) < STEPPER_SAVE_INDEX:
-        return      
-    ui.label(f"Execution Title: {current_execution_to_add.get('name')}").classes("text-lg w-full")
+        return 
+    execution_title = current_execution_to_add.get('name')
     version_tags = current_execution_to_add.get("version_tags")
     current_ports = current_execution_to_add.get("ports")
-    current_parameters = current_execution_to_add.get("parameters")
-    table_columns = [
-        {'name': 'key', 'label': 'Parameter type / name', 'field': 'key'},
-        {'name': 'value', 'label': 'value', 'field': 'value'},
-    ]    
-    if not version_tags:
-        return  
-    with ui.grid(columns=2):
-        with ui.column():    
-            ui.mermaid(
-                helpers.get_workflow_mermaid(version_tags, init='graph TB;')
-            )
-        with ui.column(): 
-            for k, version_tag in enumerate(version_tags):
-                rows = []
-                if current_ports and current_ports[k]:    
-                    for port_mapping in current_ports[k]:
-                        rows.append({'key': 'port-mapping', 'value': port_mapping})
-                if current_parameters and current_parameters:
-                    for key, value in current_parameters[k].items():
-                        rows.append({'key': key, 'value': value},)
-                ui.table(columns=table_columns, rows=rows, row_key='key', title=version_tag)
-        with ui.row().classes('w-full'):    
-            ui.button(
-                "Save",
-                on_click=lambda: save_new_execution(
-                    current_execution_to_add=current_execution_to_add,
-                ),
-            ) 
-            ui.button(
-                "Back",
-                on_click=lambda: execution_form_step_back(
-                    current_execution_to_add=current_execution_to_add,
-                ),
-            )
+    current_parameters = current_execution_to_add.get("parameters")        
+    ui_theme.ui_execution_display(
+        execution_title=execution_title,
+        version_tags=version_tags,
+        ports=current_ports,
+        parameters=current_parameters,
+    )                
+    with ui.row().classes('w-full'):    
+        ui.button(
+            "Save",
+            on_click=lambda: save_new_execution(
+                current_execution_to_add=current_execution_to_add,
+            ),
+        ) 
+        ui.button(
+            "Back",
+            on_click=lambda: execution_form_step_back(
+                current_execution_to_add=current_execution_to_add,
+            ),
+        ).props('flat') 
 
 
 @ui.refreshable
@@ -546,18 +531,19 @@ async def pick_parameter_file(step_index, user_workdir, current_execution_to_add
     if result:
         file_path = result[0]
         parameters = dict(odtp_parse.parse_parameters_for_one_file(file_path))
+        if len(parameters) > current_execution_to_add["parameter_count"]:
+            current_execution_to_add["parameter_count"] = len(parameters)
         if current_execution_to_add.get("parameters"):
             current_execution_to_add["parameters"][step_index] = parameters
         else:
             current_execution_to_add["parameters"] = [{} for i in range(step_count)]
-            current_execution_to_add["parameters"][step_index] = parameters    
+            current_execution_to_add["parameters"][step_index] = parameters   
         app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     ui_add_execution.refresh()     
 
 
 def save_new_execution(current_execution_to_add):  
-    try:
-        step_count = current_execution_to_add["step_count"]
+    try:       
         execution_id, step_ids = db.add_execution(
             dt_id=current_execution_to_add["digital_twin_id"],
             name=current_execution_to_add["name"],
@@ -599,21 +585,8 @@ def ui_execution_select(current_digital_twin) -> None:
             selected_value = current_execution["execution_id"]
         else:
             selected_value = None
-        executions = db.get_sub_collection_items(
-            collection=db.collection_digital_twins,
-            sub_collection=db.collection_executions,
-            item_id=digital_twin_id,
-            ref_name=db.collection_executions,
-            sort_by=[("start_timestamp", db.DESCENDING)]
-        )        
-        if not executions:
-            ui.label("You don't have executions yet. Start adding one.")
-            return
-        execution_options = {}
-        for execution in executions:
-            execution_options[
-                str(execution["_id"])
-            ] = f"{execution['start_timestamp'].strftime('%d/%m/%y')} {execution.get('title')}"
+        execution_options = helpers.get_execution_select_options(
+            digital_twin_id=digital_twin_id)    
         if execution_options:
             ui.select(
                 execution_options,
@@ -626,7 +599,7 @@ def ui_execution_select(current_digital_twin) -> None:
                 "Cancel Execution Selection",
                 on_click=lambda: cancel_execution_selection(),
                 icon="cancel",
-            )
+            )             
     except Exception as e:
         ui.notify(
             f"Execution selection could not be loaded. An Exception occured: {e}",
@@ -668,58 +641,19 @@ def ui_execution_details():
         )
         if not current_execution:
             return
-        step_ids = current_execution["steps"]
-        steps = db.get_document_by_ids_in_collection(
-            document_ids=step_ids, collection=db.collection_steps
-        )
-        step_names = current_execution.get("step_names")
-        ui.markdown(
-            f"""
-            - **title**: {current_execution.get('title')} 
-            - **created at**: {current_execution.get('timestamp')}   
-            """
-        )
-        with ui.row().classes("w-full no-wrap"):
-            with ui.column().classes("w-1/2"):
-                ui.mermaid(
-                    helpers.get_workflow_mermaid(step_names, init='graph TB;')
-                )
-            with ui.column().classes("w-1/2"):
-                for i, step in enumerate(steps):
-                    with ui.card().classes("bg-violet-100"):
-                        ports = step.get("ports")
-                        parameters = step.get("parameters")
-                        if ports:
-                            ports_display = ",  ".join(ports)
-                        else:
-                            ports_display = "NA"
-                        if parameters:
-                            parameters_display = ", ".join(
-                                [
-                                    f"{key} : {value}"
-                                    for key, value in parameters.items()
-                                ]
-                            )
-                        else:
-                            parameters_display = "NA"
-                        step_in_workflow = [step_names[i]]
-                        ui.label(step_names[i])
-                        ui.markdown(
-                            f"""
-                            - Ports: {ports_display}
-                            - Paramters: {parameters_display}
-                        """
-                        )
-                        ui.button(
-                            "View component details",
-                            on_click=lambda: view_component_details(
-                                step.get("component_version")
-                            ),
-                            icon="info",
-                        )
+        execution_title = current_execution.get('title')
+        version_tags = current_execution.get("version_tags")
+        current_ports = current_execution.get("ports")
+        current_parameters = current_execution.get("parameters")        
+        ui_theme.ui_execution_display(
+            execution_title=execution_title,
+            version_tags=version_tags,
+            ports=current_ports,
+            parameters=current_parameters,
+        )         
     except Exception as e:
         ui.notify(
-            f"Execution details could not be loaded. An Exception occured: {e}",
+            f"Execution details could not be loaded. An Exception occurred: {e}",
             type="negative",
         )
 
@@ -757,9 +691,6 @@ def ui_workarea(current_digital_twin, current_user, user_workdir):
         - **current execution** {current_execution.get("title")}
         """
     )
-    ui.mermaid(
-        helpers.get_workflow_mermaid(step_names, init='graph TB;')
-    )
     ui.button(
         "Prepare and Run Executions",
         on_click=lambda: ui.open(ui_theme.PATH_RUN),
@@ -775,24 +706,11 @@ def ui_workarea(current_digital_twin, current_user, user_workdir):
 
 
 def store_selected_execution(value):
-    execution_id = value
     try:
-        execution = db.get_document_by_id(
-            document_id=execution_id, collection=db.collection_executions
+        storage.store_execution_selection(
+            storage.CURRENT_EXECUTION,
+            execution_id = value
         )
-        version_names = odtp_utils.get_version_names_for_execution(execution)
-        current_execution = {
-            "execution_id": execution_id,
-            "title": execution.get("title"),
-            "timestamp": execution.get("start_timestamp").strftime(
-                "%m/%d/%Y, %H:%M:%S"
-            ),
-            "versions": execution.get("component_versions"),
-            "step_names": version_names,
-            "steps": [str(step_id) for step_id in execution.get("steps")],
-        }
-        current_execution_as_json = json.dumps(current_execution)
-        app.storage.user[storage.CURRENT_EXECUTION] = current_execution_as_json        
     except Exception as e:
         ui.notify(
             f"Selected execution could not be stored. An Exception occured: {e}",
