@@ -30,17 +30,20 @@ def validate_integer_input_below_threshold(value, lower_bound, upper_bound):
     return True        
 
 
-def validate_github_url(value):
+def validate_is_github_repo(value):
     try:
         repo_info = otdp_git.get_github_repo_info(value)
+        if not repo_info:
+            return False
         if not repo_info.get("tagged_versions"):
-            raise otdp_git.OdtpGithubException(f"Repo {value} has no version tags")
+            return False    
         repo_url =  repo_info.get("html_url")    
         component = db.get_document_id_by_field_value("repoLink", repo_url, db.collection_components)    
         if component:
-            raise otdp_git.OdtpGithubException(f"Component with {value} already exists") 
+            return False
     except Exception as e:
-        raise otdp_git.OdtpGithubException(e) 
+        return False
+    return True
 
 
 def validate_ports_mapping_input(value):
