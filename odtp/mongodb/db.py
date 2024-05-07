@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from bson import ObjectId
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING, DESCENDING
 
 import odtp.helpers.git as git_helpers
 import odtp.helpers.utils as odtp_utils
@@ -77,6 +77,15 @@ def get_document_by_ids_in_collection(document_ids, collection):
     return documents
 
 
+def get_collection_sorted(collection, sort_tuples):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        collection = collection_versions
+        cursor = db[collection].find().sort([("component.componentName", ASCENDING), ("component_version", DESCENDING)])
+        documents = mongodb_utils.get_list_from_cursor(cursor)
+    return documents
+
+
 def check_document_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
@@ -111,7 +120,7 @@ def delete_document_by_id(document_id, collection):
         logging.info(f"Document with ID {document_id} was deleted")
 
 
-def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
+def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort_by=None):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         collection_item = db[collection].find_one({"_id": ObjectId(item_id)})
@@ -121,8 +130,11 @@ def get_sub_collection_items(collection, sub_collection, item_id, ref_name):
         if not sub_collection_ids:
             return []
         cursor = db[sub_collection].find({"_id": {"$in": sub_collection_ids}})
+        if sort_by:
+            cursor.sort(sort_by)
         documents = mongodb_utils.get_list_from_cursor(cursor)
         return documents
+
 
 def get_document_id_by_field_value(field_path, field_value, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:

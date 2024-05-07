@@ -20,5 +20,6 @@ try:
     ODTP_SECRET_KEY = os.getenv("ODTP_SECRET_KEY")
     ODTP_DASHBOARD_PORT = int(os.getenv("ODTP_DASHBOARD_PORT"))
     ODTP_DASHBOARD_RELOAD = eval(os.getenv("ODTP_DASHBOARD_RELOAD"))
+    ODTP_PATH = os.getenv("ODTP_PATH")
 except Exception as e:
     raise OdtpSettingsException(f"Configuration of ODTP raised an exception {e}")

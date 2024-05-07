@@ -1,5 +1,14 @@
 ## Changelog
 
+- v0.2.6: Bugs correction
+    - Missing `ODTP_PATH` in `compose.yml`. 
+
+- v0.2.5: Bugs corrections and new features
+    - Components tags parsing
+    - CLI compatibility with digital twins and executions names
+    - GUI user's working directory implementation
+    - GUI executions improvements
+
 - v0.2.4: Feature
     - Network added to compose so odtp components can use it
     - Introducing `secrets` compatibility
@@ -16,7 +25,6 @@
     - remove data mockup 
     - environment variables now loaded from the environment
 
-
 - v.0.2.0: Improvements in database and files management.
     - New MongoDB Schema supporting users, digital twins, executions, and steps. 
     - Setup uses pyproject.toml and set up method changed to poetry
@@ -25,7 +33,6 @@
     - Automatic preparation of project folders for executions. 
     - S3 uploading of outputs from each component.
     - Switch UI from Streamlit to Nicegui
-
 
 - v.0.1.0: Basic UI
     - Streamlit APP with different
