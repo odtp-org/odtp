@@ -116,6 +116,7 @@ def ui_version_add():
     if not current_component:
         ui.label("First select the component by choosing the Component Details Tab.")
         return
+    ui.label(current_component.get("name")).classes("text-lg font-medium")     
     ui_form_version_add(current_component)
     ui_component_show()
 
@@ -137,7 +138,7 @@ def ui_form_version_add(current_component):
     if not version_selector:
         ui.markdown(
             """
-            All available versions on guthub have been already submitted to ODTP.
+            All available versions on github have been already submitted to ODTP.
             """
         ).classes("text-lg")
         return  
@@ -177,9 +178,11 @@ def ui_form_component_add_step1():
         label="Enter Repository URL",
         placeholder="repo url",
         validation={
-            "Please provide a component repo url": lambda value: validators.validate_required_input(value),
+            """This is not a github repo url 
+            or has not tagged versions 
+            or the component already exists""": lambda value: validators.validate_is_github_repo(value),
         },
-    ).classes("w-2/3")
+    ).without_auto_validation().classes("w-2/3")
     ui.button(
         "Proceed to next step",
         on_click=lambda: store_new_component(
@@ -356,6 +359,8 @@ def ui_workarea():
 
 
 def store_selected_component(value):
+    if not ui_theme.new_value_selected_in_ui_select(value):
+        return
     try:
         storage.storage_update_component(component_id=value)
     except Exception as e:
@@ -374,12 +379,9 @@ def cancel_component_entry():
 
 
 def store_new_component(repo_link_input):
+    if not repo_link_input.validate():
+        return   
     repo_link = repo_link_input.value
-    try:
-        validators.validate_github_url(repo_link)    
-    except Exception as e:    
-        logging.error(f"new component {repo_link_input.value} could not be stored: an error {e} occurred")
-        return
     try:    
         latest_commit = odtp_git.check_commit_for_repo(repo_link)
         repo_info = odtp_git.get_github_repo_info(repo_link)
