@@ -12,6 +12,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${ODTP_PATH}:${ODTP_PATH}
     environment:
+      ODTP_PATH: ODTP_PATH
       ODTP_MONGO_SERVER: mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongodb-instance:27017/
       ODTP_S3_SERVER: http://minio-instance:9000
       ODTP_BUCKET_NAME: ${ODTP_BUCKET_NAME}

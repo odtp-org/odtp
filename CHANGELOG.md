@@ -1,5 +1,8 @@
 ## Changelog
 
+- v0.2.6: Bugs correction
+    - Missing `ODTP_PATH` in `compose.yml`. 
+
 - v0.2.5: Bugs corrections and new features
     - Components tags parsing
     - CLI compatibility with digital twins and executions names
