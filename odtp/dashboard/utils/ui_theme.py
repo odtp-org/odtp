@@ -82,3 +82,11 @@ def ui_execution_display(
                     for key, value in parameters[k].items():
                         rows.append({'key': key, 'value': value},)
                 ui.table(columns=table_columns, rows=rows, row_key='key', title=version_tag)
+
+
+def new_value_selected_in_ui_select(value):
+    if not value: 
+        return False
+    if value in ["", "None"]:
+        return False
+    return True

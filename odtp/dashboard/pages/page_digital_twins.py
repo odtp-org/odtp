@@ -107,7 +107,7 @@ def ui_digital_twin_select(current_user) -> None:
             digital_twin_options,
             value=value,
             label="digital twins",
-            on_change=lambda e: store_selected_digital_twin_id(digital_twin_id=str(e.value)),
+            on_change=lambda e: store_selected_digital_twin_id(str(e.value)),
             with_input=True,
         ).props("size=80")
     except Exception as e:
@@ -183,9 +183,10 @@ def ui_workarea(current_user, user_workdir):
         )
 
 
-def store_selected_digital_twin_id(digital_twin_id):
-    if not digital_twin_id or digital_twin_id == "":
-        return
+def store_selected_digital_twin_id(value):
+    if not ui_theme.new_value_selected_in_ui_select(value):
+        return 
+    digital_twin_id = value    
     try:
         digital_twin = db.get_document_by_id(
             document_id=digital_twin_id, collection=db.collection_digital_twins

@@ -19,7 +19,6 @@ def content() -> None:
         "bordered width=500"
     ) as right_drawer:
         ui_workarea()
-
     with ui.tabs().classes("w-full") as tabs:
         select = ui.tab("Select User")
         add = ui.tab("Add User")
@@ -57,7 +56,7 @@ def ui_users_select() -> None:
         ).props("size=80")
     except Exception as e:
         logging.error(
-            f"User selection could not be loaded. An Exception occured: {e}"
+            f"User selection could not be loaded. An Exception occurred: {e}"
         )
 
 
@@ -149,13 +148,14 @@ def ui_workarea():
         ).props('flat')       
     except Exception as e:
         logging.error(
-            f"Workarea could not be retrieved. An Exception occured: {e}"
+            f"Workarea could not be retrieved. An Exception occurred: {e}"
         )
 
 
-def store_selected_user(user_id):
-    if user_id == "":
-        return 
+def store_selected_user(value):
+    if not ui_theme.new_value_selected_in_ui_select(value):
+        return  
+    user_id = value    
     try:
         user = db.get_document_by_id(
             document_id=user_id, collection=db.collection_users

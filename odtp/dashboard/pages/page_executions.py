@@ -487,11 +487,11 @@ def store_new_execution_workflow(current_execution_to_add, workflow):
 
 def cancel_execution_entry():
     storage.reset_storage_delete([storage.NEW_EXECUTION])
+    ui.notify("The execution entry was canceled")
     ui_add_execution.refresh()
 
 
 def execution_form_step_back(current_execution_to_add):
-    next_stepper = None
     current_stepper = current_execution_to_add["stepper"]
     current_stepper_index = STEPPERS.index(current_stepper)
     next_stepper_index = current_stepper_index - 1
@@ -538,20 +538,29 @@ def add_parameters_configuration_to_workflow(
 
 
 async def pick_parameter_file(step_index, user_workdir, current_execution_to_add, step_count) -> None:
-    root = user_workdir
-    result = await local_file_picker(root, multiple=False)
-    if result:
-        file_path = result[0]
-        parameters = dict(odtp_parse.parse_parameters_for_one_file(file_path))
-        if len(parameters) > current_execution_to_add["parameter_count"]:
-            current_execution_to_add["parameter_count"] = len(parameters)
-        if current_execution_to_add.get("parameters"):
-            current_execution_to_add["parameters"][step_index] = parameters
-        else:
-            current_execution_to_add["parameters"] = [{} for i in range(step_count)]
-            current_execution_to_add["parameters"][step_index] = parameters   
-        app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
-    ui_add_execution.refresh()     
+    try:
+        root = user_workdir
+        result = await local_file_picker(root, multiple=False)
+        if not result:
+            ui.notify("No new parameter file was selected.", type="negative")   
+            return
+        if result:
+            file_path = result[0]
+            parameters = dict(odtp_parse.parse_parameters_for_one_file(file_path))
+            if len(parameters) > current_execution_to_add["parameter_count"]:
+                current_execution_to_add["parameter_count"] = len(parameters)
+            if current_execution_to_add.get("parameters"):
+                current_execution_to_add["parameters"][step_index] = parameters
+            else:
+                current_execution_to_add["parameters"] = [{} for i in range(step_count)]
+                current_execution_to_add["parameters"][step_index] = parameters   
+            app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
+    except odtp_parse.OdtpParameterParsingException:
+        ui.notify(f"Selected file {file_path} could not be parsed. Is it a parameter file?", type="negative")     
+    except Exception as e:
+        logging.error("An exception {e} occurred when picking a parameter file.")
+    else:    
+        ui_add_execution.refresh()     
 
 
 def save_new_execution(current_execution_to_add):  
@@ -717,6 +726,8 @@ def ui_workarea(current_digital_twin, current_user, user_workdir):
 
 
 def store_selected_execution(value):
+    if not ui_theme.new_value_selected_in_ui_select(value):
+        return
     try:
         storage.store_execution_selection(
             storage.CURRENT_EXECUTION,
@@ -724,7 +735,7 @@ def store_selected_execution(value):
         )
     except Exception as e:
         logging.error(
-            f"Selected execution could not be stored. An Exception occured: {e}"
+            f"Selected execution could not be stored. An Exception occurred: {e}"
         )
     else:
         ui_execution_details.refresh()
@@ -742,5 +753,6 @@ def view_component_details(version_id):
 
 def cancel_execution_selection():
     storage.reset_storage_delete([storage.CURRENT_EXECUTION])
+    ui.notify("The execution selection was canceled")
     ui_execution_details.refresh()
     ui_execution_select.refresh()
