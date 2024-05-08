@@ -538,20 +538,29 @@ def add_parameters_configuration_to_workflow(
 
 
 async def pick_parameter_file(step_index, user_workdir, current_execution_to_add, step_count) -> None:
-    root = user_workdir
-    result = await local_file_picker(root, multiple=False)
-    if result:
-        file_path = result[0]
-        parameters = dict(odtp_parse.parse_parameters_for_one_file(file_path))
-        if len(parameters) > current_execution_to_add["parameter_count"]:
-            current_execution_to_add["parameter_count"] = len(parameters)
-        if current_execution_to_add.get("parameters"):
-            current_execution_to_add["parameters"][step_index] = parameters
-        else:
-            current_execution_to_add["parameters"] = [{} for i in range(step_count)]
-            current_execution_to_add["parameters"][step_index] = parameters   
-        app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
-    ui_add_execution.refresh()     
+    try:
+        root = user_workdir
+        result = await local_file_picker(root, multiple=False)
+        if not result:
+            ui.notify("No new parameter file was selected.", type="negative")   
+            return
+        if result:
+            file_path = result[0]
+            parameters = dict(odtp_parse.parse_parameters_for_one_file(file_path))
+            if len(parameters) > current_execution_to_add["parameter_count"]:
+                current_execution_to_add["parameter_count"] = len(parameters)
+            if current_execution_to_add.get("parameters"):
+                current_execution_to_add["parameters"][step_index] = parameters
+            else:
+                current_execution_to_add["parameters"] = [{} for i in range(step_count)]
+                current_execution_to_add["parameters"][step_index] = parameters   
+            app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
+    except odtp_parse.OdtpParameterParsingException:
+        ui.notify(f"Selected file {file_path} could not be parsed. Is it a parameter file?", type="negative")     
+    except Exception as e:
+        logging.error("An exception {e} occurred when picking a parameter file.")
+    else:    
+        ui_add_execution.refresh()     
 
 
 def save_new_execution(current_execution_to_add):  
@@ -717,6 +726,8 @@ def ui_workarea(current_digital_twin, current_user, user_workdir):
 
 
 def store_selected_execution(value):
+    if not ui_theme.new_value_selected_in_ui_select(value):
+        return
     try:
         storage.store_execution_selection(
             storage.CURRENT_EXECUTION,
