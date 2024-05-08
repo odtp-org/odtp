@@ -1,4 +1,5 @@
 import json
+import logging
 from urllib.parse import urlparse
 
 import requests
@@ -25,6 +26,7 @@ def get_github_repo_url(repo_url):
 
 
 def make_github_api_call(url):
+    logging.info(f"make github api call: {url}")
     headers = {"Authorization": "token " + GITHUB_TOKEN}
     response = requests.get(url, headers=headers)
     return response
