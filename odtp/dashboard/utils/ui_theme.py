@@ -90,4 +90,3 @@ def new_value_selected_in_ui_select(value):
     if value in ["", "None"]:
         return False
     return True
-    
