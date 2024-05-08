@@ -487,11 +487,11 @@ def store_new_execution_workflow(current_execution_to_add, workflow):
 
 def cancel_execution_entry():
     storage.reset_storage_delete([storage.NEW_EXECUTION])
+    ui.notify("The execution entry was canceled")
     ui_add_execution.refresh()
 
 
 def execution_form_step_back(current_execution_to_add):
-    next_stepper = None
     current_stepper = current_execution_to_add["stepper"]
     current_stepper_index = STEPPERS.index(current_stepper)
     next_stepper_index = current_stepper_index - 1
@@ -735,7 +735,7 @@ def store_selected_execution(value):
         )
     except Exception as e:
         logging.error(
-            f"Selected execution could not be stored. An Exception occured: {e}"
+            f"Selected execution could not be stored. An Exception occurred: {e}"
         )
     else:
         ui_execution_details.refresh()
@@ -753,5 +753,6 @@ def view_component_details(version_id):
 
 def cancel_execution_selection():
     storage.reset_storage_delete([storage.CURRENT_EXECUTION])
+    ui.notify("The execution selection was canceled")
     ui_execution_details.refresh()
     ui_execution_select.refresh()
