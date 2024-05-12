@@ -14,7 +14,7 @@ setup(
         # List of packages required by this module
         'pydantic==2.5.2',
         'typer==0.9.0',
-        'pymongo==3.12.0'
+        'pymongo>=4.6.3',
     ],
     classifiers=[
         # Trove classifiers
