@@ -239,19 +239,22 @@ def app_storage_is_set(value):
     return True
 
 
-def storage_update_user(user_data):
+def storage_update_user_sub(user_data):
     try:
-        current_user = []
-        for user_id, data_dict in user_data.items():
-            current_user_data = json.dumps({user_id: data_dict})
-            current_user.append(current_user_data)
-        auth_user_infos = json.dumps(current_user)
-        app.storage.user[AUTH_USER_SUB] = auth_user_infos
+        user_component = json.dumps(
+            {
+                "sub": user_data.get("sub"),
+                "name": user_data.get("preferred_username"),
+                "repo_link": user_data.get("Github_repo"),
+                "email": user_data.get("email"),
+                }
+            )
+        print(f"user_component {user_component}")
+        #app.storage.user["auth_user"] = user_component
     except Exception as e:
         ui.notify(
-            f"storage update failed: {e}", type="negative"
-        )
-        
+            f"storage update for {AUTH_USER_SUB} failed: {e}", type="negative"
+        )      
 
 def get_from_storage(data_id):
     try:
