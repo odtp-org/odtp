@@ -44,7 +44,7 @@ def get_collection(collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         cursor = db[collection].find({})
-    return mongodb_utils.get_list_from_cursor(cursor)
+        return mongodb_utils.get_list_from_cursor(cursor)
 
 
 def get_all_collections():
