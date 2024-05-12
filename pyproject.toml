@@ -19,7 +19,7 @@ st-pages = "^0.4.5"
 streamlit-card = "^1.0.0"
 pygwalker = "^0.3.17"
 streamlit-aggrid = "^0.3.4.post3"
-nicegui = "1.4.22"
+nicegui = "1.4.24"
 directory-tree = "^0.0.4"
 
 [tool.poetry.group.dev.dependencies]
