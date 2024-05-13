@@ -19,7 +19,8 @@ try:
     ODTP_ACCESS_KEY = os.getenv("ODTP_ACCESS_KEY")
     ODTP_SECRET_KEY = os.getenv("ODTP_SECRET_KEY")
     ODTP_DASHBOARD_PORT = int(os.getenv("ODTP_DASHBOARD_PORT"))
-    ODTP_DASHBOARD_RELOAD = eval(os.getenv("ODTP_DASHBOARD_RELOAD"))
+    ODTP_DASHBOARD_RELOAD = eval(os.getenv("ODTP_DASHBOARD_RELOAD", "False"))
     ODTP_PATH = os.getenv("ODTP_PATH")
+    ODTP_LOG_LEVEL = os.getenv("ODTP_LOG_LEVEL", None)
 except Exception as e:
     raise OdtpSettingsException(f"Configuration of ODTP raised an exception {e}")
