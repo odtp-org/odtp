@@ -1,4 +1,5 @@
 import odtp.mongodb.db as db
+import odtp.helpers.utils as odtp_utils
 
 
 def get_workflow_mermaid(step_names, init="graph TB;"):
@@ -71,3 +72,44 @@ def get_execution_select_options(digital_twin_id):
             str(execution["_id"])
         ] = f"{execution['start_timestamp'].strftime('%d/%m/%y')} {execution.get('title')}"
     return execution_options
+
+
+def build_execution_with_steps(execution_id):
+    execution = db.get_document_by_id(
+        document_id=execution_id, collection=db.collection_executions
+    )
+    version_tags = odtp_utils.get_version_names_for_execution(
+        execution=execution,
+        naming_function=get_execution_step_display_name,
+    )
+    step_ids = [str(step_id) for step_id in execution["steps"]]
+    step_documents = db.get_document_by_ids_in_collection(
+        document_ids=step_ids, collection=db.collection_steps
+    )
+    step_dict = {}
+    for step_document in step_documents:
+        step_dict[str(step_document["_id"])] = step_document
+    ports = []
+    parameters = []
+    outputs = []
+    inputs = []
+    for step_id in step_ids:
+        parameters.append(step_dict[step_id].get("parameters", {}))
+        ports.append(step_dict[step_id].get("ports", []))
+        outputs.append(step_dict[step_id].get("output", {}))
+        inputs.append(step_dict[step_id].get("input", {}))
+    execution_with_steps = {
+        "execution_id": execution_id,
+        "title": execution.get("title"),
+        "timestamp": execution.get("start_timestamp").strftime(
+            "%m/%d/%Y, %H:%M:%S"
+        ),
+        "versions": execution.get("component_versions"),
+        "version_tags": version_tags,
+        "steps": step_ids,
+        "ports": ports,
+        "parameters": parameters,
+        "outputs": outputs,
+        "inputs": inputs,
+    }
+    return execution_with_steps
