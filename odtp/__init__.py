@@ -12,4 +12,4 @@ logging.basicConfig(format='%(levelname)s (%(asctime)s): %(message)s (LineL %(li
                     datefmt='%d/%m/%Y %I:%M:%S %p',
                     level=logging.INFO)
 if ODTP_LOG_LEVEL:
-    logging.getLogger().setLevel(ODTP_LOG_LEVEL)                   
+    logging.getLogger().setLevel(ODTP_LOG_LEVEL)
