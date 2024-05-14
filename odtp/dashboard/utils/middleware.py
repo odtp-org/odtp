@@ -10,6 +10,9 @@ import odtp.helpers.settings as config
 from odtp.helpers.settings import ODTP_KEYCLOAK_REDIRECT
 
 
+unrestricted_page_routes = {'/login'}
+
+
 def jwt_decode_from_client(encoded: str, url:str, audience:str):
     """Decodes the payload of a JWT token using a client and verifying . (Giving data like issuer, groups, etc.)"""
     jwks_client = PyJWKClient(url)
@@ -49,6 +52,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request:Request, call_next):  
         header = request.headers.get("authorization")   
         if not header or not header.startswith("Bearer "):
+            app.storage.user['auth_user'] = 'NONE'
             return RedirectResponse(ODTP_KEYCLOAK_REDIRECT)     
         """ Get the ID token from the header."""
         if header:

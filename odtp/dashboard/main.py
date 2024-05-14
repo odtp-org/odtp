@@ -60,7 +60,7 @@ app.add_middleware(AuthMiddleware, url=url, audience=audience)
 
 ui.run(
     title="ODTP", 
-    storage_secret=NICEGUI_COOKIE_SECRET_KEY,
+    storage_secret="private key to secure the browser session cookie",
     port=ODTP_DASHBOARD_PORT,
     reload=ODTP_DASHBOARD_RELOAD,
     show=False,
