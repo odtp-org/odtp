@@ -53,7 +53,8 @@ def components():
 
 
 app.add_static_files("/static", "static")
-url = ODTP_KEYCLOAK_URL
+#url = ODTP_KEYCLOAK_URL
+url = "http://localhost:8080/realms/myrealm/protocol/openid-connect/certs"
 audience = ODTP_KEYCLOAK_AUDIENCE
 app.add_middleware(AuthMiddleware, url=url, audience=audience)
 

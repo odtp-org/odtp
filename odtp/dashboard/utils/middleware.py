@@ -13,6 +13,7 @@ from odtp.helpers.settings import ODTP_KEYCLOAK_REDIRECT
 def jwt_decode_from_client(encoded: str, url:str, audience:str):
     """Decodes the payload of a JWT token using a client and verifying . (Giving data like issuer, groups, etc.)"""
     jwks_client = PyJWKClient(url)
+
     signing_key = jwks_client.get_signing_key_from_jwt(encoded)
     payload = jwt.decode(encoded, 
                          signing_key.key, 
@@ -35,6 +36,7 @@ def update_user_storage(decoded_jwt):
             email=extracted_data.get("email", ""),              
             sub=extracted_data.get("sub", ""))
         storage.storage_update_user_sub(extracted_data)
+        
           
        
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -42,7 +44,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.url = url
         self.audience = audience
-  
+    
     
     async def dispatch(self, request:Request, call_next):  
         header = request.headers.get("authorization")   
@@ -51,9 +53,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """ Get the ID token from the header."""
         if header:
             jwt_token = header.split(" ")[1] 
+            print(f"jwt_token {jwt_token}")
             try:
                 decoded_jwt = jwt_decode_from_client(jwt_token, self.url, self.audience)
-                print(f"decoded_jwt {decoded_jwt}")
                 update_user_storage(decoded_jwt)
             except Exception as e:
                 logging.error(f"Error: {e}")

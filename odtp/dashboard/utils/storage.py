@@ -250,7 +250,7 @@ def storage_update_user_sub(user_data):
                 }
             )
         print(f"user_component {user_component}")
-        #app.storage.user["auth_user"] = user_component
+        app.storage.user[AUTH_USER_SUB] = user_component  
     except Exception as e:
         ui.notify(
             f"storage update for {AUTH_USER_SUB} failed: {e}", type="negative"
