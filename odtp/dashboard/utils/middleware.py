@@ -10,9 +10,6 @@ import odtp.helpers.settings as config
 from odtp.helpers.settings import ODTP_KEYCLOAK_REDIRECT
 
 
-unrestricted_page_routes = {'/login'}
-
-
 def jwt_decode_from_client(encoded: str, url:str, audience:str):
     """Decodes the payload of a JWT token using a client and verifying . (Giving data like issuer, groups, etc.)"""
     jwks_client = PyJWKClient(url)
@@ -40,8 +37,7 @@ def update_user_storage(decoded_jwt):
             sub=extracted_data.get("sub", ""))
         storage.storage_update_user_sub(extracted_data)
         
-          
-       
+                
 class AuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, url, audience):
         super().__init__(app)
