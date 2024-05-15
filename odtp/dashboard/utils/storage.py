@@ -20,10 +20,7 @@ CURRENT_LOCAL_SETTINGS = "local_settings"
 FORM_STATE_START = "start"
 FORM_STATE_STEP = "step"
 CURRENT_USER_WORKDIR = "user_workdir"
-CURRENT_PROJECT_PATH = "project_path"
-EXECUTION_FOR_RUN = "execution_for_run"
-RUN_STEP = "run_step"
-SECRETS_FILES = "secrets_files"
+EXECUTION_RUN = "execution_run"
 
 
 class ODTPFormValidationException(Exception):
@@ -97,11 +94,11 @@ def storage_update_component(component_id):
         app.storage.user[CURRENT_COMPONENT] = current_component
     except Exception as e:
         logging.error(
-            f"storage update for {CURRENT_COMPONENT} failed: {e}", type="negative"
+            f"storage update for {CURRENT_COMPONENT} failed: {e}"
         )
 
 
-def store_execution_selection(storage_key, execution_id):  
+def store_execution_selection(storage_key, execution_id):
     execution = db.get_document_by_id(
         document_id=execution_id, collection=db.collection_executions
     )
@@ -124,7 +121,7 @@ def store_execution_selection(storage_key, execution_id):
         parameters.append(step_dict[step_id].get("parameters", {}))
         ports.append(step_dict[step_id].get("ports", []))
         outputs.append(step_dict[step_id].get("output", {}))
-        inputs.append(step_dict[step_id].get("input", {}))     
+        inputs.append(step_dict[step_id].get("input", {}))
     current_execution = {
         "execution_id": execution_id,
         "title": execution.get("title"),
@@ -137,7 +134,7 @@ def store_execution_selection(storage_key, execution_id):
         "ports": ports,
         "parameters": parameters,
         "outputs": outputs,
-        "inputs": inputs,    
+        "inputs": inputs,
     }
     current_execution_as_json = json.dumps(current_execution)
-    app.storage.user[storage_key] = current_execution_as_json 
+    app.storage.user[storage_key] = current_execution_as_json

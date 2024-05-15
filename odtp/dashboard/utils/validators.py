@@ -1,6 +1,5 @@
 import re
 import os
-from nicegui import ui
 import odtp.helpers.git as otdp_git
 import odtp.mongodb.utils as db_utils
 import odtp.mongodb.db as db
