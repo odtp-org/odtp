@@ -11,7 +11,7 @@ PATH_ABOUT = "/"
 PATH_USERS = "/users"
 PATH_SIGN = "/logout"
 PATH_DIGITAL_TWINS = "/digital-twins"
-PATH_COMPONENTS = "/components"
+PATH_COMPONENTS = "/components" 
 PATH_EXECUTIONS = "/executions"
 PATH_RUN = "/run"
 
@@ -19,11 +19,18 @@ NO_SELECTION_VALUE = "None"
 NO_SELECTION_INPUT = None
 
 def menu() -> None:
+    current_user = storage.get_active_object_from_storage(
+        storage.AUTH_USER_SUB
+    )
+    user = current_user.get("name")
+    print(f"current_user {user}") 
+    
     ui.link("About", PATH_ABOUT).classes(replace="text-white")
-    ui.link("Users", PATH_USERS).classes(replace="text-white")
+    ui.link(user, PATH_USERS).classes(replace="text-white")
     ui.link("Executions", PATH_EXECUTIONS).classes(replace="text-white")
     ui.link("Run", PATH_RUN).classes(replace="text-white")
-
+    ui.button(user, on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/logout')),icon='logout')
+    
 
 @contextmanager
 def frame(navtitle: str):
@@ -33,7 +40,6 @@ def frame(navtitle: str):
     )
     with ui.header().classes("justify-between text-white"):
         ui.label("OTDP").classes("font-bold")
-        ui.link("Log out", PATH_SIGN).classes("text-left",replace="text-white")
         with ui.row():
             menu()
     yield

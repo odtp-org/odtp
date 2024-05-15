@@ -27,7 +27,6 @@ def start():
     with ui_theme.frame("Users"):
         user_page()
 
-
 @ui.page("/components")
 def components():
     with ui_theme.frame("Components"):
