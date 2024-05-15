@@ -14,7 +14,7 @@ def content() -> None:
         """
         # Manage Users 
         """
-    )    
+    )
     with ui.right_drawer().classes("bg-slate-50").props(
         "bordered width=500"
     ) as right_drawer:
@@ -142,8 +142,8 @@ def ui_workarea():
             icon="folder"
         )
         ui.button(
-            "Reset Work directory to default", 
-            on_click=reset_workdir, 
+            "Set Work directory to default",
+            on_click=set_default_workdir,
             icon="folder"
         ).props('flat')       
     except Exception as e:
@@ -210,7 +210,7 @@ async def pick_workdir() -> None:
         ui_workarea.refresh()    
 
 
-def reset_workdir():
+def set_default_workdir():
     app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
     ui.notify(f"User workdir has been set to {ODTP_PATH}", type="positive")
     ui_workarea.refresh()

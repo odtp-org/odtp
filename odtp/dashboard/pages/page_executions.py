@@ -7,27 +7,29 @@ import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.utils.validators as validators
-import odtp.helpers.utils as odtp_utils
+from odtp.dashboard.forms.ports import ContainerPorts
+from odtp.dashboard.forms.workflow import ContainerWorkflow
+from odtp.dashboard.forms.parameters import ContainerParameters
 import odtp.helpers.parse as odtp_parse
 import odtp.mongodb.db as db
+from odtp.helpers.settings import ODTP_DASHBOARD_JSON_EDITOR
 
 
 STEPPERS = (
     "Start",
     "Workflow",
-    "Confirm", 
+    "Parameters from File",
+    "Parameters Overwrite",
     "Ports",
-    "Parameters",
     "Save"
 )
 
 STEPPER_START_INDEX = 0
 STEPPER_WORKFLOW_INDEX = 1
 STEPPER_CONFIRM_INDEX = 2
-STEPPER_CONFIGURATION_PORTS_INDEX = 3
-STEPPER_CONFIGURATION_PARAMETERS_INDEX = 4
+STEPPER_CONFIGURATION_PARAMETERS_INDEX = 3
+STEPPER_CONFIGURATION_PORTS_INDEX = 4
 STEPPER_SAVE_INDEX = 5
-
 
 
 def content() -> None:
@@ -39,7 +41,7 @@ def content() -> None:
     current_user = storage.get_active_object_from_storage(
         storage.CURRENT_USER
     )
-    user_workdir = storage.get_value_from_storage_for_key(
+    workdir = storage.get_value_from_storage_for_key(
         storage.CURRENT_USER_WORKDIR
     )    
     if not current_user:
@@ -49,7 +51,7 @@ def content() -> None:
             action="select",
         )     
         return
-    if not user_workdir:
+    if not workdir:
         ui_theme.ui_add_first(
             item_name="a working directory",
             page_link=ui_theme.PATH_USERS,
@@ -80,7 +82,7 @@ def content() -> None:
         ui_workarea(
             current_digital_twin=current_digital_twin,
             current_user=current_user,
-            user_workdir=user_workdir
+            workdir=workdir
         )
     with ui.tabs().classes("w-full") as tabs:
         select = ui.tab("Select an execution")
@@ -91,7 +93,7 @@ def content() -> None:
             ui_execution_select(current_digital_twin)
             ui_execution_details()
         with ui.tab_panel(add):
-            ui_add_execution(current_digital_twin, user_workdir)
+            ui_add_execution(current_digital_twin, workdir)
         with ui.tab_panel(table):
             ui_executions_table(current_digital_twin)
 
@@ -100,54 +102,25 @@ def ui_new_execution_start_form(current_digital_twin, current_execution_to_add):
     if current_execution_to_add:  
         presets = {
             "name": current_execution_to_add.get("name", ""),
-            "nr_steps": current_execution_to_add.get("step_count", 0),
-            "port_count": current_execution_to_add.get("port_count", 1),
-            "parameter_count": current_execution_to_add.get("parameter_count", 6),
         }
     else:
         presets = {
             "name": "",
-            "nr_steps": 0,
-            "port_count": 1,
-            "parameter_count": 6,
-        }             
-    name_input = ui.input(
-        label="Execution title",
-        placeholder="Execution title",
-        validation={f"Please provide an execution title":
-                    lambda value: validators.validate_required_input(value)},
-        value=presets["name"],       
-    ).classes("text-lg font-bold w-full")
-    nr_steps_input = ui.number(
-        label='Number of steps', value=presets["nr_steps"], format='%d', min=0, max=10,
-        on_change=lambda e: result.set_content(
-            helpers.get_workflow_mermaid(
-                [f"Step{str(i + 1)}" for i in range(int(e.value))], init='graph LR;'
-            )
-        ),
-        validation={f"Must be an integer <= 10 and >= 0":
-                    lambda value: validators.validate_integer_input_below_threshold(
-                        value, lower_bound=1, upper_bound=10
-                    )},    
-    ).classes("w-1/2")
-    result = ui.mermaid('graph LR;').classes("w-full")          
- 
-    ui.label("Maximal Number of Ports per Step").classes("w-1/4")
-    max_nr_ports = ui.slider(min=0, max=3, value=presets["port_count"]).classes("w-1/4")
-    ui.label().bind_text_from(max_nr_ports, 'value').classes("w-1/4") 
-
-    ui.label("Maximal Number of Parameters per Step").classes("w-1/4")
-    max_nr_parameters = ui.slider(min=0, max=10, value=presets["parameter_count"]).classes("w-1/4")
-    ui.label().bind_text_from(max_nr_parameters, 'value').classes("w-1/4")
+        }
+    with ui.row().classes('w-full'):
+        name_input = ui.input(
+            label="Execution title",
+            placeholder="Execution title",
+            validation={f"Please provide an execution title":
+                        lambda value: validators.validate_required_input(value)},
+            value=presets["name"],
+        ).classes("text-lg font-bold w-full")
     with ui.row().classes('w-full'):  
         ui.button(
             "Next",
             on_click=lambda: store_new_execution_init(
                 name_input=name_input,
                 digital_twin=current_digital_twin,
-                nr_steps_input=nr_steps_input,
-                port_count=max_nr_ports.value,
-                parameter_count=max_nr_parameters.value,            
                 current_execution_to_add=current_execution_to_add 
             ),
         )
@@ -159,60 +132,29 @@ def ui_execution_workflow_template_form(current_execution_to_add):
     stepper = current_execution_to_add["stepper"]
     if stepper and STEPPERS.index(stepper) < STEPPER_WORKFLOW_INDEX:
         return           
-    step_count = current_execution_to_add.get("step_count")
-    component_versions = db.get_collection_sorted(
-        collection=db.collection_versions,
-        sort_tuples=[("component.componentName", db.ASCENDING), ("component_version", db.DESCENDING)]
+    current_version_tags = current_execution_to_add.get("version_tags",[])
+    current_versions = current_execution_to_add.get("versions", [])
+    workflow_form = ContainerWorkflow(
+        versions=current_versions,
+        version_tags=current_version_tags,
     )
-    if not component_versions:
-        ui.label("There are no components yet.")
-        return     
-    select_options = {}
-    for version in component_versions:
-        version_display_name = helpers.get_execution_step_display_name(
-            component_name=version["component"]["componentName"],
-            component_version=version["component_version"],
-        )
-        select_options[
-            (str(version["_id"]), version_display_name)
-        ] = f"{version_display_name}"                       
-    workflow = []
-    presets = ["" for i in range(step_count)]
-    current_version_tags = current_execution_to_add.get("version_tags")
-    current_versions = current_execution_to_add.get("versions")
-    if current_versions:
-        for i in range(len(current_versions)):
-            if i < step_count:
-                presets[i] = (current_versions[i], current_version_tags[i])  
-    with ui.row().classes('w-full'):    
-        for i in range(step_count):        
-            workflow.append(
-                ui.select(
-                    select_options,
-                    label="component versions",
-                    validation={f"Please provide an component version":
-                    lambda value: validators.validate_required_input(value)},
-                    value=presets[i],
-                )                
-                .classes("w-full font-bold text-lg")
-            ) 
     with ui.row().classes('w-full'):                  
         ui.button(
             "Next",
             on_click=lambda: store_new_execution_workflow(
                 current_execution_to_add=current_execution_to_add,
-                workflow=workflow,
+                workflow=workflow_form.get_steps(),
             ),
-        ) 
+        )
         ui.button(
             "Back",
             on_click=lambda: execution_form_step_back(
                 current_execution_to_add=current_execution_to_add,
             ),
-        ).props('flat')      
+        ).props('flat')
 
 
-def ui_execution_workflow_confirmation_form(current_execution_to_add):
+def ui_execution_workflow_confirmation_form(current_execution_to_add, workdir):
     if not current_execution_to_add: 
         return    
     stepper = current_execution_to_add["stepper"]
@@ -221,24 +163,65 @@ def ui_execution_workflow_confirmation_form(current_execution_to_add):
     version_tags = current_execution_to_add.get("version_tags")
     if not version_tags:
         return
-    with ui.grid(columns=1):
-        with ui.row().classes('w-full'):      
-            ui.mermaid(
-                helpers.get_workflow_mermaid(version_tags, init='graph TB;')
-            ) 
+    with ui.grid(columns=2).classes("flex items-center"):
+        for j, version_tag in enumerate(version_tags):
+            with ui.row().classes("w-full flex items-center"):
+                ui.mermaid(f"""
+                    {helpers.get_workflow_mermaid([version_tag], init='graph TB;')}"""
+                )
+                ui.button(
+                    f"Pick parameters from file",
+                    on_click=lambda step_index=j: pick_parameter_file(
+                        step_index,
+                        workdir=workdir,
+                        current_execution_to_add=current_execution_to_add,
+                    ),
+                    icon="folder"
+                ).props('flat')
+    with ui.grid(columns=1).classes('w-full'):
         with ui.row().classes('w-full'):      
             ui.button(
                 "Next",
                 on_click=lambda: confirm_new_execution_workflow(
                     current_execution_to_add=current_execution_to_add,
                 ),
-            ) 
+            )
             ui.button(
                 "Back",
                 on_click=lambda: execution_form_step_back(
                     current_execution_to_add=current_execution_to_add,
                 ),
-            ).props('flat') 
+            ).props('flat')
+
+
+def ui_execution_configuration_parameters_form(current_execution_to_add):
+    if not current_execution_to_add: 
+        return
+    stepper = current_execution_to_add["stepper"]
+    if stepper and STEPPERS.index(stepper) < STEPPER_CONFIGURATION_PARAMETERS_INDEX:
+        return         
+    version_tags = current_execution_to_add.get("version_tags")
+    if not version_tags:
+        return
+    current_parameters = current_execution_to_add.get("parameters")
+    parameters_form = ContainerParameters(
+        version_tags=version_tags,
+        parameters=current_parameters
+    )
+    with ui.row().classes('w-full'):
+        ui.button(
+            "Next",
+            on_click=lambda: add_parameters_configuration_to_workflow(
+                current_execution_to_add=current_execution_to_add,
+                parameters=parameters_form.get_parameters(),
+            ),
+        ) 
+        ui.button(
+            "Back",
+            on_click=lambda: execution_form_step_back(
+                current_execution_to_add=current_execution_to_add,
+            ),
+        ).props('flat')
 
 
 def ui_execution_configuration_ports_form(current_execution_to_add):
@@ -249,45 +232,15 @@ def ui_execution_configuration_ports_form(current_execution_to_add):
         return         
     version_tags = current_execution_to_add.get("version_tags")
     if not version_tags:
-        return  
-    port_count = current_execution_to_add["port_count"]   
-    step_count = current_execution_to_add["step_count"]  
-    current_version_tags = current_execution_to_add.get("version_tags")
+        return
     current_ports = current_execution_to_add.get("ports")
-    if not current_ports:
-        current_ports = [[] for i in range(step_count)]  
-    else:
-        current_ports = (current_ports + [[] * (step_count - len(current_ports))])[:step_count]    
-    presets = []
-    for component_ports in current_ports:
-        preset = component_ports + [''] * (port_count - len(component_ports))  
-        presets.append(preset)
-    all_ports_inputs = []
-    for j, version_tag in enumerate(current_version_tags):
-        ui.mermaid(
-            helpers.get_workflow_mermaid([version_tag])
-        ).classes("w-full")  
-        add_ports = ui.checkbox('add ports', value=bool(len(current_ports[j])))         
-        ports_for_component = []     
-        with ui.row().bind_visibility_from(add_ports, 'value'): 
-            for i in range(port_count):        
-                ports_for_component.append(
-                    ui.input(
-                        label="port mapping",
-                        validation={f"Please provide a valid port mapping":
-                        lambda value: validators.validate_ports_mapping_input(value)},
-                        value=presets[j][i],
-                        placeholder="8001:8001"
-                    )                
-                    .classes("w-1/8 font-bold text-lg")
-                )
-        all_ports_inputs.append(ports_for_component)                        
+    ports_form = ContainerPorts(version_tags, current_ports)
     with ui.row().classes('w-full'):    
         ui.button(
             "Next",
             on_click=lambda: add_ports_configuration_to_workflow(
                 current_execution_to_add=current_execution_to_add,
-                all_ports_inputs=all_ports_inputs
+                all_ports_inputs=ports_form.get_ports()
             ),
         ) 
         ui.button(
@@ -295,89 +248,7 @@ def ui_execution_configuration_ports_form(current_execution_to_add):
             on_click=lambda: execution_form_step_back(
                 current_execution_to_add=current_execution_to_add,
             ),
-        ).props('flat') 
-
-
-def ui_execution_configuration_parameters_form(current_execution_to_add, user_workdir):
-    if not current_execution_to_add: 
-        return     
-    stepper = current_execution_to_add["stepper"]
-    if stepper and STEPPERS.index(stepper) < STEPPER_CONFIGURATION_PARAMETERS_INDEX:
-        return         
-    version_tags = current_execution_to_add.get("version_tags")
-    if not version_tags:
-        return    
-    parameter_count = current_execution_to_add["parameter_count"]    
-    step_count = current_execution_to_add["step_count"] 
-    current_parameters = current_execution_to_add.get("parameters")
-    if not current_parameters:
-        current_parameters = [{} for i in range(step_count)]  
-    else:
-        current_parameters = current_parameters[:step_count]  
-        if len(current_parameters) < step_count:
-            fill_up =  [{} for i in range(step_count - len(current_parameters))]   
-            current_parameters += fill_up           
-    current_version_tags = current_execution_to_add.get("version_tags")
-    all_parameters = []
-    for j, version_tag in enumerate(current_version_tags):
-        ui.mermaid(
-            helpers.get_workflow_mermaid([version_tag])
-        ).classes("w-full")  
-        parameters_for_component = []
-        keys_for_component = []
-        values_for_component = []
-        current_component_parameters = current_parameters[j] 
-        add_parameters = ui.checkbox('add parameters', value=bool(len(current_component_parameters)))               
-        with ui.row().bind_visibility_from(add_parameters, 'value'):
-            ui.button(
-                f"Pick parameters from file for {version_tag}", 
-                on_click=lambda step_index=j: pick_parameter_file(
-                    step_index,
-                    user_workdir=user_workdir,
-                    current_execution_to_add=current_execution_to_add,
-                    step_count=step_count,
-                ), 
-                icon="folder"
-            )
-            preset_keys = []
-            preset_values = []
-            for i in range(parameter_count):    
-                preset_keys.append(helpers.get_key_from_parameters(current_component_parameters, i))
-                preset_values.append(helpers.get_value_from_parameters(current_component_parameters, i))
-            for i in range(parameter_count):      
-                with ui.row().classes("w-full no-wrap"):
-                    with ui.column().classes("w-1/2"):
-                        keys_for_component.append(
-                            ui.input(
-                                "key", 
-                                value=preset_keys[i],
-                            ).classes("w-full")
-                        )
-                    with ui.column().classes("w-1/2"):
-                        values_for_component.append(
-                            ui.input(
-                                "value", 
-                                value=preset_values[i],
-                            ).classes("w-full")
-                        )
-            parameters_for_component = [
-                (keys_for_component[i], values_for_component[i]) for i in range(parameter_count)
-            ]                   
-        all_parameters.append(parameters_for_component)                           
-    with ui.row().classes('w-full'):    
-        ui.button(
-            "Next",
-            on_click=lambda: add_parameters_configuration_to_workflow(
-                current_execution_to_add=current_execution_to_add,
-                parameters=all_parameters,             
-            ),
-        ) 
-        ui.button(
-            "Back",
-            on_click=lambda: execution_form_step_back(
-                current_execution_to_add=current_execution_to_add,
-            ),
-        ).props('flat') 
+        ).props('flat')
 
 
 def ui_execution_save_form(current_execution_to_add):
@@ -412,7 +283,7 @@ def ui_execution_save_form(current_execution_to_add):
 
 
 @ui.refreshable
-def ui_add_execution(current_digital_twin, user_workdir):
+def ui_add_execution(current_digital_twin, workdir):
     ui.button(
         "Cancel Execution Entry",
         on_click=lambda: cancel_execution_entry(),
@@ -427,6 +298,12 @@ def ui_add_execution(current_digital_twin, user_workdir):
         storage.NEW_EXECUTION
     )
     if current_execution_to_add:
+        if ODTP_DASHBOARD_JSON_EDITOR:
+            with ui.expansion("Current Execution as JSON"):
+                ui.json_editor(
+                    {'content': {'json': current_execution_to_add}, 'readOnly': True}
+                )
+    if current_execution_to_add:
         ui.label(f"Digital Twin: {current_execution_to_add.get('digital_twin_name')}").classes("text-lg w-full")         
         stepper = current_execution_to_add.get("stepper")
     else:
@@ -440,13 +317,13 @@ def ui_add_execution(current_digital_twin, user_workdir):
                 ui_execution_workflow_template_form(current_execution_to_add)
         with ui.step(STEPPERS[STEPPER_CONFIRM_INDEX]):
             with ui.stepper_navigation():
-                ui_execution_workflow_confirmation_form(current_execution_to_add)      
-        with ui.step(STEPPERS[STEPPER_CONFIGURATION_PORTS_INDEX]):
-            with ui.stepper_navigation():
-                ui_execution_configuration_ports_form(current_execution_to_add)                  
+                ui_execution_workflow_confirmation_form(current_execution_to_add, workdir)
         with ui.step(STEPPERS[STEPPER_CONFIGURATION_PARAMETERS_INDEX]):
             with ui.stepper_navigation():
-                ui_execution_configuration_parameters_form(current_execution_to_add, user_workdir) 
+                ui_execution_configuration_parameters_form(current_execution_to_add)
+        with ui.step(STEPPERS[STEPPER_CONFIGURATION_PORTS_INDEX]):
+            with ui.stepper_navigation():
+                ui_execution_configuration_ports_form(current_execution_to_add)
         with ui.step(STEPPERS[STEPPER_SAVE_INDEX]):
             with ui.stepper_navigation():
                 ui_execution_save_form(current_execution_to_add)
@@ -454,32 +331,36 @@ def ui_add_execution(current_digital_twin, user_workdir):
 
 
 def store_new_execution_init(
-    name_input, digital_twin, parameter_count, nr_steps_input, port_count, current_execution_to_add
+    name_input, digital_twin, current_execution_to_add
 ):
-    if not name_input.validate() or not nr_steps_input.validate():
+    if not name_input.validate():
         ui.notify("Please fill in the form as required", type="negative")
         return
     if not current_execution_to_add:
         current_execution_to_add = {
             "digital_twin_id": digital_twin["digital_twin_id"], 
             "digital_twin_name": digital_twin["name"], 
+            "step_count": 0,
+            "form_step_count": 1,
+            "parameters": [],
+            "ports": [],
         }
     current_execution_to_add["name"] = name_input.value
-    current_execution_to_add["step_count"] = int(nr_steps_input.value)
-    current_execution_to_add["parameter_count"] = parameter_count
-    current_execution_to_add["port_count"] = port_count
     current_execution_to_add["stepper"] = STEPPERS[STEPPER_WORKFLOW_INDEX]
     app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)  
     ui_add_execution.refresh()
 
 
 def store_new_execution_workflow(current_execution_to_add, workflow):
-    if False in [item.validate() for item in workflow]:
-        ui.notify("You must provide all steps for the execution", type="negative")
+    if not workflow or False in [item.validate() for item in workflow]:
+        ui.notify("Please choose at least one workflow step. Remove steps that are not needed.")
         return
-    workflow=[item.value for item in workflow] 
+    workflow = [item.value for item in workflow if item.value]
     current_execution_to_add["versions"] = [item[0] for item in workflow]
     current_execution_to_add["version_tags"] = [item[1] for item in workflow] 
+    step_count = len(workflow)
+    current_execution_to_add["parameters"] = [[] for i in range(step_count)]
+    current_execution_to_add["ports"] = [{} for i in range(step_count)]
     current_execution_to_add["stepper"] = STEPPERS[STEPPER_CONFIRM_INDEX]
     app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)  
     ui_add_execution.refresh() 
@@ -502,44 +383,33 @@ def execution_form_step_back(current_execution_to_add):
 
 
 def confirm_new_execution_workflow(current_execution_to_add):
-    current_execution_to_add["stepper"] = STEPPERS[STEPPER_CONFIGURATION_PORTS_INDEX]
-    app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
-    ui_add_execution.refresh() 
-
-
-def add_ports_configuration_to_workflow(current_execution_to_add, all_ports_inputs): 
-    all_port_mappings = []
-    for component_port_inputs in all_ports_inputs:
-        component_port_mappings = [
-            port_mapping_input.value for port_mapping_input in component_port_inputs
-            if port_mapping_input.value
-        ]
-        all_port_mappings.append(component_port_mappings) 
-    current_execution_to_add["ports"] = all_port_mappings
     current_execution_to_add["stepper"] = STEPPERS[STEPPER_CONFIGURATION_PARAMETERS_INDEX]
     app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
-    ui_add_execution.refresh()     
-
-
-def add_parameters_configuration_to_workflow(
-    current_execution_to_add, parameters, 
-):
-    parameters_all_steps = []
-    for step_parameters in parameters:
-        parameters_for_step = {}
-        for parameter_key, parameter_value in step_parameters:
-            if parameter_key.value:
-                parameters_for_step[parameter_key.value] = parameter_value.value
-        parameters_all_steps.append(parameters_for_step)    
-    current_execution_to_add["parameters"] = parameters_all_steps 
-    current_execution_to_add["stepper"] = STEPPERS[STEPPER_SAVE_INDEX]
-    app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     ui_add_execution.refresh() 
 
 
-async def pick_parameter_file(step_index, user_workdir, current_execution_to_add, step_count) -> None:
+def add_parameters_configuration_to_workflow(current_execution_to_add, parameters):
+    current_execution_to_add["parameters"] = parameters
+    current_execution_to_add["stepper"] = STEPPERS[STEPPER_CONFIGURATION_PORTS_INDEX]
+    app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
+    ui_add_execution.refresh()
+
+
+def add_ports_configuration_to_workflow(current_execution_to_add, all_ports_inputs):
+    ports = []
+    for row in all_ports_inputs:
+        if False in [port_input.validate() for port_input in row]:
+            return
+        ports.append([port_input.value for port_input in row if port_input.value])
+    current_execution_to_add["ports"] = ports
+    current_execution_to_add["stepper"] = STEPPERS[STEPPER_SAVE_INDEX]
+    app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
+    ui_add_execution.refresh()
+
+
+async def pick_parameter_file(step_index, workdir, current_execution_to_add) -> None:
     try:
-        root = user_workdir
+        root = workdir
         result = await local_file_picker(root, multiple=False)
         if not result:
             ui.notify("No new parameter file was selected.", type="negative")   
@@ -547,20 +417,15 @@ async def pick_parameter_file(step_index, user_workdir, current_execution_to_add
         if result:
             file_path = result[0]
             parameters = dict(odtp_parse.parse_parameters_for_one_file(file_path))
-            if len(parameters) > current_execution_to_add["parameter_count"]:
-                current_execution_to_add["parameter_count"] = len(parameters)
-            if current_execution_to_add.get("parameters"):
-                current_execution_to_add["parameters"][step_index] = parameters
-            else:
-                current_execution_to_add["parameters"] = [{} for i in range(step_count)]
-                current_execution_to_add["parameters"][step_index] = parameters   
+            current_execution_to_add["parameters"][step_index] = parameters
             app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     except odtp_parse.OdtpParameterParsingException:
         ui.notify(f"Selected file {file_path} could not be parsed. Is it a parameter file?", type="negative")     
     except Exception as e:
-        logging.error("An exception {e} occurred when picking a parameter file.")
+        logging.error(f"An exception {e} occurred when picking a parameter file.")
     else:    
-        ui_add_execution.refresh()     
+        ui.notify(f"parameters have been loaded for step {step_index + 1}")
+        ui_add_execution.refresh()
 
 
 def save_new_execution(current_execution_to_add):  
@@ -679,7 +544,7 @@ def ui_execution_details():
 
 
 @ui.refreshable
-def ui_workarea(current_digital_twin, current_user, user_workdir):
+def ui_workarea(current_digital_twin, current_user, workdir):
     ui.markdown(
         """
         ### Work Area
@@ -694,7 +559,7 @@ def ui_workarea(current_digital_twin, current_user, user_workdir):
             #### Current Selection
             - **user**: {current_user.get("display_name")}
             - **digital twin**: {current_digital_twin.get("name")}
-            - **work directory**: {user_workdir}
+            - **work directory**: {workdir}
 
             ##### Actions
             - add execution
@@ -729,10 +594,10 @@ def store_selected_execution(value):
     if not ui_theme.new_value_selected_in_ui_select(value):
         return
     try:
-        storage.store_execution_selection(
-            storage.CURRENT_EXECUTION,
-            execution_id = value
-        )
+        execution_id = value
+        execution = helpers.build_execution_with_steps(execution_id)
+        current_execution_as_json = json.dumps(execution)
+        app.storage.user[storage.CURRENT_EXECUTION] = current_execution_as_json
     except Exception as e:
         logging.error(
             f"Selected execution could not be stored. An Exception occurred: {e}"
