@@ -48,6 +48,8 @@ folder_status_msg = {
    FOLDER_DOES_NOT_MATCH: "Project Folder is not empty and does not match the Execution: Choose another project folder" 
 }
 
+logger = logging.getLogger(__name__)
+
 
 def content() -> None:
     ui.markdown(
@@ -570,7 +572,7 @@ def store_selected_execution(value, current_run):
         current_run_as_json = json.dumps(current_run)
         app.storage.user[storage.EXECUTION_RUN] = current_run_as_json
     except Exception as e:
-        logging.error(
+        logger.error(
             f"Selected execution could not be stored. An Exception occurred: {e}"
         )
     else:
@@ -684,7 +686,7 @@ async def run_command(command: str, dialog, result) -> None:
     """Run a command in the background and display the output in the pre-created dialog.
     This function has been copied from nicegui examples.
     """
-    logging.info(command)
+    logger.info(command)
     dialog.open()
     result.content = "... loading"
     # NOTE replace with machine-independent Python path (#1240)

@@ -3,14 +3,22 @@
 # A partnership between École Polytechnique Fédérale de Lausanne (EPFL) and
 # Eidgenössische Technische Hochschule Zürich (ETHZ).
 
-import logging
 import importlib.metadata as importlib_metadata
 
 __version__ = importlib_metadata.version(__name__)
-logging.basicConfig(#filename='my_logs.log',
-                    #encoding='utf-8',
-                    #filemode='w',
-                    format='%(levelname)s (%(asctime)s): %(message)s (LineL %(lineno)d [%(filename)s])',
-                    datefmt='%d/%m/%Y %I:%M:%S %p',
-                    level=logging.INFO)
-# logging.info('The answer is: %s', x) #Variable.
+
+import os
+import logging
+from logging import config as logging_config
+
+here = os.path.abspath(os.path.dirname(__file__))
+LOGGING_CONFIG = os.path.abspath(os.path.join(here, 'config.ini'))
+
+logging_config.fileConfig(LOGGING_CONFIG)
+
+#logging.basicConfig(
+#    format='ODTP %(asctime)s - [%(module)s:%(levelname)s] %(lineno)d %(filename)s %(funcName)s - %(message)s',
+#    datefmt='%d/%m/%Y %I:%M:%S %p',
+#    level=logging.ERROR
+#)
+

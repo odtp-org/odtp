@@ -3,7 +3,6 @@ import logging
 from dotenv import load_dotenv
 
 load_dotenv()
-logging.info("environment variables loaded")
 
 
 class OdtpSettingsException(Exception):

@@ -4,6 +4,7 @@
 # Eidgenössische Technische Hochschule Zürich (ETHZ).
 """Command line interface to the odpt package."""
 from typing import Optional
+import logging
 
 import click
 import typer
@@ -22,6 +23,7 @@ app.add_typer(component.app, name="component")
 app.add_typer(setup.app, name="setup")
 app.add_typer(execution.app, name="execution")
 
+logger = logging.getLogger('dashboard')
 
 # Used to autogenerate docs with sphinx-click
 @click.group()
@@ -32,7 +34,6 @@ def cli():
 
 @app.command()
 def dashboard():
-    # Execute Nicegui
     subprocess.run(["python", "odtp/dashboard/main.py"])
 
 

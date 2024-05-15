@@ -9,6 +9,9 @@ from odtp.dashboard.utils.file_picker import local_file_picker
 from odtp.helpers.settings import ODTP_PATH
 
 
+logger = logging.getLogger(__name__)
+
+
 def content() -> None:  
     ui.markdown(
         """
@@ -55,7 +58,7 @@ def ui_users_select() -> None:
             with_input=True,
         ).props("size=80")
     except Exception as e:
-        logging.error(
+        logger.error(
             f"User selection could not be loaded. An Exception occurred: {e}"
         )
 
@@ -147,7 +150,7 @@ def ui_workarea():
             icon="folder"
         ).props('flat')       
     except Exception as e:
-        logging.error(
+        logger.error(
             f"Workarea could not be retrieved. An Exception occurred: {e}"
         )
 
@@ -165,7 +168,7 @@ def store_selected_user(value):
         )
         app.storage.user[storage.CURRENT_USER] = current_user        
     except Exception as e:
-        logging.error(
+        logger.error(
             f"Selected user could not be stored. An Exception happened: {e}"
         )
     else:
@@ -203,7 +206,7 @@ async def pick_workdir() -> None:
             app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
             ui.notify(f"A new user workdir has been set to {workdir}", type="positive")
     except Exception as e:
-        logging.error(
+        logger.error(
             f"Work directory could not be picked: an Exception occurred: {e}"
         )
     else:            

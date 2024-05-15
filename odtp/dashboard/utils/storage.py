@@ -4,8 +4,6 @@ import logging
 from nicegui import app, ui
 
 import odtp.dashboard.utils.helpers as helpers
-import odtp.dashboard.utils.parse as parse
-import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.helpers.git as odtp_git
 import odtp.helpers.utils as odtp_utils
 import odtp.mongodb.db as db
@@ -23,6 +21,9 @@ CURRENT_USER_WORKDIR = "user_workdir"
 EXECUTION_RUN = "execution_run"
 
 
+logger = logging.getLogger(__name__)
+
+
 class ODTPFormValidationException(Exception):
     pass
 
@@ -36,8 +37,8 @@ def reset_storage_delete(keys):
             if key in current_storage_keys:
                 del app.storage.user[key]
     except Exception as e:
-        logging.error(
-            f"""During reset storage delete with keys {keys} en execption {e} occured. 
+        logger.exception(
+            f"""During reset storage delete with keys {keys} en exception {e} occurred. 
                   Current keys in storage {app.storage.user.keys()}"""
         )
 
@@ -52,8 +53,8 @@ def reset_storage_keep(keys):
             if (key not in keys) and (key in current_storage_keys):
                 del app.storage.user[key]
     except Exception as e:
-        logging.error(
-            f"""During reset storage keep with keys {keys} en execption {e} occured. 
+        logger.exception(
+            f"""During reset storage keep with keys {keys} en exception {e} occurred. 
                   Current keys in storage {app.storage.user.keys()}"""
         )
 
@@ -64,8 +65,8 @@ def get_active_object_from_storage(object_name):
         if object:
             return json.loads(object)
     except Exception as e:
-        logging.error(
-            f"'{object_name}' could not be retrieved from storage. Exception occured: {e}"
+        logger.exception(
+            f"'{object_name}' could not be retrieved from storage. Exception occurred: {e}"
         )
 
 
@@ -74,28 +75,23 @@ def get_value_from_storage_for_key(storage_key):
 
 
 def storage_update_component(component_id):
-    try:
-        component = db.get_document_by_id(
-            document_id=component_id, collection=db.collection_components
-        )
-        repo_link = component.get("repoLink")
-        latest_commit = odtp_git.check_commit_for_repo(repo_link)
-        repo_info = odtp_git.get_github_repo_info(repo_link)
-        current_component = json.dumps(
-            {
-                "component_id": component_id,
-                "name": component.get("componentName"),
-                "repo_link": component.get("repoLink"),
-                "type": component.get("type"),
-                "latest_commit": latest_commit,
-                "repo_info": repo_info,
-            }
-        )
-        app.storage.user[CURRENT_COMPONENT] = current_component
-    except Exception as e:
-        logging.error(
-            f"storage update for {CURRENT_COMPONENT} failed: {e}"
-        )
+    component = db.get_document_by_id(
+        document_id=component_id, collection=db.collection_components
+    )
+    repo_link = component.get("repoLink")
+    latest_commit = odtp_git.check_commit_for_repo(repo_link)
+    repo_info = odtp_git.get_github_repo_info(repo_link)
+    current_component = json.dumps(
+        {
+            "component_id": component_id,
+            "name": component.get("componentName"),
+            "repo_link": component.get("repoLink"),
+            "type": component.get("type"),
+            "latest_commit": latest_commit,
+            "repo_info": repo_info,
+        }
+    )
+    app.storage.user[CURRENT_COMPONENT] = current_component
 
 
 def store_execution_selection(storage_key, execution_id):
