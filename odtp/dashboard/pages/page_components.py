@@ -13,19 +13,10 @@ import odtp.helpers.git as odtp_git
 
 
 def content() -> None:
-    ui.markdown(
-        """
-        ## Manage Components
-        """
-    )
-    with ui.right_drawer().classes("bg-slate-50").props(
-        "bordered width=500"
-    ) as right_drawer:
-        ui_workarea()
+    ui_workarea()
     with ui.tabs() as tabs:
         list = ui.tab("Registered Components")
-        select = ui.tab("Select Component")
-        add_version = ui.tab("Add Version")
+        select = ui.tab("Component options")
         add_component = ui.tab("Add Component")
     with ui.tab_panels(tabs, value=select).classes("w-full"):
         with ui.tab_panel(list):
@@ -33,7 +24,6 @@ def content() -> None:
         with ui.tab_panel(select):
             ui_component_select()
             ui_component_show()
-        with ui.tab_panel(add_version):
             ui_version_add()
         with ui.tab_panel(add_component):
             ui_component_add()
@@ -118,7 +108,6 @@ def ui_version_add():
         return
     ui.label(current_component.get("name")).classes("text-lg font-medium")     
     ui_form_version_add(current_component)
-    ui_component_show()
 
 
 def ui_form_version_add(current_component):
@@ -341,12 +330,8 @@ def ui_odtp_info_show(component):
 
 @ui.refreshable
 def ui_workarea():
-    ui.markdown(
-        """
-        #### Help
-
-        ##### ODTP Components 
-
+    ui.markdown("""
+        ## Manage Components
         ODTP Components are the Building blocks for Digital Twins and Executions:
 
         - Components are not user specific
