@@ -159,3 +159,5 @@ def storage_update_user_keycloak(user_data):
         ui.notify(
             f"storage update for {AUTH_USER_KEYCLOAK} failed: {e}", type="negative"
         )   
+def reset_all () -> None: 
+    app.storage.clear()
