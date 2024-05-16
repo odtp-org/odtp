@@ -10,15 +10,7 @@ from odtp.helpers.settings import ODTP_PATH
 
 
 def content() -> None:  
-    ui.markdown(
-        """
-        # Manage Users 
-        """
-    )
-    with ui.right_drawer().classes("bg-slate-50").props(
-        "bordered width=500"
-    ) as right_drawer:
-        ui_workarea()
+    ui_workarea()
     with ui.tabs().classes("w-full") as tabs:
         select = ui.tab("Select User")
         add = ui.tab("Add User")
@@ -100,52 +92,49 @@ def ui_add_user():
 
 @ui.refreshable
 def ui_workarea():
-    ui.markdown(
-        """
-        ### Work Area
-        """
-    )
+    with ui.row().classes("w-full"):
+        ui.markdown(
+            """
+            # Manage Users 
+            """
+        )
     try:
         user = storage.get_active_object_from_storage(storage.CURRENT_USER)
         workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)
         if not workdir:
             workdir = ODTP_PATH
         if not user:
-            ui.markdown(
-                f"""
-                #### Actions
-                - Add a user
-                - Select a user
-                """
+            return    
+        with ui.grid(columns=2): 
+            with ui.column():           
+                ui.markdown(
+                    f"""
+                    #### Current Selection
+                    - **user**: {user.get("display_name")}
+                    - **work directory**: {workdir}
+                    """
             )
-            return            
-        ui.markdown(
-            f"""
-            #### Current Selection
-            - **user**: {user.get("display_name")}
-            - **work directory**: {workdir}
-
-            ##### Actions
-
-            - add user
-            - select user
-            """
-        )
-        ui.button(
-            "Manage digital twins",
-            on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
-            icon="link",
-        )
-        ui.button(
-            "Set Work directory", 
-            on_click=pick_workdir, 
-            icon="folder"
-        )
-        ui.button(
-            "Set Work directory to default",
-            on_click=set_default_workdir,
-            icon="folder"
-        ).props('flat')       
+            with ui.column():
+                ui.markdown(
+                    f"""
+                    #### Actions
+                    """
+                )        
+                ui.button(
+                    "Manage digital twins",
+                    on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
+                    icon="link",
+                )
+                ui.button(
+                    "Set Work directory", 
+                    on_click=pick_workdir, 
+                    icon="folder"
+                )
+                ui.button(
+                    "Set Work directory to default",
+                    on_click=set_default_workdir,
+                    icon="folder"
+                ).props('flat')       
     except Exception as e:
         logging.error(
             f"Workarea could not be retrieved. An Exception occurred: {e}"
