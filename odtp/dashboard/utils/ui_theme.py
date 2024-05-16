@@ -25,7 +25,6 @@ def menu() -> None:
     ui.link("Components", PATH_COMPONENTS).classes(replace="text-white")
     ui.link("Digital Twins", PATH_DIGITAL_TWINS).classes(replace="text-white")
     ui.link("Executions", PATH_EXECUTIONS).classes(replace="text-white")
-    ui.link("Run", PATH_RUN).classes(replace="text-white")
 
 
 @contextmanager
