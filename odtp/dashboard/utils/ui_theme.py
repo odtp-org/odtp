@@ -22,7 +22,6 @@ NO_SELECTION_VALUE = "None"
 NO_SELECTION_INPUT = None
 
 def menu() -> None:
-    print(f"config.ODTP_AUTHENTICATION {config.ODTP_AUTHENTICATION}")
     ui.link("About", PATH_ABOUT).classes(replace="text-white")
     ui.link("Components", PATH_COMPONENTS).classes(replace="text-white")
     ui.link("Digital Twins", PATH_DIGITAL_TWINS).classes(replace="text-white")
