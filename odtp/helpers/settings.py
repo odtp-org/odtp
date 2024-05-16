@@ -21,7 +21,7 @@ try:
     ODTP_DASHBOARD_PORT = int(os.getenv("ODTP_DASHBOARD_PORT"))
     ODTP_DASHBOARD_RELOAD = eval(os.getenv("ODTP_DASHBOARD_RELOAD"))
     ODTP_PATH = os.getenv("ODTP_PATH")
-    ODTP_AUTHENTICATION = os.getenv("ODTP_AUTHENTICATION")
+    ODTP_AUTHENTICATION = bool(os.getenv("ODTP_AUTHENTICATION"))
     ODTP_KEYCLOAK_LOGOUT = os.getenv("ODTP_KEYCLOAK_LOGOUT")
 except Exception as e:
     raise OdtpSettingsException(f"Configuration of ODTP raised an exception {e}")
