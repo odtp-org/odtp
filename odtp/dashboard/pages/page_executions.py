@@ -484,7 +484,7 @@ def ui_execution_select(current_digital_twin) -> None:
             with_input=True,
         ).classes("w-full")
         ui.button(
-            "Cancel Execution Selection",
+            "Unselect Execution",
             on_click=lambda: cancel_execution_selection(),
             icon="cancel",
         )             
