@@ -22,15 +22,18 @@ NO_SELECTION_VALUE = "None"
 NO_SELECTION_INPUT = None
 
 def menu() -> None:
+    print(f"config.ODTP_AUTHENTICATION {config.ODTP_AUTHENTICATION}")
     ui.link("About", PATH_ABOUT).classes(replace="text-white")
     ui.link("Components", PATH_COMPONENTS).classes(replace="text-white")
     ui.link("Digital Twins", PATH_DIGITAL_TWINS).classes(replace="text-white")
     ui.link("Executions", PATH_EXECUTIONS).classes(replace="text-white")
     ui.link("Run", PATH_RUN).classes(replace="text-white")
     if config.ODTP_AUTHENTICATION == True:
-        ui.button('user', on_click=lambda: (app.storage.user.clear(), ui.navigate.to(PATH_SIGN)),icon='logout')
+        ui.button('user', on_click=lambda: (app.storage.user.clear(), ui.navigate.to(PATH_SIGN)),icon='logout')  
     else:
         ui.link("Users", PATH_USERS).classes(replace="text-white")
+
+        
     
         
 @contextmanager
