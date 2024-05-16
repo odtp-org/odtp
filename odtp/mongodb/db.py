@@ -162,6 +162,38 @@ def add_user(name, github, email):
     logging.info("User added with ID {}".format(user_id))
     return user_id
 
+#Check if a user already exist
+def user_exists(sub):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        existing_user = db[collection_users].find_one({"sub": sub})
+        return existing_user is not None
+
+def add_user_keycloak(name, github, email,sub):
+    """add new user and return id"""
+    """ Add a new user if it doesn't exist and return the user ID."""
+    if user_exists(sub):
+        logging.warning(f"User with ID {sub} already exists")
+        return None
+    else:
+        try:
+            user_data = {
+            "sub": sub,
+            "displayName": name,
+            "email": email,
+            "github": github,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            }
+            with MongoClient(ODTP_MONGO_SERVER) as client:
+                user_id = (
+                    client[ODTP_MONGO_DB][collection_users].insert_one(user_data).inserted_id
+                    )
+                logging.info("User added with ID {}".format(user_id))
+                return user_id
+        except Exception as e:
+            print(f"The user could not be added in the database. An Exception occurred: {e}")
+
 
 def add_component_version(
     repo_info,
