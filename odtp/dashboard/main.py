@@ -54,10 +54,10 @@ def ui_logout() -> None:
 
 
 app.add_static_files("/static", "static")
-#if ODTP_AUTHENTICATION == True:3
-url = ODTP_KEYCLOAK_URL
-audience = ODTP_KEYCLOAK_AUDIENCE
-app.add_middleware(AuthMiddleware, url=url, audience=audience)
+if ODTP_AUTHENTICATION == True:
+    url = ODTP_KEYCLOAK_URL
+    audience = ODTP_KEYCLOAK_AUDIENCE
+    app.add_middleware(AuthMiddleware, url=url, audience=audience)
 
 ui.run(
     title="ODTP", 
