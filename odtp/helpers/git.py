@@ -83,7 +83,7 @@ def check_commit_for_repo(repo_url, commit_hash=None):
             commits = [item.get("sha") for item in content]
             if commit_hash in commits:
                 return commit_hash
-    raise OdtpGithubException(f"Github repo {repo_url} has no commit {commit_hash}")
+    raise OdtpGithubException(f"Could not access Github repo {repo_url} / {commit_hash} Maybe you have no permission for this repo")
 
 
 def get_commit_of_component_version(repo_info, component_version):

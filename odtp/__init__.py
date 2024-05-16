@@ -8,7 +8,6 @@ import importlib.metadata as importlib_metadata
 __version__ = importlib_metadata.version(__name__)
 
 import os
-import logging
 from logging import config as logging_config
 
 here = os.path.abspath(os.path.dirname(__file__))

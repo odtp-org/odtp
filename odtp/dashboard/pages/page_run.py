@@ -441,7 +441,7 @@ def ui_execution_details(current_run):
 def ui_prepare_folder(dialog, result, workdir, current_run):
     stepper = current_run.get("stepper")
     project_path = current_run.get("project_path")
-    execution = current_run.get("execution")
+    execution = current_run.get("execution")    
     folder_matches = False
     if stepper and STEPPERS.index(stepper) != STEPPER_SELECT_FOLDER:
         return
@@ -580,12 +580,16 @@ def store_selected_execution(value, current_run):
         ui_stepper.refresh()
 
 
-def ui_prepare_execution(dialog, result, current_run):
+def ui_prepare_execution(dialog, result, current_run):    
     stepper = current_run.get("stepper")
     if stepper and STEPPERS.index(stepper) != STEPPER_PREPARE_EXECUTION:
         return
     execution = current_run["execution"]
     project_path = current_run["project_path"]
+    if not project_path or not execution:
+        ui.notify("Complete previous steps before you can run an execution.", type="negative")
+        ui_next_back(current_run)
+        return
     cli_prepare_command = build_command(
         cmd="prepare",
         execution_id=execution['execution_id'],
@@ -643,10 +647,14 @@ def build_command(
 def ui_run_execution(dialog, result, current_run):
     stepper = current_run.get("stepper")
     if stepper and STEPPERS.index(stepper) != STEPPER_RUN_EXECUTION:
-        return
+        return    
     execution = current_run["execution"]
     project_path = current_run["project_path"]
-    secret_files = current_run["secret_files"]
+    if not project_path or not execution:
+        ui.notify("Complete previous steps before you can run an execution.", type="negative")
+        ui_next_back(current_run)
+        return    
+    secret_files = current_run["secret_files"]    
     cli_run_command = build_command(
         cmd="run",
         secret_files=secret_files,
