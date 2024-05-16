@@ -9,6 +9,7 @@ from odtp.dashboard.pages.page_executions import content as executions_page
 from odtp.dashboard.pages.page_run import content as run_page
 from odtp.dashboard.pages.page_user import content as user_page
 from odtp.dashboard.utils.middleware import AuthMiddleware
+from odtp.dashboard.utils.storage import reset_all
 
 
 @ui.page("/")
@@ -49,7 +50,7 @@ def components():
 @ui.page("/logout")
 def ui_logout() -> None:
     url = ODTP_KEYCLOAK_LOGOUT
-    print(f"logout {url}")
+    reset_all()
     ui.open(url) 
 
 
