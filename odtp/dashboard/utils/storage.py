@@ -11,6 +11,7 @@ import odtp.helpers.utils as odtp_utils
 import odtp.mongodb.db as db
 
 CURRENT_USER = "user"
+AUTH_USER_KEYCLOAK = "auth_user"
 CURRENT_DIGITAL_TWIN = "digital_twin"
 CURRENT_EXECUTION = "execution"
 NEW_EXECUTION = "add_execution"
@@ -141,3 +142,20 @@ def store_execution_selection(storage_key, execution_id):
     }
     current_execution_as_json = json.dumps(current_execution)
     app.storage.user[storage_key] = current_execution_as_json 
+
+def storage_update_user_keycloak(user_data):
+    try:
+        user_component = json.dumps(
+            {
+                "sub": user_data.get("sub"),
+                "name": user_data.get("preferred_username"),
+                "repo_link": user_data.get("Github_repo"),
+                "email": user_data.get("email"),
+                }
+            )
+        print(f"user_component {user_component}")
+        app.storage.user[AUTH_USER_KEYCLOAK] = user_component  
+    except Exception as e:
+        ui.notify(
+            f"storage update for {AUTH_USER_KEYCLOAK} failed: {e}", type="negative"
+        )   
