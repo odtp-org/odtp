@@ -1,5 +1,5 @@
 from nicegui import app, native, ui
-from odtp.helpers.settings import (ODTP_DASHBOARD_PORT, ODTP_DASHBOARD_RELOAD, ODTP_KEYCLOAK_LOGOUT)
+from odtp.helpers.settings import (ODTP_DASHBOARD_PORT, ODTP_DASHBOARD_RELOAD, ODTP_KEYCLOAK_LOGOUT, ODTP_KEYCLOAK_AUDIENCE,ODTP_KEYCLOAK_URL,ODTP_AUTHENTICATION)
 
 import odtp.dashboard.utils.ui_theme as ui_theme
 from odtp.dashboard.pages.page_about import content as about_page
@@ -8,6 +8,7 @@ from odtp.dashboard.pages.page_digital_twins import content as digital_twins_pag
 from odtp.dashboard.pages.page_executions import content as executions_page
 from odtp.dashboard.pages.page_run import content as run_page
 from odtp.dashboard.pages.page_user import content as user_page
+from odtp.dashboard.utils.middleware import AuthMiddleware
 
 
 @ui.page("/")
@@ -48,10 +49,15 @@ def components():
 @ui.page("/logout")
 def ui_logout() -> None:
     url = ODTP_KEYCLOAK_LOGOUT
+    print(f"logout {url}")
     ui.open(url) 
 
 
 app.add_static_files("/static", "static")
+#if ODTP_AUTHENTICATION == True:3
+url = ODTP_KEYCLOAK_URL
+audience = ODTP_KEYCLOAK_AUDIENCE
+app.add_middleware(AuthMiddleware, url=url, audience=audience)
 
 ui.run(
     title="ODTP", 
