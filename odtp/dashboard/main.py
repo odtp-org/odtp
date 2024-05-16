@@ -1,5 +1,5 @@
 from nicegui import app, native, ui
-from odtp.helpers.settings import (ODTP_DASHBOARD_PORT, ODTP_DASHBOARD_RELOAD)
+from odtp.helpers.settings import (ODTP_DASHBOARD_PORT, ODTP_DASHBOARD_RELOAD, ODTP_KEYCLOAK_LOGOUT)
 
 import odtp.dashboard.utils.ui_theme as ui_theme
 from odtp.dashboard.pages.page_about import content as about_page
@@ -44,6 +44,11 @@ def components():
 def components():
     with ui_theme.frame("Executions"):
         executions_page()
+        
+@ui.page("/logout")
+def ui_logout() -> None:
+    url = ODTP_KEYCLOAK_LOGOUT
+    ui.open(url) 
 
 
 app.add_static_files("/static", "static")
