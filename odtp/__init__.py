@@ -12,5 +12,5 @@ logging.basicConfig(#filename='my_logs.log',
                     #filemode='w',
                     format='%(levelname)s (%(asctime)s): %(message)s (LineL %(lineno)d [%(filename)s])',
                     datefmt='%d/%m/%Y %I:%M:%S %p',
-                    level=logging.INFO)
+                    level=logging.ERROR)
 # logging.info('The answer is: %s', x) #Variable.
