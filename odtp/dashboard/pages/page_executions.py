@@ -20,7 +20,7 @@ STEPPERS = (
     "Workflow",
     "Parameters from File",
     "Parameters Overwrite",
-    "Ports",
+    "Ports mapping",
     "Save"
 )
 
@@ -33,58 +33,25 @@ STEPPER_SAVE_INDEX = 5
 
 
 def content() -> None:
-    ui.markdown(
-        """
-        # Manage Executions
-        """
-    )
     current_user = storage.get_active_object_from_storage(
         storage.CURRENT_USER
-    )
+    )     
     workdir = storage.get_value_from_storage_for_key(
         storage.CURRENT_USER_WORKDIR
     )    
-    if not current_user:
-        ui_theme.ui_add_first(
-            item_name="a user",
-            page_link=ui_theme.PATH_USERS,
-            action="select",
-        )     
-        return
-    if not workdir:
-        ui_theme.ui_add_first(
-            item_name="a working directory",
-            page_link=ui_theme.PATH_USERS,
-            action="select",
-        )     
-        return        
     current_digital_twin = storage.get_active_object_from_storage(
         storage.CURRENT_DIGITAL_TWIN
     )
-    if not current_digital_twin:
-        ui_theme.ui_add_first(
-            item_name="a digital twin",
-            page_link=ui_theme.PATH_DIGITAL_TWINS,
-            action="select",
-        )     
-        return  
-    components = db.get_collection(collection=db.collection_components)
-    if not components:
-        ui_theme.ui_add_first(
-            item_name="Components",
-            page_link=ui_theme.PATH_COMPONENTS,
-            action="add",
-        )     
-        return     
-    with ui.right_drawer(fixed=False).classes("bg-slate-50").props(
-        "bordered width=500"
-    ):
-        ui_workarea(
-            current_digital_twin=current_digital_twin,
-            current_user=current_user,
-            workdir=workdir
-        )
-    with ui.tabs().classes("w-full") as tabs:
+    components = db.get_collection(collection=db.collection_components)      
+    ui_workarea(
+        current_digital_twin=current_digital_twin,
+        current_user=current_user,
+        workdir=workdir,
+        components=components,
+    )
+    if not current_digital_twin or not current_user or not workdir or not components:
+        return
+    with ui.tabs() as tabs:
         select = ui.tab("Select an execution")
         add = ui.tab("Add an execution")
         table = ui.tab("Execution table")
@@ -178,6 +145,8 @@ def ui_execution_workflow_confirmation_form(current_execution_to_add, workdir):
                     ),
                     icon="folder"
                 ).props('flat')
+                if current_execution_to_add["parameter_files"][j]:
+                    ui.icon("check").classes("text-lg text-teal-500")
     with ui.grid(columns=1).classes('w-full'):
         with ui.row().classes('w-full'):      
             ui.button(
@@ -360,6 +329,7 @@ def store_new_execution_workflow(current_execution_to_add, workflow):
     current_execution_to_add["version_tags"] = [item[1] for item in workflow] 
     step_count = len(workflow)
     current_execution_to_add["parameters"] = [[] for i in range(step_count)]
+    current_execution_to_add["parameter_files"] = [[] for i in range(step_count)]
     current_execution_to_add["ports"] = [{} for i in range(step_count)]
     current_execution_to_add["stepper"] = STEPPERS[STEPPER_CONFIRM_INDEX]
     app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)  
@@ -418,13 +388,14 @@ async def pick_parameter_file(step_index, workdir, current_execution_to_add) -> 
             file_path = result[0]
             parameters = dict(odtp_parse.parse_parameters_for_one_file(file_path))
             current_execution_to_add["parameters"][step_index] = parameters
+            current_execution_to_add["parameter_files"][step_index] = file_path
             app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     except odtp_parse.OdtpParameterParsingException:
         ui.notify(f"Selected file {file_path} could not be parsed. Is it a parameter file?", type="negative")     
     except Exception as e:
         logging.error(f"An exception {e} occurred when picking a parameter file.")
     else:    
-        ui.notify(f"parameters have been loaded for step {step_index + 1}")
+        ui.notify(f"parameters have been loaded for step {step_index + 1}", type="positive")
         ui_add_execution.refresh()
 
 
@@ -544,50 +515,71 @@ def ui_execution_details():
 
 
 @ui.refreshable
-def ui_workarea(current_digital_twin, current_user, workdir):
-    ui.markdown(
-        """
-        ### Work Area
-        """
-    )
+def ui_workarea(current_digital_twin, current_user, workdir, components):
+    with ui.row().classes("w-full"):  
+        ui.markdown(
+            """
+            # Manage Executions
+            """
+        )    
+    if not current_user:
+        ui_theme.ui_add_first(
+            item_name="a user",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
+        )     
+        return
+    if not workdir:
+        ui_theme.ui_add_first(
+            item_name="a working directory",
+            page_link=ui_theme.PATH_USERS,
+            action="select",
+        )     
+        return        
+    if not current_digital_twin:
+        ui_theme.ui_add_first(
+            item_name="a digital twin",
+            page_link=ui_theme.PATH_DIGITAL_TWINS,
+            action="select",
+        )     
+        return  
+    if not components:
+        ui_theme.ui_add_first(
+            item_name="Components",
+            page_link=ui_theme.PATH_COMPONENTS,
+            action="add",
+        )     
+        return  
     current_execution = storage.get_active_object_from_storage(
         storage.CURRENT_EXECUTION
-    )
-    if not current_execution:
-        ui.markdown(
-            f"""
-            #### Current Selection
-            - **user**: {current_user.get("display_name")}
-            - **digital twin**: {current_digital_twin.get("name")}
-            - **work directory**: {workdir}
-
-            ##### Actions
-            - add execution
-            - select execution 
-            """
-        )
-        return
-    step_names = current_execution.get("step_names")
-    ui.markdown(
-        f"""
-        #### Current Selection
-        - **user**: {current_user.get("display_name")}
-        - **digital twin**: {current_digital_twin.get("name")}
-        - **current execution** {current_execution.get("title")}
-        """
-    )
-    ui.button(
-        "Prepare and Run Executions",
-        on_click=lambda: ui.open(ui_theme.PATH_RUN),
-        icon="link",
-    )
-    ui.markdown(
-        f"""
-        ##### Actions
-        - add executions
-        - select executions 
-        """
-    )
+    )  
+    if current_execution:
+        execution_title = current_execution.get("title")
+    else:
+        execution_title = ui_theme.MISSING_VALUE     
+    with ui.grid(columns=2):  
+        with ui.column():             
+            ui.markdown(
+                f"""
+                #### Current Selection
+                - **user**: {current_user.get("display_name")}
+                - **digital twin**: {current_digital_twin.get("name")}
+                - **current execution**: {execution_title}
+                - **work directory**: {workdir}
+                """
+            ) 
+        with ui.column():                             
+            if current_execution:
+                ui.markdown(
+                    f"""
+                    #### Actions
+                    """
+                )
+                ui.button(
+                    "Prepare and Run Executions",
+                    on_click=lambda: ui.open(ui_theme.PATH_RUN),
+                    icon="link",
+                )
 
 
 def store_selected_execution(value):
