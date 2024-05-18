@@ -30,12 +30,12 @@ class ContainerParameters(object):
                         {helpers.get_workflow_mermaid([tag], init='graph TB;')}"""
                     )
                     ui.button(
-                        "add line",
+                        "add parameter",
                         on_click=lambda index=index: self.add_parameter_line_for_step(index),
                         icon="add",
                     ).props("flat").classes("text-xs")
                     ui.button(
-                        "remove line",
+                        "remove parameter",
                         on_click=lambda index=index: self.remove_parameter_line_for_step(index),
                         icon="remove",
                     ).props("flat").classes("text-xs")
