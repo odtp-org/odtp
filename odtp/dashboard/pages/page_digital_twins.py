@@ -28,12 +28,10 @@ def content() -> None:
             action="select",
         )     
         return     
-    with ui.right_drawer().classes("bg-slate-50").props(
-        "bordered width=500"
-    ) as right_drawer:
-        ui_workarea(current_user, user_workdir)
+
+    ui_workarea(current_user, user_workdir)
     if current_user:
-        with ui.tabs().classes("w-full") as tabs:
+        with ui.tabs() as tabs:
             select = ui.tab("Select a digital twin")
             add = ui.tab("Add a new digital twin")
         with ui.tab_panels(tabs, value=select).classes("w-full"):
@@ -77,11 +75,6 @@ def ui_digital_twins_table(current_user):
 @ui.refreshable
 def ui_digital_twin_select(current_user) -> None:
     try:
-        ui.markdown(
-            """
-            #### Select digital twin
-            """
-        )
         current_digital_twin = storage.get_active_object_from_storage(
             (storage.CURRENT_DIGITAL_TWIN)
         )
@@ -150,33 +143,32 @@ def ui_workarea(current_user, user_workdir):
     else:
         user_workdir_display = user_workdir     
     if not current_digital_twin: 
-        digital_twin_display = "-"  
+        digital_twin_display = ui_theme.MISSING_VALUE  
     else:
-        digital_twin_display = current_digital_twin.get("name")           
-    ui.markdown(
-        """
-        ### Work Area
-        """
-    )
+        digital_twin_display = current_digital_twin.get("name")     
     try:
-        ui.markdown(
-            f"""
-            #### Current Selection
-            - **user**: {current_user.get("display_name")}
-            - **digital twin**: {digital_twin_display}
-            - **work directory**: {user_workdir_display}
-            
-            #### Actions
-            - add a digital twin
-            - select a digital twin
-            - list digital twins
-            """
-        )
-        ui.button(
-            "Manage Executions",
-            on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
-            icon="link",
-        )
+        with ui.grid(columns=2):  
+            with ui.column():
+                ui.markdown(
+                    f"""
+                    #### Current Selection
+                    - **user**: {current_user.get("display_name")}
+                    - **digital twin**: {digital_twin_display}
+                    - **work directory**: {user_workdir_display}
+                    """
+                )
+            if current_digital_twin:    
+                with ui.column():    
+                    ui.markdown(
+                        f"""
+                        #### Actions
+                        """
+                    )            
+                    ui.button(
+                        "Manage Executions",
+                        on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
+                        icon="link",
+                    )
     except Exception as e:
         logging.error(
             f"Work area could not be loaded. An Exception happened: {e}"
