@@ -19,14 +19,13 @@ def content() -> None:
         select = ui.tab("Component options")
         add_component = ui.tab("Add Component")
     with ui.tab_panels(tabs, value=select).classes("w-full"):
-        with ui.tab_panel(list):
-            ui_components_list()
         with ui.tab_panel(select):
             ui_component_select()
             ui_component_show()
-            ui_version_add()
         with ui.tab_panel(add_component):
             ui_component_add()
+        with ui.tab_panel(list):
+            ui_components_list()            
 
 
 @ui.refreshable
@@ -67,8 +66,9 @@ def ui_component_select() -> None:
                 return    
             ui.markdown(
                 """
-                #### Select a component
-                Select a component to see the versions of this component.
+                #### Component Options
+                - compare github and ODTP
+                - add versions from github
                 """
             )      
             if current_component:
@@ -97,16 +97,13 @@ def ui_component_select() -> None:
 def ui_version_add():
     ui.markdown(
         """
-        #### Add Version for Component
+        ##### Add Version
+        add any tagged version from github that is not on ODTP yet
         """
     )
     current_component = storage.get_active_object_from_storage(
         storage.CURRENT_COMPONENT
-    )
-    if not current_component:
-        ui.label("First select the component by choosing the Component Details Tab.")
-        return
-    ui.label(current_component.get("name")).classes("text-lg font-medium")     
+    )  
     ui_form_version_add(current_component)
 
 
@@ -135,7 +132,7 @@ def ui_form_version_add(current_component):
         options=version_selector,
         validation={f"A version selection is required":
                     lambda value: validators.validate_required_input(value)},
-    ).classes("w-1/2")
+    ).classes("w-1/4")
     with ui.row():
         ports_inputs = []
         for i in range(3):
@@ -260,6 +257,7 @@ def ui_component_show():
         )
         if not current_component:
             return
+        ui_version_add()
         with ui.grid(columns=2):
             ui_git_info_show(
                 component=current_component,
