@@ -19,6 +19,8 @@ PATH_RUN = "/run"
 NO_SELECTION_VALUE = "None"
 NO_SELECTION_INPUT = None
 
+MISSING_VALUE = "<scan style=color:red>not set</span>"
+
 def menu() -> None:
     ui.link("About", PATH_ABOUT).classes(replace="text-white")
     ui.link("Users", PATH_USERS).classes(replace="text-white")
