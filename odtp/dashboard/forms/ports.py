@@ -30,15 +30,17 @@ class ContainerPorts(object):
             ) 
 
     def add_button(self, index):
-        with self.containers[index]:
+        with self.containers[index].classes("flex items-center"):
             ui.button( 
+                "add ports mapping",
                 on_click=lambda index=index: self.add_port(index), 
                 icon="add",
-            ).props("flat").classes("content-center pt-5 text-xs") 
+            ).props("flat").props("flat").classes("text-xs")
             ui.button( 
+                "remove ports mapping",
                 on_click=lambda index=index: self.remove_port(index), 
                 icon="remove",
-            ).props("flat").classes("content-center pt-5 text-xs")               
+            ).props("flat").props("flat").classes("text-xs")              
 
     def remove_port(self, index): 
         row = [item for item in self.containers[index] if item.tag == "nicegui-input"]
@@ -48,7 +50,7 @@ class ContainerPorts(object):
     def add_port(self, index, value=""):  
         with self.containers[index]:
             ui.input(
-                label="port",
+                label="ports mapping",
                 validation={f"Please provide a valid port mapping":
                 lambda value: validators.validate_ports_mapping_input(value)},
                 value=value,
