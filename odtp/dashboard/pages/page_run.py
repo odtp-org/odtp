@@ -85,6 +85,9 @@ def content() -> None:
             action="select",
         )     
         return 
+    current_execution = storage.get_active_object_from_storage(
+        storage.CURRENT_EXECUTION
+    )        
     executions = db.get_sub_collection_items(
         collection=db.collection_digital_twins,
         sub_collection=db.collection_executions,
@@ -101,60 +104,61 @@ def content() -> None:
     with ui.dialog().props("full-width") as dialog, ui.card():
         result = ui.markdown()
         ui.button("Close", on_click=dialog.close)
-    with ui.right_drawer().classes("bg-slate-50").props(
-        "bordered width=500"
-    ):
-        ui_workarea(
-            current_user=current_user,
-            current_digital_twin=current_digital_twin,
-            workdir=workdir
-        )
+    ui_workarea(
+        current_user=current_user,
+        current_digital_twin=current_digital_twin,
+        current_execution=current_execution,
+        workdir=workdir,
+    )
     ui_stepper(
         dialog,
         result,
         current_digital_twin=current_digital_twin,
-        workdir=workdir
+        current_execution=current_execution,
+        workdir=workdir,
     )
 
 
 @ui.refreshable
-def ui_workarea(current_user, current_digital_twin, workdir):
-    ui.markdown(
-        """
-        ### Work Area
-        """
-    )
-    with ui.row():
-        ui.markdown(
-            f"""
-            #### General Settings
-            - **user**: {current_user.get("display_name")}
-            - **digital twin**: {current_digital_twin.get("name")}"
-            - **working directory**: {workdir}
-
-            ##### Actions
-            - select execution for run
-            - add secret files for steps
-            - select project folder
-            - execution prepare
-            - execution run
-            """
-        )
+def ui_workarea(current_user, current_digital_twin, current_execution, workdir):
+    with ui.grid(columns=2):  
+        with ui.column():             
+            ui.markdown(
+                f"""
+                #### Current Selection
+                - **user**: {current_user.get("display_name")}
+                - **digital twin**: {current_digital_twin.get("name")}
+                - **current execution**: {current_execution.get("title")}
+                - **work directory**: {workdir}
+                """
+            ) 
+        with ui.column():                             
+            if current_execution:
+                ui.markdown(
+                    f"""
+                    #### Actions
+                    """
+                )
+                ui.button(
+                    "Manage Executions",
+                    on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
+                    icon="link",
+                )
+                ui.button(
+                    "Cancel Run Selection",
+                    on_click=lambda: cancel_run_selection(),
+                    icon="cancel",
+                ).props("flat")                                   
 
 
 @ui.refreshable 
-def ui_stepper(dialog, result, current_digital_twin, workdir):
+def ui_stepper(dialog, result, current_digital_twin, current_execution, workdir):
     logging.info("stepper ui")
     current_run = storage.get_active_object_from_storage(
        storage.EXECUTION_RUN
     )
-    ui.button(
-        "Cancel Run Selection",
-        on_click=lambda: cancel_run_selection(),
-        icon="cancel",
-    )
     if not current_run:
-        current_run = execution_run_init(current_digital_twin)
+        current_run = execution_run_init(current_digital_twin, current_execution)
     stepper = current_run.get("stepper")
     if ODTP_DASHBOARD_JSON_EDITOR:
         with ui.expansion("Current Execution Run as JSON"):
@@ -166,7 +170,7 @@ def ui_stepper(dialog, result, current_digital_twin, workdir):
     ui_run_status(current_run)
     with ui.stepper(value=stepper).props('vertical').classes('w-full') as stepper:
         with ui.step(STEPPERS[STEPPER_SELECT_EXECUTION]):           
-            ui_execution_select(current_run)
+            ui_execution_select(current_run, current_digital_twin)
             ui_execution_details(current_run)
         with ui.step(STEPPERS[STEPPER_ADD_SECRETS]):
             with ui.stepper_navigation():
@@ -214,7 +218,6 @@ def ui_run_status(current_run):
             ui.label("Execution selected")
             ui.markdown(
                 f"""
-                - **digital twin**: {current_run["digital_twin_name"]}
                 - **execution**: {execution["title"]}
                 """
             )
@@ -275,35 +278,33 @@ def ui_next_back(current_run):
                 ).props('flat')
 
 
-def execution_run_init(digital_twin):
+def execution_run_init(digital_twin, execution):
     current_run = {
         "digital_twin_id": digital_twin["digital_twin_id"],
         "digital_twin_name": digital_twin["name"],
         "stepper": STEPPERS[STEPPER_SELECT_EXECUTION],
         "secret_files": "",
         "project_path": "",
+        "execution": execution,
     }
     return current_run
 
 
-def ui_execution_select(current_run):
+def ui_execution_select(current_run, digital_twin):
     stepper = current_run.get("stepper")
     if stepper and STEPPERS.index(stepper) != STEPPER_SELECT_EXECUTION:
         return
     execution = current_run.get("execution")
-    if execution:
-        selected_value = execution["execution_id"]
-    else:
-        selected_value = None 
+    ui.label(execution.get("title"))
     execution_options = helpers.get_execution_select_options(
         digital_twin_id=current_run["digital_twin_id"]
     )
     if execution_options:
         ui.select(
             execution_options,
-            value=selected_value,
+            value=execution["execution_id"],
             label="executions",
-            on_change=lambda e: store_selected_execution(e.value, current_run),
+            on_change=lambda e: store_selected_execution(e.value, current_run, digital_twin),
             with_input=True,
         ).classes("w-full")  
     ui_next_back(current_run)
@@ -560,13 +561,13 @@ def get_folder_status(execution_id, project_path):
         return FOLDER_DOES_NOT_MATCH
 
 
-def store_selected_execution(value, current_run):
+def store_selected_execution(value, current_run, digital_twin):
     if not ui_theme.new_value_selected_in_ui_select(value):
         return
     try:
         execution_id = value
         execution = helpers.build_execution_with_steps(execution_id)
-        current_run["execution"] = execution
+        current_run = execution_run_init(digital_twin=digital_twin, execution=execution)
         current_run_as_json = json.dumps(current_run)
         app.storage.user[storage.EXECUTION_RUN] = current_run_as_json
     except Exception as e:
@@ -673,7 +674,7 @@ def ui_run_execution(dialog, result, current_run):
         ).props("no-caps")
     with ui.row().classes("w-full"):              
         ui.button(
-            "Check output in project folder",
+            "Open logging",
             on_click=lambda: run_command(cli_output_command, dialog, result),
             icon="info",
         ).props("no-caps")
