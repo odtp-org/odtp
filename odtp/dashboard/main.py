@@ -55,11 +55,11 @@ def ui_logout() -> None:
 
 
 app.add_static_files("/static", "static")
-if ODTP_AUTHENTICATION == True:
+if ODTP_AUTHENTICATION :
     url = ODTP_KEYCLOAK_URL
     audience = ODTP_KEYCLOAK_AUDIENCE
     app.add_middleware(AuthMiddleware, url=url, audience=audience)
-
+print(f"ODTP_AUTHENTICATION {ODTP_AUTHENTICATION}")
 ui.run(
     title="ODTP", 
     storage_secret="private key to secure the browser session cookie", 
