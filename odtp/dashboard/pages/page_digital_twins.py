@@ -40,7 +40,6 @@ def content() -> None:
                     ui_digital_twins_table(current_user)
                 with ui.tab_panel(add):
                     ui_add_digital_twin(current_user)
-                    
     else:
         current_user = storage.get_active_object_from_storage(
             storage.CURRENT_USER
@@ -117,7 +116,7 @@ def ui_digital_twin_select(current_user) -> None:
             value = current_digital_twin["digital_twin_id"]
         else:
             value = ""
-        user_id = current_user["user_id"]
+        user_id = current_user["user_id:"]
         digital_twins = db.get_sub_collection_items(
             collection=db.collection_users,
             sub_collection=db.collection_digital_twins,
