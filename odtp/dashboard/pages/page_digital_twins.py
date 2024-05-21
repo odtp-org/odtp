@@ -7,7 +7,9 @@ import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.mongodb.db as db
-
+import odtp.helpers.settings as config
+from odtp.helpers.settings import ODTP_PATH
+from odtp.dashboard.utils.file_picker import local_file_picker
 
 def content() -> None:
     ui.markdown(
@@ -15,33 +17,43 @@ def content() -> None:
         # Manage Digital Twins
         """
     )
-    current_user = storage.get_active_object_from_storage(
-        storage.CURRENT_USER
-    )
-    user_workdir = storage.get_value_from_storage_for_key(
-        storage.CURRENT_USER_WORKDIR
-    )      
-    if not current_user:
-        ui_theme.ui_add_first(
-            item_name="a user",
-            page_link=ui_theme.PATH_USERS,
-            action="select",
-        )     
-        return     
-    with ui.right_drawer().classes("bg-slate-50").props(
-        "bordered width=500"
-    ) as right_drawer:
-        ui_workarea(current_user, user_workdir)
-    if current_user:
-        with ui.tabs().classes("w-full") as tabs:
-            select = ui.tab("Select a digital twin")
-            add = ui.tab("Add a new digital twin")
-        with ui.tab_panels(tabs, value=select).classes("w-full"):
-            with ui.tab_panel(select):
-                ui_digital_twin_select(current_user)
-                ui_digital_twins_table(current_user)
-            with ui.tab_panel(add):
-                ui_add_digital_twin(current_user)
+    if config.ODTP_AUTHENTICATION == True:
+        current_user = storage.get_active_object_from_storage(
+        storage.AUTH_USER_KEYCLOAK
+        )
+        user = current_user.get("name")
+        print(f"user {user}")
+        ui_workarea_keycloak() 
+ 
+        
+    else:
+        current_user = storage.get_active_object_from_storage(
+            storage.CURRENT_USER
+        )
+        user_workdir = storage.get_value_from_storage_for_key(
+            storage.CURRENT_USER_WORKDIR
+        )      
+        if not current_user:
+            ui_theme.ui_add_first(
+                item_name="a user",
+                page_link=ui_theme.PATH_USERS,
+                action="select",
+            )     
+            return     
+        with ui.right_drawer().classes("bg-slate-50").props(
+            "bordered width=500"
+        ) as right_drawer:
+            ui_workarea(current_user, user_workdir)
+        if current_user:
+            with ui.tabs().classes("w-full") as tabs:
+                select = ui.tab("Select a digital twin")
+                add = ui.tab("Add a new digital twin")
+            with ui.tab_panels(tabs, value=select).classes("w-full"):
+                with ui.tab_panel(select):
+                    ui_digital_twin_select(current_user)
+                    ui_digital_twins_table(current_user)
+                with ui.tab_panel(add):
+                    ui_add_digital_twin(current_user)
 
 
 @ui.refreshable
@@ -225,3 +237,49 @@ def add_digital_twin(name_input, user_id):
         ui_digital_twin_select.refresh()
         ui_digital_twins_table.refresh()
         ui_add_digital_twin.refresh()
+
+async def pick_workdir() -> None:
+    try:
+        result = await local_file_picker('~', multiple=True)
+        # root = ODTP_PATH
+        # print(f"root {root}")
+        # #result = await local_file_picker(root, multiple=False)
+        
+        # print(f"result {result}")
+        if result:
+            workdir = result[0]
+            print(f"workdir  {workdir}")
+            app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
+            print(f"storage.CURRENT_USER_WORKDIR  {storage.CURRENT_USER_WORKDIR}")
+            ui.notify(f"A new user workdir has been set to {workdir}", type="positive")
+    except Exception as e:
+        logging.error(
+            f"Work directory could not be picked: an Exception occurred: {e}"
+        )
+    else:            
+        ui_workarea.refresh()    
+
+
+def reset_workdir():
+    app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
+    ui.notify(f"User workdir has been set to {ODTP_PATH}", type="positive")
+    ui_workarea.refresh()
+
+
+@ui.refreshable
+def ui_workarea_keycloak():
+    ui.markdown(
+        """
+        ### Work Area
+        """
+    )
+    try:      
+        ui.button(
+            "Set Work directory", 
+            on_click=pick_workdir, 
+            icon="folder"
+        )     
+    except Exception as e:
+        logging.error(
+            f"Workarea could not be retrieved. An Exception occurred: {e}"
+        )
