@@ -21,11 +21,26 @@ def content() -> None:
         current_user = storage.get_active_object_from_storage(
         storage.AUTH_USER_KEYCLOAK
         )
-        user = current_user.get("name")
-        print(f"user {user}")
         ui_workarea_keycloak() 
- 
-        
+        user_workdir = storage.get_value_from_storage_for_key(
+            storage.CURRENT_USER_WORKDIR
+        ) 
+    
+        with ui.right_drawer().classes("bg-slate-50").props(
+            "bordered width=500"
+        ) as right_drawer:
+            ui_workarea(current_user, user_workdir)     
+        if current_user:
+            with ui.tabs().classes("w-full") as tabs:
+                select = ui.tab("Select a digital twin")
+                add = ui.tab("Add a new digital twin")
+            with ui.tab_panels(tabs, value=select).classes("w-full"):
+                with ui.tab_panel(select):
+                    ui_digital_twin_select(current_user)
+                    ui_digital_twins_table(current_user)
+                with ui.tab_panel(add):
+                    ui_add_digital_twin(current_user)
+                    
     else:
         current_user = storage.get_active_object_from_storage(
             storage.CURRENT_USER
@@ -58,12 +73,13 @@ def content() -> None:
 
 @ui.refreshable
 def ui_digital_twins_table(current_user):
+    print(f"current_user {current_user}")
     try:
         digital_twins = db.get_sub_collection_items(
             collection=db.collection_users,
             sub_collection=db.collection_digital_twins,
-            item_id=current_user["user_id"],
-            ref_name=db.collection_digital_twins,
+            item_id=current_user["user_id:"],
+            ref_name=db.collection_digital_twins, 
         )
         if not digital_twins: 
             return
@@ -130,6 +146,7 @@ def ui_digital_twin_select(current_user) -> None:
 
 @ui.refreshable
 def ui_add_digital_twin(current_user):
+
     ui.markdown(
         """
         #### Add a digital twin
@@ -146,10 +163,11 @@ def ui_add_digital_twin(current_user):
         ui.button(
             "Add new digital twin",
             on_click=lambda: add_digital_twin(
-                name_input=name_input, user_id=current_user["user_id"]
+                name_input=name_input, user_id=current_user["user_id:"]
             ),
             icon="add",
         )
+       
 
 
 @ui.refreshable
