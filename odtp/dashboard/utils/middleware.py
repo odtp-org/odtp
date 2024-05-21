@@ -46,12 +46,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
    
     
     async def dispatch(self, request:Request, call_next): 
-        print(f"self.url {self.url}")
-        print(f"self.audience {self.audience}") 
         header = request.headers.get("authorization")  
-        print(f"header {header}")  
         if not header or not header.startswith("Bearer "):
-            app.storage.user['auth_user'] = 'NONE'
+            #app.storage.user[storage.AUTH_USER_KEYCLOAK] = 'NONE'
             return RedirectResponse(ODTP_KEYCLOAK_REDIRECT)     
         """ Get the ID token from the header."""
         if header:
