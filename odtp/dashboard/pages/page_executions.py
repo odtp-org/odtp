@@ -10,6 +10,7 @@ import odtp.dashboard.utils.validators as validators
 import odtp.helpers.utils as odtp_utils
 import odtp.helpers.parse as odtp_parse
 import odtp.mongodb.db as db
+import odtp.helpers.settings as config
 
 
 STEPPERS = (
@@ -36,64 +37,107 @@ def content() -> None:
         # Manage Executions
         """
     )
-    current_user = storage.get_active_object_from_storage(
-        storage.CURRENT_USER
-    )
-    user_workdir = storage.get_value_from_storage_for_key(
-        storage.CURRENT_USER_WORKDIR
-    )    
-    if not current_user:
-        ui_theme.ui_add_first(
-            item_name="a user",
-            page_link=ui_theme.PATH_USERS,
-            action="select",
-        )     
-        return
-    if not user_workdir:
-        ui_theme.ui_add_first(
-            item_name="a working directory",
-            page_link=ui_theme.PATH_USERS,
-            action="select",
-        )     
-        return        
-    current_digital_twin = storage.get_active_object_from_storage(
-        storage.CURRENT_DIGITAL_TWIN
-    )
-    if not current_digital_twin:
-        ui_theme.ui_add_first(
-            item_name="a digital twin",
-            page_link=ui_theme.PATH_DIGITAL_TWINS,
-            action="select",
-        )     
-        return  
-    components = db.get_collection(collection=db.collection_components)
-    if not components:
-        ui_theme.ui_add_first(
-            item_name="Components",
-            page_link=ui_theme.PATH_COMPONENTS,
-            action="add",
-        )     
-        return     
-    with ui.right_drawer(fixed=False).classes("bg-slate-50").props(
-        "bordered width=500"
-    ):
-        ui_workarea(
-            current_digital_twin=current_digital_twin,
-            current_user=current_user,
-            user_workdir=user_workdir
+    if config.ODTP_AUTHENTICATION == True:
+        current_user = storage.get_active_object_from_storage(
+        storage.AUTH_USER_KEYCLOAK
         )
-    with ui.tabs().classes("w-full") as tabs:
-        select = ui.tab("Select an execution")
-        add = ui.tab("Add an execution")
-        table = ui.tab("Execution table")
-    with ui.tab_panels(tabs, value=select).classes("w-full"):
-        with ui.tab_panel(select):
-            ui_execution_select(current_digital_twin)
-            ui_execution_details()
-        with ui.tab_panel(add):
-            ui_add_execution(current_digital_twin, user_workdir)
-        with ui.tab_panel(table):
-            ui_executions_table(current_digital_twin)
+        user_workdir = storage.get_value_from_storage_for_key(
+            storage.CURRENT_USER_WORKDIR
+        ) 
+        print(f"user_workdir {user_workdir}")   
+        if current_user:
+            current_digital_twin = storage.get_active_object_from_storage(
+                storage.CURRENT_DIGITAL_TWIN
+        )
+      
+        components = db.get_collection(collection=db.collection_components)
+        if not components:
+            ui_theme.ui_add_first(
+                item_name="Components",
+                page_link=ui_theme.PATH_COMPONENTS,
+                action="add",
+                )     
+            return     
+        with ui.right_drawer(fixed=False).classes("bg-slate-50").props(
+            "bordered width=500"
+            ):
+            ui_workarea(
+                current_digital_twin=current_digital_twin,
+                current_user=current_user,
+                user_workdir=user_workdir
+                )
+        with ui.tabs().classes("w-full") as tabs:
+            select = ui.tab("Select an execution")
+            add = ui.tab("Add an execution")
+            table = ui.tab("Execution table")
+        with ui.tab_panels(tabs, value=select).classes("w-full"):
+            with ui.tab_panel(select):
+                ui_execution_select(current_digital_twin)
+                ui_execution_details()
+            with ui.tab_panel(add):
+                ui_add_execution(current_digital_twin, user_workdir)
+            with ui.tab_panel(table):
+                ui_executions_table(current_digital_twin)
+
+    else:
+        current_user = storage.get_active_object_from_storage(
+            storage.CURRENT_USER
+        )
+        user_workdir = storage.get_value_from_storage_for_key(
+            storage.CURRENT_USER_WORKDIR
+        )    
+        if not current_user:
+            ui_theme.ui_add_first(
+                item_name="a user",
+                page_link=ui_theme.PATH_USERS,
+                action="select",
+            )     
+            return
+        if not user_workdir:
+            ui_theme.ui_add_first(
+                item_name="a working directory",
+                page_link=ui_theme.PATH_USERS,
+                action="select",
+            )     
+            return        
+        current_digital_twin = storage.get_active_object_from_storage(
+            storage.CURRENT_DIGITAL_TWIN
+        )
+        if not current_digital_twin:
+            ui_theme.ui_add_first(
+                item_name="a digital twin",
+                page_link=ui_theme.PATH_DIGITAL_TWINS,
+                action="select",
+            )     
+            return  
+        components = db.get_collection(collection=db.collection_components)
+        if not components:
+            ui_theme.ui_add_first(
+                item_name="Components",
+                page_link=ui_theme.PATH_COMPONENTS,
+                action="add",
+            )     
+            return     
+        with ui.right_drawer(fixed=False).classes("bg-slate-50").props(
+            "bordered width=500"
+        ):
+            ui_workarea(
+                current_digital_twin=current_digital_twin,
+                current_user=current_user,
+                user_workdir=user_workdir
+            )
+        with ui.tabs().classes("w-full") as tabs:
+            select = ui.tab("Select an execution")
+            add = ui.tab("Add an execution")
+            table = ui.tab("Execution table")
+        with ui.tab_panels(tabs, value=select).classes("w-full"):
+            with ui.tab_panel(select):
+                ui_execution_select(current_digital_twin)
+                ui_execution_details()
+            with ui.tab_panel(add):
+                ui_add_execution(current_digital_twin, user_workdir)
+            with ui.tab_panel(table):
+                ui_executions_table(current_digital_twin)
 
 
 def ui_new_execution_start_form(current_digital_twin, current_execution_to_add):    
