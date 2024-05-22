@@ -1,7 +1,9 @@
 from nicegui import ui
+import odtp.dashboard.utils.storage as storage
 
 
 def content() -> None:
+    storage.reset_storage_keep([])
     with ui.row():
         ui.markdown(
             """
