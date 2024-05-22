@@ -345,7 +345,7 @@ def store_selected_component(value):
     if not ui_theme.new_value_selected_in_ui_select(value):
         return
     try:
-        storage.storage_update_component(component_id=value)
+        storage_update_component(component_id=value)
     except Exception as e:
         logging.error(
             f"Selected component could not be stored. An Exception occurred: {e}"
@@ -450,3 +450,28 @@ def register_new_component(
         ui_component_show.refresh()
         ui_version_add.refresh()
         ui_components_list.refresh()
+
+
+def storage_update_component(component_id):
+    try:
+        component = db.get_document_by_id(
+            document_id=component_id, collection=db.collection_components
+        )
+        repo_link = component.get("repoLink")
+        latest_commit = odtp_git.check_commit_for_repo(repo_link)
+        repo_info = odtp_git.get_github_repo_info(repo_link)
+        current_component = json.dumps(
+            {
+                "component_id": component_id,
+                "name": component.get("componentName"),
+                "repo_link": component.get("repoLink"),
+                "type": component.get("type"),
+                "latest_commit": latest_commit,
+                "repo_info": repo_info,
+            }
+        )
+        app.storage.user[storage.CURRENT_COMPONENT] = current_component
+    except Exception as e:
+        logging.error(
+            f"storage update for {storage.CURRENT_COMPONENT} failed: {e}"
+        )
