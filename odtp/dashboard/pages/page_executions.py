@@ -599,15 +599,6 @@ def store_selected_execution(value):
         ui_workarea.refresh()
 
 
-def view_component_details(version_id):
-    version = db.get_document_by_id(
-        document_id=version_id, collection=db.collection_versions
-    )
-    component_id = str(version["component"]["componentId"])
-    storage.storage_update_component(component_id=component_id)
-    ui.open(ui_theme.PATH_COMPONENTS)
-
-
 def cancel_execution_selection():
     storage.reset_storage_delete([storage.CURRENT_EXECUTION])
     ui.notify("The execution selection was canceled")
