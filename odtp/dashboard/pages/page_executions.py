@@ -51,18 +51,23 @@ def content() -> None:
     )
     if not current_digital_twin or not current_user or not workdir or not components:
         return
+    ui_tabs(current_digital_twin=current_digital_twin, workdir=workdir)    
+
+
+@ui.refreshable
+def ui_tabs(current_digital_twin, workdir):    
     with ui.tabs() as tabs:
         select = ui.tab("Select an execution")
         add = ui.tab("Add an execution")
         table = ui.tab("Execution table")
-    with ui.tab_panels(tabs, value=select).classes("w-full"):
+    with ui.tab_panels(tabs, value=select).classes("w-full") as panels:
         with ui.tab_panel(select):
             ui_execution_select(current_digital_twin)
             ui_execution_details()
         with ui.tab_panel(add):
             ui_add_execution(current_digital_twin, workdir)
         with ui.tab_panel(table):
-            ui_executions_table(current_digital_twin)
+            ui_executions_table(current_digital_twin) 
 
 
 def ui_new_execution_start_form(current_digital_twin, current_execution_to_add):    
@@ -73,24 +78,22 @@ def ui_new_execution_start_form(current_digital_twin, current_execution_to_add):
     else:
         presets = {
             "name": "",
-        }
-    with ui.row().classes('w-full'):
-        name_input = ui.input(
-            label="Execution title",
-            placeholder="Execution title",
-            validation={f"Please provide an execution title":
-                        lambda value: validators.validate_required_input(value)},
-            value=presets["name"],
-        ).classes("text-lg font-bold w-full")
-    with ui.row().classes('w-full'):  
-        ui.button(
-            "Next",
-            on_click=lambda: store_new_execution_init(
-                name_input=name_input,
-                digital_twin=current_digital_twin,
-                current_execution_to_add=current_execution_to_add 
-            ),
-        )
+        }   
+    name_input = ui.input(
+        label="Execution title",
+        placeholder="Execution title",
+        validation={f"Please provide an execution title":
+                    lambda value: validators.validate_required_input(value)},
+        value=presets["name"],
+    ).classes("w-full")
+    ui.button(
+        "Next",
+        on_click=lambda: store_new_execution_init(
+            name_input=name_input,
+            digital_twin=current_digital_twin,
+            current_execution_to_add=current_execution_to_add 
+        ),
+    )
 
 
 def ui_execution_workflow_template_form(current_execution_to_add):
@@ -277,9 +280,9 @@ def ui_add_execution(current_digital_twin, workdir):
         stepper = current_execution_to_add.get("stepper")
     else:
         stepper = STEPPERS[STEPPER_START_INDEX]   
-    with ui.stepper(value=stepper).props('vertical').classes('w-full') as stepper:
+    with ui.stepper(value=stepper).props('vertical').classes("w-full") as stepper:
         with ui.step(STEPPERS[STEPPER_START_INDEX]):
-            with ui.stepper_navigation():
+            with ui.stepper_navigation().classes("w-full"):
                 ui_new_execution_start_form(current_digital_twin, current_execution_to_add)             
         with ui.step(STEPPERS[STEPPER_WORKFLOW_INDEX]):
             with ui.stepper_navigation():
@@ -420,10 +423,13 @@ def save_new_execution(current_execution_to_add):
         )
     else:
         storage.reset_storage_delete([storage.NEW_EXECUTION])
+        execution_id = str(execution_id)
+        store_selected_execution(execution_id)
         ui_add_execution.refresh()
         ui_executions_table.refresh()
         ui_execution_select.refresh()
         ui_execution_details.refresh()
+        ui_tabs.refresh()
 
 
 @ui.refreshable
@@ -597,6 +603,7 @@ def store_selected_execution(value):
     else:
         ui_execution_details.refresh()
         ui_workarea.refresh()
+        ui_execution_select.refresh()
 
 
 def cancel_execution_selection():
