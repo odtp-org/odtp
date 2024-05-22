@@ -104,7 +104,7 @@ def build_execution_with_steps(execution_id):
         "timestamp": execution.get("start_timestamp").strftime(
             "%m/%d/%Y, %H:%M:%S"
         ),
-        "versions": execution.get("component_versions"),
+        "versions": execution["workflowSchema"]["component_versions"],
         "version_tags": version_tags,
         "steps": step_ids,
         "ports": ports,
