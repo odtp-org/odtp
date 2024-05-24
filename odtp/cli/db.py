@@ -24,7 +24,7 @@ def ls(collection_name: str):
 
 @app.command()
 def get(
-    collection: str = typer.Option(..., "--collection", help="Specify the collection"),
+    collection: str = typer.Argument(...,help="Specify the collection"),
     id: Annotated[str, typer.Option(help="Specify the id")] = None,
 ):
     if id:
