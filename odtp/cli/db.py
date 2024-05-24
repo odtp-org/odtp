@@ -9,6 +9,18 @@ import odtp.helpers.utils as odtp_utils
 
 app = typer.Typer()
 
+@app.command()
+def ls(collection_name: str):
+    """List all documents in a collection"""
+    db_output = db.get_collection(collection=collection_name)
+    #odtp_utils.print_output_as_json(db_output)
+    odtp_utils.output_as_pretty_table(db_output, collection_name)
+
+    #table = PrettyTable()
+    #table.field_names = ["City name", "Area", "Population", "Annual Rainfall"]
+    #table.add_rows([])
+
+
 
 @app.command()
 def get(
@@ -90,7 +102,7 @@ def delete_collection(
 @app.command()
 def deleteAll():
     db.delete_all()
-    print("All collection deleted.")
+    print("All collections deleted.")
 
 
 if __name__ == "__main__":
