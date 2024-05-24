@@ -135,7 +135,7 @@ class DockerManager:
         logging.info(f"RUN: Creating Docker volume {volume_name}")
         subprocess.run(["docker", "volume", "create", volume_name])
         
-    def run_component(self, parameters, secrets, ports, instance_name, step_id=None, debug=False):
+    def run_component(self, parameters, secrets, ports, instance_name, step_id=None, result_id=None, debug=False):
         """
         Run a Docker component with the specified parameters.
 
@@ -151,6 +151,7 @@ class DockerManager:
         
         if step_id:
             parameters["ODTP_STEP_ID"] = step_id
+            parameters["ODTP_RESULT"] = result_id
             parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
             parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
             parameters["ODTP_BUCKET_NAME"] = config.ODTP_BUCKET_NAME

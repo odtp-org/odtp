@@ -85,6 +85,16 @@ def get_collection_sorted(collection, sort_tuples):
         documents = mongodb_utils.get_list_from_cursor(cursor)
     return documents
 
+def get_component_version(component_name, version_tag):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        cursor = db[collection_versions].find({
+            "component.componentName": component_name,
+            "component_version": version_tag
+        })
+        version_documents = mongodb_utils.get_list_from_cursor(cursor)
+    return version_documents
+
 
 def check_document_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
@@ -281,12 +291,36 @@ def add_digital_twin(userRef, name):
         )
         logging.info(f"Digital Twin added with ID {digital_twin_id}")
 
+        # Create linked result and add reference to dt
+        result_id = add_result(dt_id=digital_twin_id)
+        db[collection_digital_twins].update_one(
+            {"_id": ObjectId(digital_twin_id)}, {"$push": {"results": result_id}}
+        )
+
         # Add digital twin reference to user
         db[collection_users].update_one(
             {"_id": ObjectId(userRef)}, {"$push": {"digitalTwins": digital_twin_id}}
         )
     return digital_twin_id
+    
+    db.update_digital_twin(dt_id, field="result", value=result_id)
 
+def add_result(dt_id):
+    """add result document"""
+    result_data = {
+        "digitalTwinRef": ObjectId(dt_id),  
+        "output": [], 
+        "title": "Result title",
+        "description": "Result description",
+        "tags": [],
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        result_id = db[collection_results].insert_one(result_data).inserted_id
+        logging.info(f"Result added with ID {result_id}")
+    return result_id
 
 def set_document_timestamp(document_id, collection_name, timestamp_name):
     with MongoClient(ODTP_MONGO_SERVER) as client:

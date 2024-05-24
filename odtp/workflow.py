@@ -20,6 +20,12 @@ class WorkflowManager:
         self.instance_names = []
         self.steps_folder_paths = []
         self.secrets = secrets
+        
+        dt_doc = db.get_document_by_id(
+            document_id=execution_data["digitalTwinRef"], 
+            collection=db.collection_digital_twins
+        )
+        self.result_id = str(dt_doc["results"][0])
 
         for step_index in self.schema["workflowExecutorSchema"]:
             try: 
@@ -164,7 +170,8 @@ class WorkflowManager:
                 secrets,
                 ports=ports,
                 instance_name=self.instance_names[step_index],
-                step_id=self.execution["steps"][step_index]
+                step_id=self.execution["steps"][step_index],
+                result_id=self.result_id
             )
 
     def run_task(self):
