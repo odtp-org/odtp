@@ -48,10 +48,10 @@ def prepare(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.prepare_workflow()
     except Exception as e:
-        print(f"ERROR: Prepare execution failed: {e}") 
+        logging.error(f"ERROR: Prepare execution failed: {e}") 
         raise typer.Abort()           
     else:
-        print("SUCCESS: images for the execution have been build")    
+        logging.info("SUCCESS: images for the execution have been build")    
 
 
 @app.command()
@@ -86,26 +86,11 @@ def run(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.run_workflow()
     except Exception as e:
-        print(f"ERROR: Run execution failed: {e}")       
+        logging.error(f"ERROR: Run execution failed: {e}")       
         raise typer.Abort()
     else:
-        print("SUCCESS: containers for the execution have been run")      
+        logging.info("SUCCESS: containers for the execution have been run")      
 
-
-@app.command()
-def output(
-    execution_id: str = typer.Option(
-        ..., "--execution-id", help="Specify the ID of the execution"
-    ),
-    project_path: str = typer.Option(
-        ..., "--project-path", help="Specify the path for the execution"
-    ),
-): 
-    try:
-        display_tree(project_path)
-    except Exception as e:
-        print(f"ERROR: Output printing failed: {e}")       
-        raise typer.Abort()  
 
 @app.command()
 def delete(
