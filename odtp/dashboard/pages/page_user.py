@@ -13,6 +13,11 @@ from odtp.helpers.settings import ODTP_PATH
 
 def content() -> None:  
     ui_workarea()
+    ui_tabs()
+
+
+@ui.refreshable
+def ui_tabs():   
     with ui.tabs() as tabs:
         select = ui.tab("Select User")
         add = ui.tab("Add User")
@@ -208,8 +213,12 @@ def add_user(name_input, github_input, email_input):
             type="negative",
         )
     else:
+        user_id = str(user_id)
+        store_selected_user(user_id)
         ui_users_select.refresh()
         ui_add_user.refresh()
+        ui_tabs.refresh()
+
 
 
 async def pick_workdir() -> None:
