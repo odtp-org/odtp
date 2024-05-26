@@ -25,6 +25,8 @@ class WorkflowManager:
             document_id=execution_data["digitalTwinRef"], 
             collection=db.collection_digital_twins
         )
+        # TODO: Right now, only compatible with one result per digital twin.
+        # Method to create and select other results should be implemented
         self.result_id = str(dt_doc["results"][0])
 
         for step_index in self.schema["workflowExecutorSchema"]:
@@ -118,6 +120,10 @@ class WorkflowManager:
         # Temporally the parameters are taken from the environment files and not 
         # taken from the steps documents
         logging.info(self.steps_folder_paths)
+
+        # Start execution timestamp
+        db.set_document_timestamp(self.execution["_id"], "executions", "start_timestamp")
+
         for step_index in self.schema["workflowExecutorSchema"]:
             step_index = int(step_index)
 
@@ -173,6 +179,10 @@ class WorkflowManager:
                 step_id=self.execution["steps"][step_index],
                 result_id=self.result_id
             )
+
+        # End execution timestamp
+        db.set_document_timestamp(self.execution["_id"], "executions", "end_timestamp")
+
 
     def run_task(self):
         # Implement the logic of running one single task. 
