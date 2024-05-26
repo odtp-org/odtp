@@ -444,9 +444,11 @@ def delete_execution(execution_id):
     for step_id in steps_ids:
         logs_ids = get_documents_id_by_field_value("stepRef", str(step_id), collection_logs)
         if logs_ids:
-            _ = [delete_document_by_id(logs_id, collection_logs) for log_id in logs_ids]
+            print(logs_ids)
+            _ = [delete_document_by_id(log_id, collection_logs) for log_id in logs_ids]
 
-        output_ids = get_document_id_by_field_value("stepRef", str(step_id), collection_outputs)
+        print("OUTPUTS")
+        output_ids = get_documents_id_by_field_value("stepRef", str(step_id), collection_outputs)
         if output_ids:
             # Update the results document without any outputs reference
             for output_id in output_ids:

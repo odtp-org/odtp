@@ -134,11 +134,8 @@ def delete(
         # Folders
         odtp_env.delete_folder(project_path)
         
-        # # DB
-        # db.delete_document_by_id(
-        #     document_id=execution_id, 
-        #     collection=db.collection_executions
-        # )
+        # DB
+        db.delete_execution(execution_id)
 
     except Exception as e:
         logging.error(f"ERROR: Delete execution failed: {e}")       
