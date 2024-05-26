@@ -1,7 +1,9 @@
 from odtp.storage import s3Manager
 
 import logging
+import shutil
 import odtp.helpers.settings as config
+
 
 
 class s3Database:
@@ -28,3 +30,26 @@ class s3Database:
 
     def download(self, item):
         pass
+
+
+class folderStructure:
+    def __init__(self):
+        self.odtp_path = config.ODTP_PATH
+
+    def create_folders(self):
+        components_folder = os.path.join(self.odtp_path, 'components')
+        users_folder = os.path.join(self.odtp_path, 'users')
+        
+        os.makedirs(components_folder, exist_ok=True)
+        os.makedirs(users_folder, exist_ok=True)
+        
+        logging.info("Folders created: %s, %s", components_folder, users_folder)
+
+    def deleted_folders(self):
+        components_folder = os.path.join(self.odtp_path, 'components')
+        users_folder = os.path.join(self.odtp_path, 'users')
+        
+        shutil.rmtree(components_folder)
+        shutil.rmtree(users_folder)
+        
+        logging.info("Folders deleted: %s, %s", components_folder, users_folder)
