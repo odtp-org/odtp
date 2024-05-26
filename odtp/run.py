@@ -202,7 +202,7 @@ class DockerManager:
         output, error = process.communicate()
 
         if process.returncode != 0:
-            logging.error(f"Failed to run Docker component {instance_name}: {error.decode()}")
+            logging.error(f"Failed to run Docker component {container_name}: {error.decode()}")
             return None
         else:
             docker_run_id = output.decode().strip()
