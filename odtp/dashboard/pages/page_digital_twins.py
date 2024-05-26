@@ -31,15 +31,20 @@ def content() -> None:
 
     ui_workarea(current_user, user_workdir)
     if current_user:
-        with ui.tabs() as tabs:
-            select = ui.tab("Select a digital twin")
-            add = ui.tab("Add a new digital twin")
-        with ui.tab_panels(tabs, value=select).classes("w-full"):
-            with ui.tab_panel(select):
-                ui_digital_twin_select(current_user)
-                ui_digital_twins_table(current_user)
-            with ui.tab_panel(add):
-                ui_add_digital_twin(current_user)
+        ui_tabs(current_user)
+
+
+@ui.refreshable
+def ui_tabs(current_user):        
+    with ui.tabs() as tabs:
+        select = ui.tab("Select a digital twin")
+        add = ui.tab("Add a new digital twin")
+    with ui.tab_panels(tabs, value=select).classes("w-full"):
+        with ui.tab_panel(select):
+            ui_digital_twin_select(current_user)
+            ui_digital_twins_table(current_user)
+        with ui.tab_panel(add):
+            ui_add_digital_twin(current_user)
 
 
 @ui.refreshable
@@ -214,6 +219,9 @@ def add_digital_twin(name_input, user_id):
             type="negative",
         )
     else:
+        digital_twin_id = str(digital_twin_id)
+        store_selected_digital_twin_id(digital_twin_id)
         ui_digital_twin_select.refresh()
         ui_digital_twins_table.refresh()
         ui_add_digital_twin.refresh()
+        ui_tabs.refresh()
