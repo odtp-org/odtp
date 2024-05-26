@@ -40,7 +40,7 @@ class folderStructure:
         
         logging.info("Folders created: %s, %s", components_folder, users_folder)
 
-    def deleted_folders(self):
+    def delete_folders(self):
         components_folder = os.path.join(self.odtp_path, 'components')
         users_folder = os.path.join(self.odtp_path, 'users')
         
