@@ -17,9 +17,17 @@ class WorkflowManager:
         self.image_names = []
         self.repo_urls = []
         self.commits = []
-        self.instance_names = []
+        self.container_names = []
         self.steps_folder_paths = []
         self.secrets = secrets
+        
+        dt_doc = db.get_document_by_id(
+            document_id=execution_data["digitalTwinRef"], 
+            collection=db.collection_digital_twins
+        )
+        # TODO: Right now, only compatible with one result per digital twin.
+        # Method to create and select other results should be implemented
+        self.result_id = str(dt_doc["results"][0])
 
         for step_index in self.schema["workflowExecutorSchema"]:
             try: 
@@ -46,12 +54,15 @@ class WorkflowManager:
                 step_folder_path = os.path.join(self.working_path, step_name)
                 self.steps_folder_paths.append(step_folder_path)
 
-                image_name = step_name
-
+                image_name = odtp_utils.get_execution_step_name(
+                    component_name=component_name, 
+                    component_version=component_version
+                )
+                
                 self.image_names.append(image_name)
                 self.repo_urls.append(repo_link)
                 self.commits.append(commit_hash)
-                self.instance_names.append(image_name)
+                self.container_names.append(step_name)
             except Exception as e:
                 raise OdtpRunSetupException(
                     f"Workflowmanager could not be intialized: Exception occured: {e}"
@@ -112,6 +123,10 @@ class WorkflowManager:
         # Temporally the parameters are taken from the environment files and not 
         # taken from the steps documents
         logging.info(self.steps_folder_paths)
+
+        # Start execution timestamp
+        db.set_document_timestamp(self.execution["_id"], "executions", "start_timestamp")
+
         for step_index in self.schema["workflowExecutorSchema"]:
             step_index = int(step_index)
 
@@ -153,7 +168,7 @@ class WorkflowManager:
             # By now the image_name is just the name of the component and the version
             componentManager = DockerManager(
                 repo_url=self.repo_urls[step_index], 
-                image_name=self.image_names[step_index], 
+                image_name=self.image_names[step_index],
                 project_folder=self.steps_folder_paths[step_index]
             )
             
@@ -163,9 +178,14 @@ class WorkflowManager:
                 parameters,
                 secrets,
                 ports=ports,
-                instance_name=self.instance_names[step_index],
-                step_id=self.execution["steps"][step_index]
+                container_name=self.container_names[step_index],
+                step_id=self.execution["steps"][step_index],
+                result_id=self.result_id
             )
+
+        # End execution timestamp
+        db.set_document_timestamp(self.execution["_id"], "executions", "end_timestamp")
+
 
     def run_task(self):
         # Implement the logic of running one single task. 

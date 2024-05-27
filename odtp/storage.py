@@ -10,12 +10,14 @@
 import boto3
 import logging
 
+from odtp.helpers.settings import ODTP_S3_SERVER, ODTP_BUCKET_NAME, ODTP_ACCESS_KEY, ODTP_SECRET_KEY
+
 class s3Manager:
-    def __init__(self, s3Server, bucketName, accessKey, secretKey):
-        self.s3Server = s3Server
-        self.bucketName = bucketName
-        self.accessKey = accessKey
-        self.secretKey = secretKey
+    def __init__(self):
+        self.s3Server = ODTP_S3_SERVER
+        self.bucketName = ODTP_BUCKET_NAME
+        self.accessKey = ODTP_ACCESS_KEY
+        self.secretKey = ODTP_SECRET_KEY
 
         self.connect()
 
@@ -132,8 +134,31 @@ class s3Manager:
         Returns:
             None
         """
-        self.s3.delete_object(Bucket=self.bucketName, Key=s3_path)
+        out = self.s3.delete_object(Bucket=self.bucketName, Key=s3_path)
+        print(out)
         logging.info(f"File '{s3_path}' deleted from S3 bucket")
+
+    # Method to delete multiple files in s3 
+    def deletePaths(self, s3_paths):
+        """
+        Deletes multiple files from specific paths in the S3 bucket.
+
+        Args:
+            s3_paths (list): A list of S3 paths of the files to delete.
+
+        Returns:
+            None
+        """
+ 
+        for s3_path in s3_paths:
+            objects_to_delete = self.s3.list_objects(Bucket=self.bucketName, Prefix=s3_path)
+            if 'Contents' in objects_to_delete:
+                for key in objects_to_delete['Contents']:
+                    self.s3.delete_object(Bucket=self.bucketName, Key=key['Key'])
+                    print(key['Key'])
+                logging.info(f"Path '{s3_path}' deleted from S3 bucket")
+
+
 
     def close(self):
         del self.s3

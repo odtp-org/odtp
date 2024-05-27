@@ -1,4 +1,6 @@
 import os
+import shutil
+import logging
 
 import odtp.helpers.utils as utils
 import odtp.helpers.utils as odtp_utils
@@ -56,3 +58,9 @@ def directory_has_output(execution_id, project_folder):
         if len(os.listdir(output_dir)) != 0:
             return True
     return False
+
+def delete_folder(folder_path):
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+
+        logging.info("Folder deleted: %s", folder_path)

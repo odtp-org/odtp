@@ -17,6 +17,9 @@ def initiate():
     odtpS3.create_folders(["odtp"])
     odtpS3.close()
 
+    folderStructure = folderStructure()
+    folderStructure.create_folders()
+
     print("ODTP DB/S3 data generated")
 
 
@@ -27,6 +30,10 @@ def delete():
 
     odtpS3 = s3Database()
     odtpS3.deleteAll()
+
+    folderStructure = folderStructure()
+    folderStructure.delete_folders()
+
 
     print("All deleted")
 

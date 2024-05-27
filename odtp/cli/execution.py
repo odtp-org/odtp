@@ -9,6 +9,7 @@ from typing_extensions import Annotated
 import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 from odtp.workflow import WorkflowManager
+from odtp.storage import s3Manager
 from directory_tree import display_tree
 import odtp.helpers.environment as odtp_env
 from nicegui import ui
@@ -47,10 +48,10 @@ def prepare(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.prepare_workflow()
     except Exception as e:
-        print(f"ERROR: Prepare execution failed: {e}") 
+        logging.error(f"ERROR: Prepare execution failed: {e}") 
         raise typer.Abort()           
     else:
-        print("SUCCESS: images for the execution have been build")    
+        logging.info("SUCCESS: images for the execution have been build")    
 
 
 @app.command()
@@ -85,27 +86,49 @@ def run(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.run_workflow()
     except Exception as e:
-        print(f"ERROR: Run execution failed: {e}")       
+        logging.error(f"ERROR: Run execution failed: {e}")       
         raise typer.Abort()
     else:
-        print("SUCCESS: containers for the execution have been run")      
+        logging.info("SUCCESS: containers for the execution have been run")      
 
 
 @app.command()
-def output(
+def delete(
+    execution_name: str = typer.Option(
+        None, "--execution-name", help="Specify the name of the execution"
+    ),
     execution_id: str = typer.Option(
-        ..., "--execution-id", help="Specify the ID of the execution"
+        None, "--execution-id", help="Specify the ID of the execution"
     ),
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
-): 
+):
     try:
-        display_tree(project_path)
-    except Exception as e:
-        print(f"ERROR: Output printing failed: {e}")       
-        raise typer.Abort()  
+        if execution_id is None and execution_name is None:
+            raise typer.Exit("Please provide either --execution-name or --execution-id")
 
+        if execution_name:
+            execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
+
+        # S3
+        s3_keys = db.get_all_outputs_s3_keys(execution_id)
+        s3M = s3Manager()
+        s3M.deletePaths(s3_keys)
+
+        # Folders
+        odtp_env.delete_folder(project_path)
+        
+        # DB
+        db.delete_execution(execution_id)
+
+    except Exception as e:
+        logging.error(f"ERROR: Delete execution failed: {e}")       
+        raise typer.Abort()  
+    else:
+        logging.info("SUCCESS: execution has been deleted")
 
 if __name__ == "__main__":
     app()
+
+

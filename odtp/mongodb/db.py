@@ -20,7 +20,11 @@ collection_digital_twins = "digitalTwins"
 collection_executions = "executions"
 collection_steps = "steps"
 collection_results = "results"
+collection_logs = "logs"
+collection_outputs = "outputs"
 
+
+# General MongoDB Methods
 
 def get_db():
     """Retrieve all documents from the db"""
@@ -85,6 +89,16 @@ def get_collection_sorted(collection, sort_tuples):
         documents = mongodb_utils.get_list_from_cursor(cursor)
     return documents
 
+def get_component_version(component_name, version_tag):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        cursor = db[collection_versions].find({
+            "component.componentName": component_name,
+            "component_version": version_tag
+        })
+        version_documents = mongodb_utils.get_list_from_cursor(cursor)
+    return version_documents
+
 
 def check_document_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
@@ -145,6 +159,26 @@ def get_document_id_by_field_value(field_path, field_value, collection):
         else:
             return None
 
+def get_documents_id_by_field_value(field_path, field_value, collection):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        documents_cursors = db[collection].find({field_path: field_value}, {"_id": 1})
+
+        documents = [str(doc["_id"]) for doc in documents_cursors]
+        if len(documents) > 0:
+            return documents
+        else:
+            return None
+
+def remove_value_from_list_in_field(collection, document_id, field_name, value):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        db[collection].update_one(
+            {"_id": ObjectId(document_id)},
+            {"$pull": {field_name: value}}
+        )
+
+# Collection Based Methods
 
 def add_user(name, github, email):
     """add new user and return id"""
@@ -281,12 +315,36 @@ def add_digital_twin(userRef, name):
         )
         logging.info(f"Digital Twin added with ID {digital_twin_id}")
 
+        # Create linked result and add reference to dt
+        result_id = add_result(dt_id=digital_twin_id)
+        db[collection_digital_twins].update_one(
+            {"_id": ObjectId(digital_twin_id)}, {"$push": {"results": result_id}}
+        )
+
         # Add digital twin reference to user
         db[collection_users].update_one(
             {"_id": ObjectId(userRef)}, {"$push": {"digitalTwins": digital_twin_id}}
         )
     return digital_twin_id
+    
+    db.update_digital_twin(dt_id, field="result", value=result_id)
 
+def add_result(dt_id):
+    """add result document"""
+    result_data = {
+        "digitalTwinRef": ObjectId(dt_id),  
+        "output": [], 
+        "title": "Result title",
+        "description": "Result description",
+        "tags": [],
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        result_id = db[collection_results].insert_one(result_data).inserted_id
+        logging.info(f"Result added with ID {result_id}")
+    return result_id
 
 def set_document_timestamp(document_id, collection_name, timestamp_name):
     with MongoClient(ODTP_MONGO_SERVER) as client:
@@ -361,6 +419,51 @@ def add_execution(
         else:
             return (execution_id, steps_ids)
 
+def get_all_outputs_s3_keys(execution_id):
+    execution_doc = get_document_by_id(execution_id, collection_executions)
+    digital_twin_id = execution_doc["digitalTwinRef"]
+    steps_ids = execution_doc['steps']
+    
+    s3_keys = []
+    for step_id in steps_ids:
+        output_ids = get_documents_id_by_field_value("stepRef", str(step_id), collection_outputs)
+        if output_ids:
+            s3_keys += [get_document_by_id(output_id, collection_outputs)["s3_key"] for output_id in output_ids]
+    
+    return s3_keys
+
+def delete_execution(execution_id):
+    # DB
+    # Delete execution, steps, output, logs, 
+    # Update: remove id from results, remove execution from dt
+    execution_doc = get_document_by_id(execution_id, collection_executions)
+    digital_twin_id = execution_doc["digitalTwinRef"]
+    results_id = get_document_by_id(digital_twin_id, collection_digital_twins)["results"][0]
+    
+    steps_ids = execution_doc['steps']
+    for step_id in steps_ids:
+        logs_ids = get_documents_id_by_field_value("stepRef", str(step_id), collection_logs)
+        if logs_ids:
+            print(logs_ids)
+            _ = [delete_document_by_id(log_id, collection_logs) for log_id in logs_ids]
+
+        print("OUTPUTS")
+        output_ids = get_documents_id_by_field_value("stepRef", str(step_id), collection_outputs)
+        if output_ids:
+            # Update the results document without any outputs reference
+            for output_id in output_ids:
+                _ = remove_value_from_list_in_field(collection_results, results_id, "output", ObjectId(output_id))
+            # Delete the output document
+            _ = [delete_document_by_id(output_id, collection_outputs) for output_id in output_ids]
+
+        _ = delete_document_by_id(step_id, collection_steps)
+
+    _ = delete_document_by_id(execution_id, collection_executions)
+
+    # Update the digital twin document without the execution reference
+    _ = remove_value_from_list_in_field(collection_digital_twins, digital_twin_id, "executions", ObjectId(execution_id))
+
+
 
 def append_execution_to_digital_twin(db, digital_twin_id, execution):
     executions_collection = db[collection_executions]
@@ -414,8 +517,11 @@ def init_collections():
             collection_users,
             collection_components,
             collection_digital_twins,
+            collection_executions,
+            collection_outputs,
             collection_results,
             collection_versions,
+            collection_logs,
         ]:
             if name not in collection_names:
                 db.create_collection(name)

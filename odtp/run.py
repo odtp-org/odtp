@@ -2,6 +2,8 @@ import logging
 import os
 import json
 import subprocess
+import docker
+
 import odtp.helpers.settings as config
 import odtp.helpers.git as git_helpers
 import odtp.helpers.environment as env_helpers
@@ -34,8 +36,9 @@ class DockerManager:
     def prepare_component(self):
         self._checks_for_prepare()
         self._create_project_folder_structure()
-        self._download_repo()
-        self._build_image()    
+        if not self._check_if_image_exists():
+            self._download_repo()
+            self._build_image()    
 
     def _create_project_folder_structure(self):
         """Create all the folder structure in project_folder""" 
@@ -66,6 +69,20 @@ class DockerManager:
             repo_url=self.repo_url, 
             commit_hash=self.commit_hash
         )
+
+    def _check_if_image_exists(self):
+        """
+        Check whether a docker image exists
+        """
+        logging.info(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
+        client = docker.from_env()
+        images = client.images.list(name=self.docker_image_name)
+        logging.info(f"Images found: {images}") 
+
+        if len(images) > 0:
+            return True
+        else:
+            return False
 
     def _checks_for_run(self, parameters, ports, image_name):
         logging.info("VALIDATION: check for run") 
@@ -135,14 +152,14 @@ class DockerManager:
         logging.info(f"RUN: Creating Docker volume {volume_name}")
         subprocess.run(["docker", "volume", "create", volume_name])
         
-    def run_component(self, parameters, secrets, ports, instance_name, step_id=None, debug=False):
+    def run_component(self, parameters, secrets, ports, container_name, step_id=None, result_id=None, debug=False):
         """
         Run a Docker component with the specified parameters.
 
         Args:
             secrets (dict): The secrets variables to pass to the Docker component.
             parameters (dict): The environment variables to pass to the Docker component.
-            instance_name (str, optional): The name of the Docker container. Defaults to "odtp_component".
+            container_name (str, optional): The name of the Docker container. Defaults to "odtp_component".
 
         Returns:
             str: The ID of the Docker run.
@@ -151,6 +168,7 @@ class DockerManager:
         
         if step_id:
             parameters["ODTP_STEP_ID"] = step_id
+            parameters["ODTP_RESULT"] = result_id
             parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
             parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
             parameters["ODTP_BUCKET_NAME"] = config.ODTP_BUCKET_NAME
@@ -169,7 +187,7 @@ class DockerManager:
         else:
             secrets_args = [""]
 
-        docker_run_command = ["docker", "run", "--rm", "-it", "--name", instance_name,
+        docker_run_command = ["docker", "run", "--rm", "-it", "--name", container_name,
                               "--network", "odtp_odtp-network",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
@@ -184,7 +202,7 @@ class DockerManager:
         output, error = process.communicate()
 
         if process.returncode != 0:
-            logging.error(f"Failed to run Docker component {instance_name}: {error.decode()}")
+            logging.error(f"Failed to run Docker component {container_name}: {error.decode()}")
             return None
         else:
             docker_run_id = output.decode().strip()
