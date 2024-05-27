@@ -4,7 +4,6 @@ import shlex
 import json
 import sys
 import logging
-from pprint import pprint
 
 from nicegui import ui, app
 
@@ -623,11 +622,14 @@ def build_command(
         f"--project-path {project_path}",
         f"--execution-id {execution_id}",
     ] 
-    if secret_files:
+    print(secret_files and [secret_file for secret_file in secret_files])
+    if secret_files and [secret_file for secret_file in secret_files]:
+        print(secret_files and [secret_file for secret_file in secret_files])
         secret_files_for_run = ",".join(secret_files)
-        cli_parameters.append(
-            f"--secrets-files {secret_files_for_run}",
-        )
+        if secret_files_for_run:
+            cli_parameters.append(
+                f"--secrets-files {secret_files_for_run}",
+            )
     cli_command = f"odtp execution {cmd} {'  '.join(cli_parameters)}"
     return cli_command
 
