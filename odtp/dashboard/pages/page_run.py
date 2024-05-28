@@ -138,7 +138,7 @@ def ui_workarea(current_user, current_digital_twin, current_execution, workdir):
     secret_files = current_run.get("secret_files")
     project_path = current_run.get("project_path")
     if not [file for file in secret_files if file]:
-        secret_files = ui_theme.MISSING_VALUE 
+        secret_files = "" 
     else: 
         ",".join(secret_files)    
     if not project_path:     
@@ -581,23 +581,25 @@ def ui_prepare_execution(dialog, result, current_run):
         project_path=project_path,
     )
     msg = folder_status_msg.get(folder_status)  
-    if not folder_status in [FOLDER_EMPTY, FOLDER_PREPARED]:
+    if folder_status in [FOLDER_HAS_OUTPUT]:   
+        ui.label(msg).classes("text-teal")      
+    elif not folder_status in [FOLDER_EMPTY, FOLDER_PREPARED]:
         ui.label(msg).classes("text-red") 
-    if folder_status in [FOLDER_PREPARED, FOLDER_HAS_OUTPUT]:   
-        ui.label(msg).classes("text-teal")              
     if folder_status == FOLDER_EMPTY:
-        cli_prepare_command = build_command(
-            cmd="prepare",
-            execution_id=execution['execution_id'],
-            project_path=project_path,
-        )  
-        with ui.row().classes("w-full"):
-            ui.label(cli_prepare_command).classes("font-mono")         
-            ui.button(
-                "Prepare execution",
-                on_click=lambda: run_command(cli_prepare_command, dialog, result),
-                icon="folder",
-            ).props("no-caps")        
+        with ui.grid(columns=1):
+            with ui.column().classes("w-full"):
+                cli_prepare_command = build_command(
+                    cmd="prepare",
+                    execution_id=execution['execution_id'],
+                    project_path=project_path,
+                )  
+            with ui.column().classes("w-full"):
+                ui.label(cli_prepare_command).classes("font-mono")         
+                ui.button(
+                    "Prepare execution",
+                    on_click=lambda: run_command(cli_prepare_command, dialog, result),
+                    icon="folder",
+                ).props("no-caps")        
     cli_output_command = build_command(
         cmd="output",
         execution_id=execution['execution_id'],
@@ -622,9 +624,7 @@ def build_command(
         f"--project-path {project_path}",
         f"--execution-id {execution_id}",
     ] 
-    print(secret_files and [secret_file for secret_file in secret_files])
     if secret_files and [secret_file for secret_file in secret_files]:
-        print(secret_files and [secret_file for secret_file in secret_files])
         secret_files_for_run = ",".join(secret_files)
         if secret_files_for_run:
             cli_parameters.append(
@@ -660,8 +660,13 @@ def ui_run_execution(dialog, result, current_run):
             - write output 
             """
         )
+    with ui.row().classes("w-full"):    
         ui.label(cli_run_command).classes("font-mono")   
-    with ui.row().classes("w-full"):         
+    with ui.row().classes("w-full"):  
+        ui.icon("warning").classes("text-lg text-yellow")
+        ui.label("""It can take a while until you see output in this step: 
+        loading means just that the job is still running.""") 
+    with ui.row().classes("w-full"):           
         ui.button(
             "Run execution",
             on_click=lambda: run_command(cli_run_command, dialog, result),
@@ -669,7 +674,7 @@ def ui_run_execution(dialog, result, current_run):
         ).props("no-caps")
     with ui.row().classes("w-full"):              
         ui.button(
-            "Open logging",
+            "Show folder with output",
             on_click=lambda: run_command(cli_output_command, dialog, result),
             icon="info",
         ).props("no-caps")
