@@ -13,13 +13,7 @@ app = typer.Typer()
 def ls(collection_name: str):
     """List all documents in a collection"""
     db_output = db.get_collection(collection=collection_name)
-    #odtp_utils.print_output_as_json(db_output)
     odtp_utils.output_as_pretty_table(db_output, collection_name)
-
-    #table = PrettyTable()
-    #table.field_names = ["City name", "Area", "Population", "Annual Rainfall"]
-    #table.add_rows([])
-
 
 
 @app.command()
