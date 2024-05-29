@@ -1,17 +1,16 @@
 import json
 import logging
-import pandas as pd
-from nicegui import ui, app
-import logging
 
-import odtp.dashboard.utils.ui_theme as ui_theme
+import pandas as pd
+from nicegui import app, ui
+
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
+import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.utils.validators as validators
+import odtp.helpers.git as odtp_git
 import odtp.mongodb.db as db
 import odtp.mongodb.utils as db_utils
-import odtp.helpers.git as odtp_git
-
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ def content() -> None:
         with ui.tab_panel(add_component):
             ui_component_add()
         with ui.tab_panel(list):
-            ui_components_list()            
+            ui_components_list()
 
 
 @ui.refreshable
@@ -42,9 +41,10 @@ def ui_components_list() -> None:
             )
             if not versions:
                 ui_theme.ui_no_items_yet("Components")
-                return            
-            versions_cleaned = [helpers.component_version_for_table(version)
-                                for version in versions]                 
+                return
+            versions_cleaned = [
+                helpers.component_version_for_table(version) for version in versions
+            ]
             if not versions:
                 ui.label("You don't have components yet. Start adding one.")
                 return
@@ -67,18 +67,18 @@ def ui_component_select() -> None:
             components = db.get_collection(db.collection_components)
             if not components:
                 ui_theme.ui_no_items_yet("Components")
-                return    
+                return
             ui.markdown(
                 """
                 #### Component Options
                 - compare github and ODTP
                 - add versions from github
                 """
-            )      
+            )
             if current_component:
                 value = current_component["component_id"]
             else:
-                value = ""                                 
+                value = ""
             components_options = {
                 str(component["_id"]): f"{component.get('componentName')}"
                 for component in components
@@ -107,7 +107,7 @@ def ui_version_add():
     )
     current_component = storage.get_active_object_from_storage(
         storage.CURRENT_COMPONENT
-    )  
+    )
     ui_form_version_add(current_component)
 
 
@@ -119,7 +119,9 @@ def ui_form_version_add(current_component):
         item_id=current_component["component_id"],
         ref_name=db.collection_versions,
     )
-    component_versions_in_db = [item.get("component_version") for item in versions_in_db]
+    component_versions_in_db = [
+        item.get("component_version") for item in versions_in_db
+    ]
     version_selector = {
         (item["name"], item["commit"]): item["name"]
         for item in repo_info.get("tagged_versions")
@@ -131,11 +133,14 @@ def ui_form_version_add(current_component):
             All available versions on github have been already submitted to ODTP.
             """
         ).classes("text-lg")
-        return  
+        return
     component_version_input = ui.select(
         options=version_selector,
-        validation={f"A version selection is required":
-                    lambda value: validators.validate_required_input(value)},
+        validation={
+            f"A version selection is required": lambda value: validators.validate_required_input(
+                value
+            )
+        },
     ).classes("w-1/4")
     with ui.row():
         ports_inputs = []
@@ -143,17 +148,20 @@ def ui_form_version_add(current_component):
             port_input = ui.input(
                 label="Port",
                 placeholder="8052",
-                validation={f"This is not a valid port":
-                            lambda value: validators.validate_port_input(value)},
+                validation={
+                    f"This is not a valid port": lambda value: validators.validate_port_input(
+                        value
+                    )
+                },
             ).classes("w-1/4")
             ports_inputs.append(port_input)
-    with ui.row():            
+    with ui.row():
         ui.button(
             "Register version",
             on_click=lambda: register_new_version(
                 component_version_input=component_version_input,
                 ports_inputs=ports_inputs,
-                current_component=current_component
+                current_component=current_component,
             ),
         )
 
@@ -164,11 +172,15 @@ def ui_form_component_add_step1():
         #### Add new Component
         """
     )
-    repo_link_input = ui.input(
-        label="Enter Repository URL",
-        placeholder="repo url",
-        validation=lambda value: validators.validate_github_repo(value)
-    ).without_auto_validation().classes("w-2/3")
+    repo_link_input = (
+        ui.input(
+            label="Enter Repository URL",
+            placeholder="repo url",
+            validation=lambda value: validators.validate_github_repo(value),
+        )
+        .without_auto_validation()
+        .classes("w-2/3")
+    )
     ui.button(
         "Proceed to next step",
         on_click=lambda: store_new_component(
@@ -179,15 +191,13 @@ def ui_form_component_add_step1():
 
 def ui_form_component_add_step2(new_component_to_add):
     with ui.row():
-        ui_git_info_show(
-            component=new_component_to_add
-        )
-        with ui.column().classes('w-full'):            
-            repo_info=new_component_to_add.get("repo_info")
+        ui_git_info_show(component=new_component_to_add)
+        with ui.column().classes("w-full"):
+            repo_info = new_component_to_add.get("repo_info")
             ui.button(
                 "Cancel Component Entry",
                 on_click=lambda: cancel_component_entry(),
-            )            
+            )
             version_selector = {
                 (item["name"], item["commit"]): item["name"]
                 for item in new_component_to_add.get("repo_info").get("tagged_versions")
@@ -200,20 +210,29 @@ def ui_form_component_add_step2(new_component_to_add):
                 value=repo_info.get("name"),
                 label="Component name",
                 placeholder="component name",
-                validation={f"A component name is required":
-                            lambda value: validators.validate_required_input(value)},
+                validation={
+                    f"A component name is required": lambda value: validators.validate_required_input(
+                        value
+                    )
+                },
             ).classes("w-2/3")
             component_type_input = ui.select(
                 label="component type",
                 options=component_type_selector,
-                validation={f"A component type nust be selected":
-                            lambda value: validators.validate_required_input(value)},
+                validation={
+                    f"A component type nust be selected": lambda value: validators.validate_required_input(
+                        value
+                    )
+                },
             ).classes("w-2/3")
             component_version_input = ui.select(
                 label="component version",
                 options=version_selector,
-                validation={f"A version selection is required":
-                            lambda value: validators.validate_required_input(value)},
+                validation={
+                    f"A version selection is required": lambda value: validators.validate_required_input(
+                        value
+                    )
+                },
             ).classes("w-1/3")
             with ui.row():
                 ports_inputs = []
@@ -221,10 +240,13 @@ def ui_form_component_add_step2(new_component_to_add):
                     port_input = ui.input(
                         label="Port",
                         placeholder="8052",
-                        validation={f"This is not a valid port":
-                                    lambda value: validators.validate_port_input(value)},
+                        validation={
+                            f"This is not a valid port": lambda value: validators.validate_port_input(
+                                value
+                            )
+                        },
                     ).classes("w-1/4")
-                    ports_inputs.append(port_input)            
+                    ports_inputs.append(port_input)
             ui.button(
                 "Register component",
                 on_click=lambda: register_new_component(
@@ -286,12 +308,13 @@ def ui_git_info_show(component):
             Available Versions:
             """
         )
-        for version_tag in repo_info.get('tagged_versions'):
+        for version_tag in repo_info.get("tagged_versions"):
             ui.markdown(
                 f"""
                 - **{version_tag.get("name")}**: {version_tag.get("commit")[:7]}
                 """
             )
+
 
 def ui_odtp_info_show(component):
     with ui.card().classes("bg-violet-100"):
@@ -328,7 +351,8 @@ def ui_odtp_info_show(component):
 
 @ui.refreshable
 def ui_workarea():
-    ui.markdown("""
+    ui.markdown(
+        """
         ## Manage Components
         ODTP Components are the Building blocks for Digital Twins and Executions:
 
@@ -363,9 +387,9 @@ def cancel_component_entry():
 
 def store_new_component(repo_link_input):
     if not repo_link_input.validate():
-        return   
+        return
     repo_link = repo_link_input.value
-    try:    
+    try:
         latest_commit = odtp_git.check_commit_for_repo(repo_link)
         repo_info = odtp_git.get_github_repo_info(repo_link)
         add_component = {
@@ -376,7 +400,7 @@ def store_new_component(repo_link_input):
         app.storage.user[storage.NEW_COMPONENT] = json.dumps(add_component)
     except Exception as e:
         logger.exception(f"storage update for new component failed: {e}")
-    else:    
+    else:
         ui_component_add.refresh()
 
 
@@ -386,10 +410,13 @@ def register_new_version(
     current_component,
 ):
     if not component_version_input.validate():
-        ui.notify("Fill in the form correctly before you can add a new version", type="negative")
+        ui.notify(
+            "Fill in the form correctly before you can add a new version",
+            type="negative",
+        )
         return
     try:
-        ports = [port_input.value for port_input in ports_inputs if port_input.value]    
+        ports = [port_input.value for port_input in ports_inputs if port_input.value]
         component_id, version_id = db.add_component_version(
             component_name=current_component.get("name"),
             repo_info=current_component.get("repo_info"),
@@ -421,12 +448,20 @@ def register_new_component(
     ports_inputs,
     new_component,
 ):
-    if (not component_name_input.validate() or not component_version_input.validate()
-        or not component_type_input.validate()):
-        ui.notify("Fill in the form correctly before you can add a new component", type="negative")
+    if (
+        not component_name_input.validate()
+        or not component_version_input.validate()
+        or not component_type_input.validate()
+    ):
+        ui.notify(
+            "Fill in the form correctly before you can add a new component",
+            type="negative",
+        )
         return
     try:
-        ports = ports = [port_input.value for port_input in ports_inputs if port_input.value]
+        ports = ports = [
+            port_input.value for port_input in ports_inputs if port_input.value
+        ]
         component_id, version_id = db.add_component_version(
             component_name=component_name_input.value,
             repo_info=new_component.get("repo_info"),
@@ -475,6 +510,4 @@ def storage_update_component(component_id):
         )
         app.storage.user[storage.CURRENT_COMPONENT] = current_component
     except Exception as e:
-        logging.error(
-            f"storage update for {storage.CURRENT_COMPONENT} failed: {e}"
-        )
+        logging.error(f"storage update for {storage.CURRENT_COMPONENT} failed: {e}")

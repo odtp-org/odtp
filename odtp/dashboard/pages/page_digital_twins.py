@@ -1,7 +1,8 @@
-import pandas as pd
 import json
 import logging
-from nicegui import ui, app
+
+import pandas as pd
+from nicegui import app, ui
 
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
@@ -15,19 +16,15 @@ def content() -> None:
         # Manage Digital Twins
         """
     )
-    current_user = storage.get_active_object_from_storage(
-        storage.CURRENT_USER
-    )
-    user_workdir = storage.get_value_from_storage_for_key(
-        storage.CURRENT_USER_WORKDIR
-    )      
+    current_user = storage.get_active_object_from_storage(storage.CURRENT_USER)
+    user_workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)
     if not current_user:
         ui_theme.ui_add_first(
             item_name="a user",
             page_link=ui_theme.PATH_USERS,
             action="select",
-        )     
-        return     
+        )
+        return
 
     ui_workarea(current_user, user_workdir)
     if current_user:
@@ -35,7 +32,7 @@ def content() -> None:
 
 
 @ui.refreshable
-def ui_tabs(current_user):        
+def ui_tabs(current_user):
     with ui.tabs() as tabs:
         select = ui.tab("Select a digital twin")
         add = ui.tab("Add a new digital twin")
@@ -56,13 +53,13 @@ def ui_digital_twins_table(current_user):
             item_id=current_user["user_id"],
             ref_name=db.collection_digital_twins,
         )
-        if not digital_twins: 
+        if not digital_twins:
             return
         ui.markdown(
             """
             #### Users digital twins
             """
-        )            
+        )
         if digital_twins:
             df = pd.DataFrame(data=digital_twins)
             df["_id"] = df["_id"].astype("string")
@@ -126,7 +123,10 @@ def ui_add_digital_twin(current_user):
         name_input = ui.input(
             label="Name",
             placeholder="name",
-            validation={"Should be at least 6 characters long": lambda value: len(value.strip()) >= 6},
+            validation={
+                "Should be at least 6 characters long": lambda value: len(value.strip())
+                >= 6
+            },
         ).classes("w-2/3")
 
         ui.button(
@@ -146,13 +146,13 @@ def ui_workarea(current_user, user_workdir):
     if not user_workdir:
         user_workdir_display = "-"
     else:
-        user_workdir_display = user_workdir     
-    if not current_digital_twin: 
-        digital_twin_display = ui_theme.MISSING_VALUE  
+        user_workdir_display = user_workdir
+    if not current_digital_twin:
+        digital_twin_display = ui_theme.MISSING_VALUE
     else:
-        digital_twin_display = current_digital_twin.get("name")     
+        digital_twin_display = current_digital_twin.get("name")
     try:
-        with ui.grid(columns=2):  
+        with ui.grid(columns=2):
             with ui.column():
                 ui.markdown(
                     f"""
@@ -162,28 +162,26 @@ def ui_workarea(current_user, user_workdir):
                     - **work directory**: {user_workdir_display}
                     """
                 )
-            if current_digital_twin:    
-                with ui.column():    
+            if current_digital_twin:
+                with ui.column():
                     ui.markdown(
                         f"""
                         #### Actions
                         """
-                    )            
+                    )
                     ui.button(
                         "Manage Executions",
                         on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
                         icon="link",
                     )
     except Exception as e:
-        logging.error(
-            f"Work area could not be loaded. An Exception happened: {e}"
-        )
+        logging.error(f"Work area could not be loaded. An Exception happened: {e}")
 
 
 def store_selected_digital_twin_id(value):
     if not ui_theme.new_value_selected_in_ui_select(value):
-        return 
-    digital_twin_id = value    
+        return
+    digital_twin_id = value
     try:
         digital_twin = db.get_document_by_id(
             document_id=digital_twin_id, collection=db.collection_digital_twins
@@ -198,14 +196,21 @@ def store_selected_digital_twin_id(value):
         )
     else:
         storage.reset_storage_keep(
-            [storage.CURRENT_USER, storage.CURRENT_DIGITAL_TWIN, storage.CURRENT_USER_WORKDIR]
+            [
+                storage.CURRENT_USER,
+                storage.CURRENT_DIGITAL_TWIN,
+                storage.CURRENT_USER_WORKDIR,
+            ]
         )
         ui_workarea.refresh()
 
 
 def add_digital_twin(name_input, user_id):
     if not name_input.validate():
-        ui.notify("Fill in the form correctly before you can add a new digital twin", type="negative")
+        ui.notify(
+            "Fill in the form correctly before you can add a new digital twin",
+            type="negative",
+        )
         return
     try:
         digital_twin_id = db.add_digital_twin(userRef=user_id, name=name_input.value)

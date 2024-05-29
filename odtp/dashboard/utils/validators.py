@@ -1,9 +1,10 @@
-import re
-import os
 import logging
+import os
+import re
+
 import odtp.helpers.git as otdp_git
-import odtp.mongodb.utils as db_utils
 import odtp.mongodb.db as db
+import odtp.mongodb.utils as db_utils
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +29,8 @@ def validate_integer_input_below_threshold(value, lower_bound, upper_bound):
     if not int(value) == value:
         return False
     if not lower_bound <= value <= upper_bound:
-        return False    
-    return True        
+        return False
+    return True
 
 
 def validate_github_repo(value):
@@ -41,8 +42,10 @@ def validate_github_repo(value):
         if not repo_info.get("tagged_versions"):
             logger.exception(f"repo {value} has no tagged versions")
             return f"repo {value} has no tagged versions"
-        repo_url =  repo_info.get("html_url")
-        component = db.get_document_id_by_field_value("repoLink", repo_url, db.collection_components)    
+        repo_url = repo_info.get("html_url")
+        component = db.get_document_id_by_field_value(
+            "repoLink", repo_url, db.collection_components
+        )
         if component:
             logger.exception(f"repo {value} already exists as component in odtp")
             return f"repo {value} already exists as component in odtp"

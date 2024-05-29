@@ -1,4 +1,5 @@
 from nicegui import ui
+
 import odtp.dashboard.utils.helpers as helpers
 
 
@@ -26,17 +27,22 @@ class ContainerParameters(object):
         with self.containers[index]:
             with ui.row():
                 with (self.containers[index]).classes("flex items-center"):
-                    ui.mermaid(f"""
+                    ui.mermaid(
+                        f"""
                         {helpers.get_workflow_mermaid([tag], init='graph TB;')}"""
                     )
                     ui.button(
                         "add parameter",
-                        on_click=lambda index=index: self.add_parameter_line_for_step(index),
+                        on_click=lambda index=index: self.add_parameter_line_for_step(
+                            index
+                        ),
                         icon="add",
                     ).props("flat").classes("text-xs")
                     ui.button(
                         "remove parameter",
-                        on_click=lambda index=index: self.remove_parameter_line_for_step(index),
+                        on_click=lambda index=index: self.remove_parameter_line_for_step(
+                            index
+                        ),
                         icon="remove",
                     ).props("flat").classes("text-xs")
 
@@ -46,17 +52,9 @@ class ContainerParameters(object):
 
     def add_parameter_line_for_step(self, index, key="", value=""):
         with self.containers[index]:
-            with ui.grid(columns=2).classes("w-full") :
-                key = ui.input(
-                    label="key",
-                    value=key,
-                    placeholder="key"
-                )
-                value = ui.input(
-                    label="value",
-                    value=value,
-                    placeholder="value"
-                )
+            with ui.grid(columns=2).classes("w-full"):
+                key = ui.input(label="key", value=key, placeholder="key")
+                value = ui.input(label="value", value=value, placeholder="value")
 
     def get_parameters(self):
         parameters = []
@@ -64,7 +62,7 @@ class ContainerParameters(object):
             row_values = []
             for div in row:
                 for item in div:
-                    if item.tag == 'nicegui-input':
+                    if item.tag == "nicegui-input":
                         row_values.append(item.value)
             keys = [value for i, value in enumerate(row_values) if i % 2 == 0]
             values = [value for i, value in enumerate(row_values) if i % 2 != 0]

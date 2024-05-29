@@ -42,7 +42,7 @@ def reset_storage_delete(keys):
         )
 
 
-def reset_storage_keep(keys):   
+def reset_storage_keep(keys):
     current_storage_keys = app.storage.user.keys()
     try:
         if not isinstance(keys, list):
@@ -70,4 +70,4 @@ def get_active_object_from_storage(object_name):
 
 
 def get_value_from_storage_for_key(storage_key):
-    return app.storage.user.get(storage_key)     
+    return app.storage.user.get(storage_key)

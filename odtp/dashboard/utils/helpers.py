@@ -1,5 +1,5 @@
-import odtp.mongodb.db as db
 import odtp.helpers.utils as odtp_utils
+import odtp.mongodb.db as db
 
 
 def get_workflow_mermaid(step_names, init="graph TB;"):
@@ -7,7 +7,7 @@ def get_workflow_mermaid(step_names, init="graph TB;"):
     step_count = len(step_names)
     if step_count == 1:
         mermaid_graph += f"{step_names[0]};"
-    elif step_count > 1:    
+    elif step_count > 1:
         step_name_tuples = [
             (step_names[i - 1], step_names[i]) for i in range(step_count) if i > 0
         ]
@@ -26,7 +26,7 @@ def component_version_for_table(version):
     component = version.get("component")
     version_cleaned = {
         "component": component.get("componentName"),
-        "version": version.get("component_version"),        
+        "version": version.get("component_version"),
         "repository": component.get("repoLink"),
         "commit": version.get("commitHash")[:8],
         "type": component.get("type"),
@@ -35,25 +35,25 @@ def component_version_for_table(version):
 
 
 def get_execution_step_display_name(
-    component_name, 
-    component_version, 
+    component_name,
+    component_version,
 ):
     display_name = f"{component_name}:{component_version}"
-    return display_name    
+    return display_name
 
 
 def get_key_from_parameters(current_component_parameters, index):
     if index >= len(current_component_parameters):
         return ""
-    parameters_keys_as_list = list(current_component_parameters.keys())  
+    parameters_keys_as_list = list(current_component_parameters.keys())
     return parameters_keys_as_list[index]
 
 
 def get_value_from_parameters(current_component_parameters, index):
     if index >= len(current_component_parameters):
-        return ""    
+        return ""
     parameters_values_as_list = list(current_component_parameters.values())
-    return parameters_values_as_list[index]           
+    return parameters_values_as_list[index]
 
 
 def get_execution_select_options(digital_twin_id):
@@ -62,15 +62,15 @@ def get_execution_select_options(digital_twin_id):
         sub_collection=db.collection_executions,
         item_id=digital_twin_id,
         ref_name=db.collection_executions,
-        sort_by=[("start_timestamp", db.DESCENDING)]
-    )        
+        sort_by=[("start_timestamp", db.DESCENDING)],
+    )
     if not executions:
         return {}
     execution_options = {}
     for execution in executions:
-        execution_options[
-            str(execution["_id"])
-        ] = f"{execution['start_timestamp'].strftime('%d/%m/%y')} {execution.get('title')}"
+        execution_options[str(execution["_id"])] = (
+            f"{execution['start_timestamp'].strftime('%d/%m/%y')} {execution.get('title')}"
+        )
     return execution_options
 
 
@@ -101,9 +101,7 @@ def build_execution_with_steps(execution_id):
     execution_with_steps = {
         "execution_id": execution_id,
         "title": execution.get("title"),
-        "timestamp": execution.get("start_timestamp").strftime(
-            "%m/%d/%Y, %H:%M:%S"
-        ),
+        "timestamp": execution.get("start_timestamp").strftime("%m/%d/%Y, %H:%M:%S"),
         "versions": execution["workflowSchema"]["component_versions"],
         "version_tags": version_tags,
         "steps": step_ids,

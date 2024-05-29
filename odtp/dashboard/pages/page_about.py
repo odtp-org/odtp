@@ -1,5 +1,10 @@
+import logging
+
 from nicegui import ui
+
 import odtp.dashboard.utils.storage as storage
+
+logger = logging.getLogger(__name__)
 
 
 def content() -> None:
@@ -12,7 +17,7 @@ def content() -> None:
             ## Getting Started
             """
         )
-    with ui.row():        
+    with ui.row():
         ui.button(
             "Check out the Documentation",
             on_click=lambda: ui.open("https://odtp-org.github.io/odtp-manuals/"),
@@ -40,7 +45,7 @@ def content() -> None:
                     "Build / Run Executions",
                     on_click=lambda: ui.open("/executions"),
                     icon="link",
-                ).props("flat").classes("place-items-start")  
+                ).props("flat").classes("place-items-start")
             ui.mermaid(
                 """
                 graph TB;
@@ -53,19 +58,19 @@ def content() -> None:
                         CB0 --> CC0
                     end          
                 """
-            ).classes("w-full")            
+            ).classes("w-full")
         with ui.column().classes("w-full"):
             ui.markdown(
                 """
                 ### Components
                 """
-            ).classes("w-full") 
+            ).classes("w-full")
             with ui.grid(columns=1):
                 ui.button(
                     "Add / View Components",
                     on_click=lambda: ui.open("/components"),
                     icon="link",
-                ).props("flat").classes("place-items-start")          
+                ).props("flat").classes("place-items-start")
             ui.mermaid(
                 """
                 graph TB;
@@ -73,4 +78,4 @@ def content() -> None:
                     CB0[Component B]
                     CC0[Component C]             
                 """
-            ).classes("w-full")                
+            ).classes("w-full")
