@@ -4,6 +4,7 @@ import shlex
 import json
 import sys
 import logging
+from pprint import pprint
 
 from nicegui import ui, app
 
@@ -65,9 +66,14 @@ def content() -> None:
     )      
     current_run = storage.get_active_object_from_storage(
        storage.EXECUTION_RUN
-    )      
+    )
+    if not current_execution:
+        return    
     if not run_belongs_to_current_execution(current_execution, current_run):    
-        current_run = execution_run_init(current_digital_twin, current_execution)   
+        current_run = execution_run_init(
+            digital_twin=current_digital_twin, 
+            execution=current_execution
+        )  
         ui_workarea.refresh()
         ui_stepper.refresh()                       
     with ui.dialog().props("full-width") as dialog, ui.card():
@@ -168,11 +174,6 @@ def ui_workarea(current_user, current_digital_twin, current_execution, workdir):
                     on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
                     icon="link",
                 )
-                ui.button(
-                    "Cancel Run Selection",
-                    on_click=lambda: cancel_run_selection(),
-                    icon="cancel",
-                ).props("flat")                                   
 
 
 @ui.refreshable 
@@ -299,6 +300,8 @@ def ui_next_back(current_run):
 
 def execution_run_init(digital_twin, execution):
     step_count = len(execution["steps"])
+    print("======================")
+    print(step_count)
     current_run = {
         "digital_twin_id": digital_twin["digital_twin_id"],
         "digital_twin_name": digital_twin["name"],
@@ -495,14 +498,6 @@ def ui_prepare_folder(dialog, result, workdir, current_run):
     ui_next_back(current_run)
 
 
-def cancel_run_selection():
-    storage.reset_storage_delete([
-        storage.EXECUTION_RUN
-    ])
-    ui_stepper.refresh()
-    ui_workarea.refresh()
-
-
 async def pick_folder(workdir, current_run) -> None:
     try:
         root = workdir
@@ -586,31 +581,31 @@ def ui_prepare_execution(dialog, result, current_run):
     elif not folder_status in [FOLDER_EMPTY, FOLDER_PREPARED]:
         ui.label(msg).classes("text-red") 
     if folder_status == FOLDER_EMPTY:
-        with ui.grid(columns=1):
-            with ui.column().classes("w-full"):
-                cli_prepare_command = build_command(
-                    cmd="prepare",
-                    execution_id=execution['execution_id'],
-                    project_path=project_path,
-                )  
+        cli_prepare_command = build_command(
+            cmd="prepare",
+            execution_id=execution['execution_id'],
+            project_path=project_path,
+        )         
+        with ui.grid(columns=1): 
             with ui.column().classes("w-full"):
                 ui.label(cli_prepare_command).classes("font-mono")         
                 ui.button(
                     "Prepare execution",
                     on_click=lambda: run_command(cli_prepare_command, dialog, result),
                     icon="folder",
-                ).props("no-caps")        
-    cli_output_command = build_command(
-        cmd="output",
-        execution_id=execution['execution_id'],
-        project_path=project_path,
-    )
-    with ui.row().classes("w-full"):
-        ui.button(
-            "Show project folder",
-            on_click=lambda: run_command(cli_output_command, dialog, result),
-            icon="info",
-        ).props("no-caps")
+                ).props("no-caps")  
+    if project_path:                  
+        cli_output_command = build_command(
+            cmd="output",
+            execution_id=execution['execution_id'],
+            project_path=project_path,
+        )
+        with ui.row().classes("w-full"):
+            ui.button(
+                "Show project folder",
+                on_click=lambda: run_command(cli_output_command, dialog, result),
+                icon="info",
+            ).props("no-caps")
     ui_next_back(current_run)
 
 
