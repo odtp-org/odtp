@@ -43,5 +43,3 @@ ODTP_LOG_LEVEL = os.getenv("ODTP_LOG_LEVEL")
 log_levels = logging.getLevelNamesMapping()
 if not ODTP_LOG_LEVEL in log_levels.keys():
     ODTP_LOG_LEVEL = DEFAULT_LOG_LEVEL
-
-logger.error("hello world")
