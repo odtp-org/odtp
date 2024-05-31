@@ -52,14 +52,20 @@ def ui_users_select() -> None:
 
 @ui.refreshable
 def ui_add_user():
-    add.ui_user_add_form()
+    try:
+        add.ui_user_add_form()
+    except Exception as e:
+        log.exception(f"User add form could not be loaded. An Exception occurred: {e}")        
 
 
 @ui.refreshable
 def ui_workarea():
-    user = storage.get_active_object_from_storage(storage.CURRENT_USER)
-    workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)    
-    if not workdir:
-        workdir = ODTP_PATH
-        app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir    
-    workarea.ui_workarea_form(user=user, workdir=workdir)
+    try:
+        user = storage.get_active_object_from_storage(storage.CURRENT_USER)
+        workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)    
+        if not workdir:
+            workdir = ODTP_PATH
+            app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir    
+        workarea.ui_workarea_form(user=user, workdir=workdir)
+    except Exception as e:
+        log.exception(f"User workarea not be loaded. An Exception occurred: {e}")

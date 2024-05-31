@@ -34,10 +34,10 @@ def ui_users_select_form(users=None, user_options=None, current_user=None):
 
 
 def store_selected_user(value):
-    if not ui_theme.new_value_selected_in_ui_select(value):
-        return
-    user_id = value
     try:
+        if not ui_theme.new_value_selected_in_ui_select(value):
+            return
+        user_id = value        
         user = db.get_document_by_id(
             document_id=user_id, collection=db.collection_users
         )
@@ -45,11 +45,11 @@ def store_selected_user(value):
             {"user_id": user_id, "display_name": user.get("displayName")}
         )
         app.storage.user[storage.CURRENT_USER] = current_user
+        storage.reset_storage_keep([storage.CURRENT_USER])
+        app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH        
     except Exception as e:
         log.exception(f"Selected user could not be stored. An Exception happened: {e}")
     else:
-        storage.reset_storage_keep([storage.CURRENT_USER])
-        app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
         from odtp.dashboard.page_users.main import ui_users_select, ui_workarea
         ui_users_select.refresh()
         ui_workarea.refresh()

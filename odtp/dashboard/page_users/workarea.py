@@ -13,59 +13,62 @@ log = logging.getLogger("__name__")
 
 @ui.refreshable
 def ui_workarea_form(user, workdir):
-    if user:
-        user_name = user.get("display_name")
-    else:
-        user_name = ui_theme.MISSING_VALUE
-    with ui.row().classes("w-full"):
-        ui.markdown(
-            """
-            # Manage Users 
-            """
-        )
-    if not user:
-        return
-    with ui.grid(columns=2):
-        with ui.column():
+    try:
+        if user:
+            user_name = user.get("display_name")
+        else:
+            user_name = ui_theme.MISSING_VALUE
+        with ui.row().classes("w-full"):
             ui.markdown(
-                f"""
-                #### Current Selection
-                - **user**: {user_name}
-                - **work directory**: {workdir}              
+                """
+                # Manage Users 
                 """
             )
-        with ui.column():
-            ui.markdown(
-                f"""
-                #### Actions
-                """
-            )
-            ui.button(
-                "Manage digital twins",
-                on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
-                icon="link",
-            )
-            ui.button("Set Work directory", on_click=pick_workdir, icon="folder")
-            ui.button(
-                "Set Work directory to default",
-                on_click=set_default_workdir,
-                icon="folder",
-            ).props("flat")
-            with ui.row().classes("flex items-center"):
-                folder_name_input = ui.input(
-                    label="Project folder name",
-                    placeholder="execution",
-                    validation={
-                        f"Please provide a folder name does not yet exist in the working directory": lambda value: validators.validate_folder_does_not_exist(
-                            value, ODTP_PATH
-                        )
-                    },
+        if not user:
+            return
+        with ui.grid(columns=2):
+            with ui.column():
+                ui.markdown(
+                    f"""
+                    #### Current Selection
+                    - **user**: {user_name}
+                    - **work directory**: {workdir}              
+                    """
+                )
+            with ui.column():
+                ui.markdown(
+                    f"""
+                    #### Actions
+                    """
                 )
                 ui.button(
-                    "Create new work directory",
-                    on_click=lambda: create_workdir(folder_name_input),
-                    icon="add",
+                    "Manage digital twins",
+                    on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
+                    icon="link",
+                )
+                ui.button("Set Work directory", on_click=pick_workdir, icon="folder")
+                ui.button(
+                    "Set Work directory to default",
+                    on_click=set_default_workdir,
+                    icon="folder",
                 ).props("flat")
+                with ui.row().classes("flex items-center"):
+                    folder_name_input = ui.input(
+                        label="Project folder name",
+                        placeholder="execution",
+                        validation={
+                            f"Please provide a folder name does not yet exist in the working directory": lambda value: validators.validate_folder_does_not_exist(
+                                value, ODTP_PATH
+                            )
+                        },
+                    )
+                    ui.button(
+                        "Create new work directory",
+                        on_click=lambda: create_workdir(folder_name_input),
+                        icon="add",
+                    ).props("flat")
+    except Exception as e:
+        log.exception(f"Workarea could not be loaded: an Exception occurred: {e}")                    
 
 
 def create_workdir(folder_name_input):
@@ -105,7 +108,11 @@ async def pick_workdir() -> None:
 
 
 def set_default_workdir():
-    app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
-    ui.notify(f"User workdir has been set to {ODTP_PATH}", type="positive")
-    from odtp.dashboard.page_users.main import ui_workarea
-    ui_workarea.refresh()        
+    try: 
+        app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
+    except Exception as e:  
+        log.exception(f"Default work directory could not be set: an Exception occurred: {e}")
+    else:
+        ui.notify(f"User workdir has been set to {ODTP_PATH}", type="positive")     
+        from odtp.dashboard.page_users.main import ui_workarea
+        ui_workarea.refresh()        
