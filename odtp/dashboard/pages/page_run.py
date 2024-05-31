@@ -4,7 +4,6 @@ import logging
 import os.path
 import shlex
 import sys
-from pprint import pprint
 
 from nicegui import app, ui
 
@@ -32,21 +31,18 @@ STEPPER_SELECT_FOLDER = 2
 STEPPER_PREPARE_EXECUTION = 3
 STEPPER_RUN_EXECUTION = 4
 
+FOLDER_NOT_SET = 0
+FOLDER_DOES_NOT_MATCH = 1
+FOLDER_EMPTY = 2
+FOLDER_PREPARED = 3
+FOLDER_HAS_OUTPUT = 4
 
-FOLDER_EMPTY = "empty"
-FOLDER_PREPARED = "prepared"
-FOLDER_HAS_OUTPUT = "output"
-FOLDER_DOES_NOT_MATCH = "no_match"
-FOLDER_NOT_SET = "not_set"
-
-
-folder_status_msg = {
-    FOLDER_NOT_SET: "Project folder has not been selected",
-    FOLDER_EMPTY: "Project folder ready for Prepare Execution",
-    FOLDER_PREPARED: "Project folder ready for Run Execution",
-    FOLDER_HAS_OUTPUT: "Project folder has output: Check Output",
-    FOLDER_DOES_NOT_MATCH: """Project Folder is not empty and has not been prepared by the execution: 
-Choose an empty project folder or create a new one.""",
+FOLDER_STATUS = {
+    "not_set"
+    "no_match",
+    "empty",
+    "prepared",
+    "output",
 }
 
 
@@ -172,6 +168,15 @@ def ui_stepper(
 ):
     current_run = storage.get_active_object_from_storage(storage.EXECUTION_RUN)
     stepper = current_run.get("stepper")
+    execution = current_run["execution"]
+    project_path = current_run.get("project_path")
+    if project_path:
+        folder_status = get_folder_status(
+            execution_id=execution["execution_id"],
+            project_path=project_path,
+        )
+    else:
+        folder_status = FOLDER_NOT_SET   
     if ODTP_DASHBOARD_JSON_EDITOR:
         with ui.expansion("Current Execution Run as JSON"):
             ui.json_editor(
@@ -198,6 +203,7 @@ def ui_stepper(
                         result=result,
                         current_run=current_run,
                         workdir=workdir,
+                        folder_status=folder_status,
                     )
         with ui.step(STEPPERS[STEPPER_PREPARE_EXECUTION]):
             with ui.stepper_navigation():
@@ -205,74 +211,22 @@ def ui_stepper(
                     dialog=dialog,
                     result=result,
                     current_run=current_run,
+                    folder_status=folder_status,
                 )
         with ui.step(STEPPERS[STEPPER_RUN_EXECUTION]):
             ui_run_execution(
                 dialog=dialog,
                 result=result,
                 current_run=current_run,
+                folder_status=folder_status,
             )
 
 
-def ui_run_status(current_run):
-    execution = current_run.get("execution")
-    project_path = current_run.get("project_path")
-    secret_files = current_run.get("secret_files")
-    with ui.grid(columns=2).classes("flex items-start"):
-        with ui.row().classes("flex items-center w-full"):
-            if not execution:
-                ui.icon("clear").classes("text-red-500")
-                ui.label("Execution selected").classes("text-red-500")
-                return
-            ui.icon("check").classes("text-teal-500 text-lg")
-            ui.label("Execution selected")
-            ui.markdown(
-                f"""
-                - **execution**: {execution["title"]}
-                """
-            )
-        with ui.row().classes("flex items-center w-full"):
-            if secret_files:
-                ui.icon("check").classes("text-teal-500 text-lg")
-                ui.label("Secret files added")
-                ui.markdown(
-                    f"""
-                    - **secret files**: {secret_files}
-                    """
-                )
-            else:
-                ui.icon("info").classes("text-lg")
-                ui.label("No secret files")
-        with ui.row().classes("flex items-center w-full"):
-            if not project_path:
-                ui.icon("clear").classes("text-red-500")
-                ui.label("Project folder selected").classes("text-red-500")
-                return
-            ui.icon("check").classes("text-teal-500 text-lg")
-            ui.label("Project folder selected")
-            folder_status = get_folder_status(
-                execution_id=execution["execution_id"],
-                project_path=project_path,
-            )
-            msg = folder_status_msg.get(folder_status)
-            if folder_status == FOLDER_DOES_NOT_MATCH:
-                ui.icon("clear").classes("text-red-500")
-                ui.label(msg).classes("text-red-500")
-                return
-            ui.markdown(
-                f"""
-                - **project path**: {project_path}
-                - **status**: {folder_status}
-                - **message**: {msg}
-                """
-            )
-
-
-def ui_next_back(current_run):
+def ui_next_back(current_run, ready_for_next=True):
     stepper = current_run.get("stepper")
     with ui.grid(columns=1).classes("w-full"):
         with ui.row().classes("w-full"):
-            if stepper and STEPPERS.index(stepper) != STEPPER_RUN_EXECUTION:
+            if ready_for_next:
                 ui.button(
                     "Next",
                     on_click=lambda: next_step(
@@ -290,8 +244,6 @@ def ui_next_back(current_run):
 
 def execution_run_init(digital_twin, execution):
     step_count = len(execution["steps"])
-    print("======================")
-    print(step_count)
     current_run = {
         "digital_twin_id": digital_twin["digital_twin_id"],
         "digital_twin_name": digital_twin["name"],
@@ -306,13 +258,15 @@ def execution_run_init(digital_twin, execution):
 
 
 def ui_add_secrets_form(current_run, workdir):
-    logging.info("ui form secrets")
     stepper = current_run.get("stepper")
     if stepper and STEPPERS.index(stepper) != STEPPER_ADD_SECRETS:
         return
     version_tags = current_run["execution"]["version_tags"]
     if not version_tags:
         return
+    with ui.row():
+        ui.icon("check").classes("text-teal text-lg")
+        ui.label("Adding Secrets files is an optional step").classes("text-teal")        
     with ui.grid(columns=2).classes("flex items-center w-full"):
         for j, version_tag in enumerate(version_tags):
             secret_file = current_run["secret_files"][j]
@@ -336,12 +290,12 @@ def ui_add_secrets_form(current_run, workdir):
                     - **file path**: {secret_file}
                     """
                     )
-    with ui.grid(columns=1).classes("flex items-left"):
+    with ui.row().classes("w-full"):                
         ui.button(
             f"Reset secrets files",
             on_click=lambda: remove_secrets_files(current_run),
             icon="clear",
-        ).props("flat")
+        ).props("flat")                    
     ui_next_back(current_run)
 
 
@@ -419,6 +373,9 @@ def ui_execution_details(current_run):
         version_tags = execution.get("version_tags")
         current_ports = execution.get("ports")
         current_parameters = execution.get("parameters")
+        with ui.row():
+            ui.icon("check").classes("text-teal text-lg")
+            ui.label("Execution to run is selected").classes("text-teal")
         ui_theme.ui_execution_display(
             execution_title=execution_title,
             version_tags=version_tags,
@@ -432,29 +389,35 @@ def ui_execution_details(current_run):
     ui_next_back(current_run)
 
 
-def ui_prepare_folder(dialog, result, workdir, current_run):
+def ui_prepare_folder(dialog, result, workdir, current_run, folder_status):
     stepper = current_run.get("stepper")
-    project_path = current_run.get("project_path")
-    execution = current_run.get("execution")
-    folder_matches = False
     if stepper and STEPPERS.index(stepper) != STEPPER_SELECT_FOLDER:
         return
+    project_path = current_run.get("project_path")
+    execution = current_run.get("execution")    
     if project_path:
         with ui.row().classes("w-full"):
             ui.markdown(
                 f"""
-                - **project path**: {project_path}
+                **project path**: {project_path}
                 """
-            )
-
-        folder_status = get_folder_status(
-            execution_id=execution["execution_id"],
-            project_path=project_path,
-        )
-        if folder_status in [FOLDER_EMPTY, FOLDER_HAS_OUTPUT, FOLDER_PREPARED]:
-            ui.label(folder_status_msg.get(folder_status)).classes("text-teal")
-        else:
-            ui.label(folder_status_msg.get(folder_status)).classes("text-read")
+            )      
+    with ui.row():
+        if folder_status == FOLDER_EMPTY:
+            ui.icon("check").classes("text-teal text-lg")
+            ui.label("Project folder for the execution run has been selected").classes("text-teal") 
+        elif folder_status == FOLDER_NOT_SET:
+            ui.icon("clear").classes("text-red text-lg")
+            ui.label("Project folder missing: please select one").classes("text-red") 
+        elif folder_status == FOLDER_DOES_NOT_MATCH:
+            ui.icon("clear").classes("text-red text-lg")
+            ui.label("The project folder structure does not match the steps of the execution: choose an empty project folder or create a new project folder").classes("text-red")  
+        elif folder_status == FOLDER_PREPARED:
+            ui.icon("check").classes("text-teal text-lg")
+            ui.label("The execution has been prepared").classes("text-teal")      
+        elif folder_status == FOLDER_HAS_OUTPUT:
+            ui.icon("check").classes("text-teal text-lg")
+            ui.label("The execution has been run").classes("text-teal")   
         folder_matches = folder_status in [
             FOLDER_EMPTY,
             FOLDER_HAS_OUTPUT,
@@ -465,15 +428,13 @@ def ui_prepare_folder(dialog, result, workdir, current_run):
                 cmd="output",
                 execution_id=execution["execution_id"],
                 project_path=project_path,
-            )
-
-    with ui.row().classes("w-full"):
+            )            
+    with ui.row().classes("w-full flex items-center"):
         ui.button(
-            "Choose other project folder",
+            "Choose existing project folder",
             on_click=lambda: pick_folder(workdir, current_run),
             icon="folder",
         ).props("flat")
-    with ui.row().classes("w-full flex items-center"):
         project_folder_input = ui.input(
             label="Project folder name",
             placeholder="execution",
@@ -487,20 +448,18 @@ def ui_prepare_folder(dialog, result, workdir, current_run):
             "Create new project folder",
             on_click=lambda: create_folder(workdir, project_folder_input, current_run),
             icon="add",
-        ).props("flat")
-    with ui.grid(columns=1).classes("flex items-left"):
+        ).props("flat ")
         ui.button(
             f"Reset project folder",
             on_click=lambda: remove_project_folder(current_run),
             icon="clear",
         ).props("flat")
     with ui.row().classes("w-full"):
-        if folder_matches:
-            ui.button(
-                "Show project folder",
-                on_click=lambda: run_command(cli_output_command, dialog, result),
-                icon="info",
-            ).props("no-caps")
+        ui.button(
+            "Show project folder",
+            on_click=lambda: run_command(cli_output_command, dialog, result),
+            icon="info",
+        ).props("no-caps")
     ui_next_back(current_run)
 
 
@@ -565,12 +524,10 @@ def get_folder_status(execution_id, project_path):
         return FOLDER_DOES_NOT_MATCH
 
 
-def ui_prepare_execution(dialog, result, current_run):
+def ui_prepare_execution(dialog, result, current_run, folder_status):
     stepper = current_run.get("stepper")
     if stepper and STEPPERS.index(stepper) != STEPPER_PREPARE_EXECUTION:
         return
-    execution = current_run["execution"]
-    project_path = current_run["project_path"]
     with ui.row().classes("w-full"):
         ui.markdown(
             f"""
@@ -581,47 +538,58 @@ def ui_prepare_execution(dialog, result, current_run):
             - create folder structure
             """
         )
-    if not project_path:
-        ui.label(
-            "Before you can prepare the execution, you need to first select a project path"
-        ).classes("text-red")
-        ui_next_back(current_run)
-        return
-    folder_status = get_folder_status(
-        execution_id=execution["execution_id"],
-        project_path=project_path,
-    )
-    msg = folder_status_msg.get(folder_status)
-    if folder_status in [FOLDER_HAS_OUTPUT]:
-        ui.label(msg).classes("text-teal")
-    elif not folder_status in [FOLDER_EMPTY, FOLDER_PREPARED]:
-        ui.label(msg).classes("text-red")
-    if folder_status == FOLDER_EMPTY:
-        cli_prepare_command = build_command(
-            cmd="prepare",
-            execution_id=execution["execution_id"],
-            project_path=project_path,
-        )
+    with ui.row():
+        if folder_status == FOLDER_EMPTY:
+            ui.icon("check").classes("text-teal text-lg")
+            ui.label("Project folder for the execution run has been selected").classes("text-teal") 
+        elif folder_status == FOLDER_NOT_SET:
+            ui.icon("clear").classes("text-red text-lg")
+            ui.label("Project folder missing: please select one").classes("text-red") 
+        elif folder_status == FOLDER_DOES_NOT_MATCH:
+            ui.icon("clear").classes("text-red text-lg")
+            ui.label("The project folder structure does not match the steps of the execution: choose an empty project folder or create a new project folder").classes("text-red")  
+        elif folder_status == FOLDER_PREPARED:
+            ui.icon("check").classes("text-teal text-lg")
+            ui.label("The execution has been prepared").classes("text-teal")      
+        elif folder_status == FOLDER_HAS_OUTPUT:
+            ui.icon("check").classes("text-teal text-lg")
+            ui.label("The execution has been run").classes("text-teal")   
+        folder_matches = folder_status in [
+            FOLDER_EMPTY,
+            FOLDER_HAS_OUTPUT,
+            FOLDER_PREPARED,
+        ]
+        if folder_matches:
+            execution = current_run["execution"]
+            project_path = current_run["project_path"]    
+            cli_output_command = build_command(
+                cmd="output",
+                execution_id=execution["execution_id"],
+                project_path=project_path,
+            ) 
+        if folder_status == FOLDER_EMPTY:                                   
+            cli_prepare_command = build_command(
+                cmd="prepare",
+                execution_id=execution["execution_id"],
+                project_path=project_path,
+            )  
+    with ui.row().classes("w-full"):        
         with ui.grid(columns=1):
-            with ui.column().classes("w-full"):
-                ui.label(cli_prepare_command).classes("font-mono")
-                ui.button(
-                    "Prepare execution",
-                    on_click=lambda: run_command(cli_prepare_command, dialog, result),
-                    icon="folder",
-                ).props("no-caps")
-    if project_path:
-        cli_output_command = build_command(
-            cmd="output",
-            execution_id=execution["execution_id"],
-            project_path=project_path,
-        )
-        with ui.row().classes("w-full"):
-            ui.button(
-                "Show project folder",
-                on_click=lambda: run_command(cli_output_command, dialog, result),
-                icon="info",
-            ).props("no-caps")
+            if folder_status == FOLDER_EMPTY:       
+                with ui.column().classes("w-full"):
+                    ui.label(cli_prepare_command).classes("font-mono")
+                    ui.button(
+                        "Prepare execution",
+                        on_click=lambda: run_command(cli_prepare_command, dialog, result),
+                        icon="folder",
+                    ).props("no-caps")
+            if folder_matches:        
+                with ui.row().classes("w-full"):
+                    ui.button(
+                        "Show project folder",
+                        on_click=lambda: run_command(cli_output_command, dialog, result),
+                        icon="info",
+                    ).props("no-caps")
     ui_next_back(current_run)
 
 
@@ -640,13 +608,40 @@ def build_command(cmd, project_path, execution_id, secret_files=None):
     return cli_command
 
 
-def ui_run_execution(dialog, result, current_run):
+def ui_run_execution(dialog, result, current_run, folder_status):
     stepper = current_run.get("stepper")
     if stepper and STEPPERS.index(stepper) != STEPPER_RUN_EXECUTION:
         return
+    with ui.row().classes("w-full"):
+        ui.markdown(
+            f"""
+            ###### Run the Execution: 
+
+            - Run docker images as containers
+            - write output 
+            """
+        )  
+    msg = ""          
+    if folder_status == FOLDER_DOES_NOT_MATCH:
+        msg = """The project folder structure does not match the steps of the execution: 
+        choose an empty project folder and prepare the execution before you can run it."""
+        text_color = "text-red"
+    elif folder_status == FOLDER_NOT_SET:
+        msg = """The project folder has not been set: 
+        Select an empty project folder and prepare the execution before you can run it."""
+        text_color = "text-red"   
+    elif folder_status == FOLDER_EMPTY:
+        msg = """The project folder is empty.: 
+        Prepare the execution before you can run it."""
+        text_color = "text-red"           
+    if msg:             
+        ui.label(msg).classes(text_color)
+        ui_next_back(current_run, ready_for_next=False)
+        return 
     execution = current_run["execution"]
     project_path = current_run["project_path"]
     secret_files = current_run["secret_files"]
+
     cli_run_command = build_command(
         cmd="run",
         secret_files=secret_files,
@@ -658,15 +653,6 @@ def ui_run_execution(dialog, result, current_run):
         execution_id=execution["execution_id"],
         project_path=project_path,
     )
-    with ui.row().classes("w-full"):
-        ui.markdown(
-            f"""
-            ###### Run the Execution: 
-
-            - Run docker images as containers
-            - write output 
-            """
-        )
     with ui.row().classes("w-full"):
         ui.label(cli_run_command).classes("font-mono")
     with ui.row().classes("w-full"):
@@ -687,7 +673,7 @@ def ui_run_execution(dialog, result, current_run):
             on_click=lambda: run_command(cli_output_command, dialog, result),
             icon="info",
         ).props("no-caps")
-    ui_next_back(current_run)
+    ui_next_back(current_run, ready_for_next=False)
 
 
 async def run_command(command: str, dialog, result) -> None:
