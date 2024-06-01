@@ -11,7 +11,6 @@ from odtp.helpers.settings import ODTP_PATH
 log = logging.getLogger("__name__")
 
 
-@ui.refreshable
 def ui_workarea_form(user, workdir):
     try:
         if user:
