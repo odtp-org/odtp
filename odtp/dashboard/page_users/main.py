@@ -38,6 +38,8 @@ def ui_tabs():
 def ui_users_select() -> None:
     try:
         users = db.get_collection(db.collection_users)
+        if not users:
+            return
         if users:
             user_options = {str(user["_id"]): user["displayName"] for user in users}
         current_user = storage.get_active_object_from_storage((storage.CURRENT_USER))  

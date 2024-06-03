@@ -59,24 +59,24 @@ def ui_prepare_execution(dialog, result, current_run, folder_status):
                 cmd="prepare",
                 execution_id=execution["execution_id"],
                 project_path=project_path,
-            )  
-    with ui.row().classes():        
-        with ui.grid(columns=1):
-            if folder_status == folder.FOLDER_EMPTY:
-                with ui.row().classes("w-full"):
-                    ui.label(cli_prepare_command).classes("font-mono")
-                    ui.button(
-                        "Prepare execution",
-                        on_click=lambda: run_command(cli_prepare_command, dialog, result),
-                        icon="folder",
-                    ).props("no-caps")
-            if folder_matches:        
-                with ui.row().classes("w-full"):
-                    ui.button(
-                        "Show project folder",
-                        on_click=lambda: run_command(cli_output_command, dialog, result),
-                        icon="info",
-                    ).props("no-caps")
+            )        
+    with ui.grid(columns=1):
+        if folder_status == folder.FOLDER_EMPTY:
+            with ui.row().classes("w-full"):
+                ui.label(cli_prepare_command).classes("font-mono")
+            with ui.row().classes("w-full"):    
+                ui.button(
+                    "Prepare execution",
+                    on_click=lambda: run_command(cli_prepare_command, dialog, result),
+                    icon="folder",
+                ).props("no-caps")
+        if folder_matches:        
+            with ui.row().classes("w-full"):
+                ui.button(
+                    "Show project folder",
+                    on_click=lambda: run_command(cli_output_command, dialog, result),
+                    icon="info",
+                ).props("no-caps")
     rh.ui_next_back(current_run)
 
 
@@ -120,45 +120,54 @@ def ui_run_execution(dialog, result, current_run, folder_status):
     elif folder_status == folder.FOLDER_EMPTY:
         msg = """The project folder is empty: 
         Prepare the execution before you can run it."""
-        text_color = "text-red"           
+        text_color = "text-red"                    
     if msg:             
         ui.label(msg).classes(text_color)
         rh.ui_next_back(current_run, ready_for_next=False)
         return 
+    if folder_status == folder.FOLDER_HAS_OUTPUT:
+        msg = """The execution has already been run and the project folder has output."""
+        text_color = "text-teal"  
+    else:         
+        msg = """The execution is ready to run."""
+        text_color = "text-teal" 
+    ui.label(msg).classes(text_color)   
     execution = current_run["execution"]
     project_path = current_run["project_path"]
     secret_files = current_run["secret_files"]
-    cli_run_command = build_command(
-        cmd="run",
-        secret_files=secret_files,
-        execution_id=execution["execution_id"],
-        project_path=project_path,
-    )
-    cli_output_command = build_command(
-        cmd="output",
-        execution_id=execution["execution_id"],
-        project_path=project_path,
-    )
-    with ui.row().classes("w-full"):
-        ui.label(cli_run_command).classes("font-mono")
-    with ui.row().classes("w-full"):
-        ui.icon("warning").classes("text-lg text-yellow")
-        ui.label(
-            """It can take a while until you see output in this step: 
-        loading means just that the job is still running."""
+    if folder_status != folder.FOLDER_HAS_OUTPUT:
+        cli_run_command = build_command(
+            cmd="run",
+            secret_files=secret_files,
+            execution_id=execution["execution_id"],
+            project_path=project_path,
         )
-    with ui.row().classes("w-full"):
-        ui.button(
-            "Run execution",
-            on_click=lambda: run_command(cli_run_command, dialog, result),
-            icon="rocket",
-        ).props("no-caps")
-    with ui.row().classes("w-full"):
-        ui.button(
-            "Show folder with output",
-            on_click=lambda: run_command(cli_output_command, dialog, result),
-            icon="info",
-        ).props("no-caps")
+        with ui.row().classes("w-full"):
+            ui.label(cli_run_command).classes("font-mono")
+        with ui.row().classes("w-full"):
+            ui.icon("warning").classes("text-lg text-yellow")
+            ui.label(
+                """It can take a while until you see output in this step: 
+            loading means just that the job is still running."""
+            )
+        with ui.row().classes("w-full"):
+            ui.button(
+                "Run execution",
+                on_click=lambda: run_command(cli_run_command, dialog, result),
+                icon="rocket",
+            ).props("no-caps")
+    else:    
+        cli_output_command = build_command(
+            cmd="output",
+            execution_id=execution["execution_id"],
+            project_path=project_path,
+        )
+        with ui.row().classes("w-full"):
+            ui.button(
+                "Show folder with output",
+                on_click=lambda: run_command(cli_output_command, dialog, result),
+                icon="info",
+            ).props("no-caps")
     rh.ui_next_back(current_run, ready_for_next=False)
 
 
