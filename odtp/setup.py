@@ -3,6 +3,8 @@ from odtp.storage import s3Manager
 import logging
 import odtp.helpers.settings as config
 
+log = logging.getLogger(__name__)
+
 
 class s3Database:
     def __init__(self):
@@ -12,11 +14,11 @@ class s3Database:
         secretKey = config.ODTP_SECRET_KEY
         storageManager = s3Manager(s3Server, bucketName, accessKey, secretKey)
         self.storageManager = storageManager
-        logging.info("Connected to: %s", storageManager)
+        log.info("Connected to: %s", storageManager)
 
     def create_folders(self, structure):
         self.storageManager.createFolderStructure(structure)
-        logging.info("Folder structure generated")
+        log.info("Folder structure generated")
 
     def close(self):
         self.storageManager.close()
@@ -24,7 +26,7 @@ class s3Database:
     def deleteAll(self):
         self.storageManager.deleteAll()
         self.storageManager.close()
-        logging.info("S3 deleted and client closed")
+        log.info("S3 deleted and client closed")
 
     def download(self, item):
         pass

@@ -6,6 +6,8 @@ import odtp.mongodb.db as db
 import logging
 import zipfile
 
+log = logging.getLogger(__name__)
+
 
 class WorkflowManager:
     def __init__(self, execution_data, working_path, secrets):
@@ -88,7 +90,7 @@ class WorkflowManager:
 
             componentManager.prepare_component()
 
-            logging.info("COMPONENTS DOWNLOADED AND BUILT")
+            log.info("COMPONENTS DOWNLOADED AND BUILT")
 
     def download_data_from_storage(self):
         # Implement the logic to download data from S3
@@ -111,7 +113,7 @@ class WorkflowManager:
 
         # Temporally the parameters are taken from the environment files and not 
         # taken from the steps documents
-        logging.info(self.steps_folder_paths)
+        log.info(self.steps_folder_paths)
         for step_index in self.schema["workflowExecutorSchema"]:
             step_index = int(step_index)
 
@@ -136,8 +138,8 @@ class WorkflowManager:
                 output_zip_path = os.path.join(previous_output_path, 'odtp-output.zip')
                 actual_input_path = os.path.join(self.steps_folder_paths[step_index], 'odtp-input')
                 
-                logging.info(output_zip_path)
-                logging.info(actual_input_path)
+                log.info(output_zip_path)
+                log.info(actual_input_path)
                 
                 # Extract the contents of the output.zip file into the actual_input_path
                 with zipfile.ZipFile(output_zip_path, 'r') as zip_ref:
@@ -145,7 +147,7 @@ class WorkflowManager:
 
                 # List the contents of the actual_input_path directory
                 contents = os.listdir(actual_input_path)
-                logging.info(f"Contents of the folder: {contents}")
+                log.info(f"Contents of the folder: {contents}")
 
 
             # Change image_name by Component ID_version
@@ -158,7 +160,7 @@ class WorkflowManager:
             )
             
             # instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
-            #logging.info(env_files[step_index])
+            #log.info(env_files[step_index])
             componentManager.run_component(
                 parameters,
                 secrets,
