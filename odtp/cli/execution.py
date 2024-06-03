@@ -1,7 +1,6 @@
 """
 This scripts contains odtp subcommands for 'execution'
 """
-import logging
 
 import typer
 from typing_extensions import Annotated

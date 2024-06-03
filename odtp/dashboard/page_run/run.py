@@ -25,7 +25,7 @@ def ui_prepare_execution(dialog, result, current_run, folder_status):
             - create folder structure
             """
         )
-    with ui.row():
+    with ui.row().classes("w-full"):
         if folder_status == folder.FOLDER_EMPTY:
             ui.icon("check").classes("text-teal text-lg")
             ui.label("Project folder for the execution run has been selected").classes("text-teal") 

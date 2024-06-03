@@ -9,6 +9,9 @@ from odtp.helpers.settings import GITHUB_TOKEN
 GITHUB_API_REPOS_URL = "https://api.github.com/repos"
 
 
+log = logging.getLogger(__name__)
+
+
 class OdtpGithubException(Exception):
     pass
 
@@ -26,7 +29,7 @@ def get_github_repo_url(repo_url):
 
 
 def make_github_api_call(url):
-    logging.info(f"make github api call: {url}")
+    log.info(f"make github api call: {url}")
     headers = {"Authorization": "token " + GITHUB_TOKEN}
     response = requests.get(url, headers=headers)
     return response
