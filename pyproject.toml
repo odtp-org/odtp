@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "odtp"
-version = "0.2.6"
+version = "0.3.0"
 description = "A tool to deploy and manage open digital twins"
 authors = ["caviri <carlosvivarrios@gmail.com>", "sabinem <sabine.maennel@sdsc.ethz.ch>"]
 license = "AGPL 3.0"
