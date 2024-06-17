@@ -15,6 +15,7 @@ OUTPUT_DIR = "odtp-output"
 
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 class OdtpRunSetupException(Exception):
@@ -23,7 +24,7 @@ class OdtpRunSetupException(Exception):
 
 class DockerManager:
     def __init__(self, repo_url="", commit_hash="", image_name="", project_folder=""):
-        log.info(f"""Docker manager intialized with repo_url: {repo_url},
+        log.debug(f"""Docker manager initialized with repo_url: {repo_url},
                      commit_hash: {commit_hash}, project_folder: {project_folder}, image_name: {image_name}""")
         self.repo_url = repo_url
         self.commit_hash = commit_hash
@@ -42,13 +43,13 @@ class DockerManager:
 
     def _create_project_folder_structure(self):
         """Create all the folder structure in project_folder""" 
-        log.info("PREPARE create project folder structure")
+        log.debug("PREPARE create project folder structure")
         os.makedirs(self.repository_path, exist_ok=True)
         os.makedirs(self.input_volume, exist_ok=True)
         os.makedirs(self.output_volume, exist_ok=True)    
     
     def _check_project_folder_prepared(self):  
-        log.info("VALIDATION: check project folder structure")  
+        log.debug(f"VALIDATION: check project folder structure: {self.project_folder}")  
         """check whether the project folder is prepared with the expected 
         structure of repository_path, input and output volume"""
         subdirs = []
@@ -63,7 +64,7 @@ class DockerManager:
             )
         
     def _checks_for_prepare(self):
-        log.info("VALIDATION: check for prepare") 
+        log.debug(f"VALIDATION: check commit hash {self.commit_hash} for prepare") 
         env_helpers.check_project_folder_empty(self.project_folder)
         self.commit_hash = git_helpers.check_commit_for_repo(
             repo_url=self.repo_url, 
@@ -187,10 +188,11 @@ class DockerManager:
         output, error = process.communicate()
 
         if process.returncode != 0:
-            log.error(f"Failed to run Docker component {instance_name}: {error.decode()}")
+            log.exception(f"Failed to run Docker component {instance_name}: {error.decode()}")
             return None
         else:
             docker_run_id = output.decode().strip()
+            log.info(f"Docker run was started with success: {instance_name}")
             return docker_run_id
 
     def stop_component(self, name="odtpruntest"):
@@ -209,7 +211,7 @@ class DockerManager:
         _, error = process.communicate()
 
         if process.returncode != 0:
-            log.error(f"Failed to stop Docker component {name}: {error.decode()}")
+            log.exception(f"Failed to stop Docker component {name}: {error.decode()}")
             return None
         else:
             return f"Docker component {name} has been stopped."
@@ -230,7 +232,7 @@ class DockerManager:
         _, error = process.communicate()
 
         if process.returncode != 0:
-            log.error(f"Failed to delete Docker component {instance_name}: {error.decode()}")
+            log.exception(f"Failed to delete Docker component {instance_name}: {error.decode()}")
             return None
         else:
             return f"Docker component {instance_name} has been deleted."
@@ -248,7 +250,7 @@ class DockerManager:
         _, error = process.communicate()
 
         if process.returncode != 0:
-            log.error(f"Failed to delete Docker image {self.docker_image_name}: {error.decode()}")
+            log.exception(f"Failed to delete Docker image {self.docker_image_name}: {error.decode()}")
             return None
         else:
             return f"Docker image {self.docker_image_name} has been deleted."
