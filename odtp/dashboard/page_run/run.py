@@ -95,6 +95,13 @@ def build_command(cmd, project_path, execution_id, secret_files=None):
     return cli_command
 
 
+def get_docker_command(execution_id):   
+    cli_parameters = [
+        f"--execution-id {execution_id}",
+    ]    
+    cli_command = f"odtp execution docker_container {'  '.join(cli_parameters)}"
+    return cli_command
+
 def ui_run_execution(dialog, result, current_run, folder_status):
     stepper = current_run.get("stepper")
     if stepper and rh.STEPPERS.index(stepper) != rh.STEPPER_RUN_EXECUTION:

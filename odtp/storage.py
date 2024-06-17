@@ -1,38 +1,23 @@
-# Here is where all  the s3Manager related methods should be placed.
-
-# Env variables needed: 
-
-
-# Some previous methods
-
-####################################################
-
 import boto3
 import logging
+from odtp.helpers import settings
+
 
 log = logging.getLogger(__name__)
 
 
 class s3Manager:
-    def __init__(self, s3Server, bucketName, accessKey, secretKey):
-        self.s3Server = s3Server
-        self.bucketName = bucketName
-        self.accessKey = accessKey
-        self.secretKey = secretKey
+    def __init__(self):
+        self.s3 = boto3.client('s3',
+            endpoint_url=settings.ODTP_S3_SERVER,
+            aws_access_key_id=settings.ODTP_ACCESS_KEY,
+            aws_secret_access_key=settings.ODTP_SECRET_KEY
+        )
+        self.bucketName = settings.ODTP_BUCKET_NAME
 
-        self.connect()
-
-        # Add logging Info
-        
-    # Method to connect to s3 server
-    def connect(self):
-        s3 = boto3.client('s3', endpoint_url=self.s3Server,
-                    aws_access_key_id=self.accessKey, 
-                    aws_secret_access_key=self.secretKey)
-        
-        self.s3 = s3
-
-        # Add logging info
+    def test_connection(self):
+        bucket = self.s3.head_bucket(Bucket=self.bucketName)
+        return bucket    
 
     # Method to close the client connection
     def closeConnection(self):
@@ -137,6 +122,10 @@ class s3Manager:
         """
         self.s3.delete_object(Bucket=self.bucketName, Key=s3_path)
         log.info(f"File '{s3_path}' deleted from S3 bucket")
+
+    def create_folders(self, structure):
+        self.s3.createFolderStructure(structure)
+        log.info("Folder structure generated")
 
     def close(self):
         del self.s3

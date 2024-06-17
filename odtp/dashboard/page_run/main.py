@@ -75,7 +75,7 @@ def ui_stepper(
                 project_path=project_path,
             )
         else:
-            folder_status = folder.FOLDER_NOT_SET   
+            folder_status = folder.FOLDER_NOT_SET       
         if ODTP_DASHBOARD_JSON_EDITOR:
             with ui.expansion("Current Execution Run as JSON"):
                 ui.json_editor(

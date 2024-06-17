@@ -20,7 +20,7 @@ def add_digital_twin_form(current_user):
                 "Should be at least 6 characters long": lambda value: len(value.strip())
                 >= 6
             },
-        ).classes("w-2/3")
+        ).classes("w-1/2")
 
         ui.button(
             "Add new digital twin",

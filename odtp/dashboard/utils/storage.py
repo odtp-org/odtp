@@ -3,12 +3,6 @@ import logging
 
 from nicegui import app, ui
 
-import odtp.dashboard.utils.helpers as helpers
-import odtp.dashboard.utils.parse as parse
-import odtp.dashboard.utils.ui_theme as ui_theme
-import odtp.helpers.git as odtp_git
-import odtp.helpers.utils as odtp_utils
-import odtp.mongodb.db as db
 
 CURRENT_USER = "user"
 CURRENT_DIGITAL_TWIN = "digital_twin"
@@ -53,7 +47,7 @@ def reset_storage_keep(keys):
                 del app.storage.user[key]
     except Exception as e:
         logging.error(
-            f"""During reset storage keep with keys {keys} en execption {e} occured. 
+            f"""During reset storage keep with keys {keys} en exception {e} occurred. 
                   Current keys in storage {app.storage.user.keys()}"""
         )
 

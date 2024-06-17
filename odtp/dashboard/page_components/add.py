@@ -28,7 +28,7 @@ def ui_form_component_add_step1():
             validation=lambda value: validators.validate_github_repo(value),
         )
         .without_auto_validation()
-        .classes("w-2/3")
+        .classes("w-1/2")
     )
     ui.button(
         "Proceed to next step",

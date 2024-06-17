@@ -103,7 +103,7 @@ def output(
         display_tree(project_path)
     except Exception as e:
         print(f"ERROR: Output printing failed: {e}")       
-        raise typer.Abort()  
+        raise typer.Abort()
 
 
 if __name__ == "__main__":

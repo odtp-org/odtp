@@ -36,6 +36,11 @@ def get_db():
     return all_data
 
 
+def check_connection():
+    with MongoClient(ODTP_MONGO_SERVER, serverSelectionTimeoutMS = 2000) as client:
+        return client.server_info()
+
+
 def get_collection_names():
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]

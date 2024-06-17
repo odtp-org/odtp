@@ -101,7 +101,7 @@ def ui_new_execution_start_form(current_digital_twin, current_execution_to_add):
             )
         },
         value=presets["name"],
-    ).classes("w-full")
+    ).classes("w-1/2")
     ui.button(
         "Next",
         on_click=lambda: store_new_execution_init(

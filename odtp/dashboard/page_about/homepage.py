@@ -1,4 +1,9 @@
+import logging
 from nicegui import ui
+import odtp.dashboard.page_about.checks as checks
+
+
+log = logging.getLogger(__name__)
 
 
 def ui_homepage():   
@@ -6,21 +11,32 @@ def ui_homepage():
         ui.markdown(
             """
             # OTDP (Open Digital Twin Project)
-
-            ## Getting Started
             """
         )
-    with ui.row():
-        ui.button(
-            "Check out the Documentation",
-            on_click=lambda: ui.open("https://odtp-org.github.io/odtp-manuals/"),
-            icon="link",
-        ).props("flat").classes("place-items-start")
     with ui.grid(columns=2).classes("w-full"):
         with ui.column().classes("w-full"):
             ui.markdown(
                 """
-                ### Digital Twins
+                ## Getting Started
+                """
+            )            
+            ui.button(
+                "Check out the Documentation",
+                on_click=lambda: ui.open("https://odtp-org.github.io/odtp-manuals/"),
+                icon="link",
+            ).props("flat").classes("place-items-start")
+        with ui.column().classes("w-full"):
+            ui.markdown(
+                """
+                ## Connection checks
+                """
+            )            
+            checks.ui_checks()   
+    with ui.grid(columns=2).classes("w-full"):
+        with ui.column().classes("w-full"):
+            ui.markdown(
+                """
+                ## Digital Twins
                 """
             ).classes("w-full")
             with ui.grid(columns=1):
@@ -55,7 +71,7 @@ def ui_homepage():
         with ui.column().classes("w-full"):
             ui.markdown(
                 """
-                ### Components
+                ## Components
                 """
             ).classes("w-full")
             with ui.grid(columns=1):

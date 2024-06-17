@@ -39,7 +39,7 @@ def ui_select_form(current_component, components):
                 on_change=lambda e: store_selected_component(str(e.value)),
                 label="component",
                 with_input=True,
-            ).classes("w-full")
+            ).classes("w-1/2")
 
 
 def ui_form_version_add(current_component):   

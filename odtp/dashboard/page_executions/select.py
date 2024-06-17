@@ -33,7 +33,7 @@ def ui_select_form(execution_options, current_execution):
         label="executions",
         on_change=lambda e: store_selected_execution(e.value),
         with_input=True,
-    ).classes("w-full")
+    ).classes("w-1/2")
     ui.button(
         "Unselect Execution",
         on_click=lambda: cancel_execution_selection(),
