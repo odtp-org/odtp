@@ -7,6 +7,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 DEFAULT_LOG_LEVEL = "ERROR"
+DEFAULT_RUN_LOG_LEVEL = "INFO"
 
 class OdtpSettingsException(Exception):
     pass
@@ -43,3 +44,8 @@ ODTP_LOG_LEVEL = os.getenv("ODTP_LOG_LEVEL")
 log_levels = logging.getLevelNamesMapping()
 if not ODTP_LOG_LEVEL in log_levels.keys():
     ODTP_LOG_LEVEL = DEFAULT_LOG_LEVEL
+
+RUN_LOG_LEVEL = os.getenv("RUN_LOG_LEVEL")
+log_levels = logging.getLevelNamesMapping()
+if not RUN_LOG_LEVEL in log_levels.keys():
+    RUN_LOG_LEVEL = DEFAULT_RUN_LOG_LEVEL
