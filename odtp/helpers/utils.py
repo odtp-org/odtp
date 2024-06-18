@@ -1,4 +1,5 @@
 import json
+from prettytable import PrettyTable
 
 import odtp.mongodb.db as db
 from odtp import __version__
@@ -45,3 +46,57 @@ def get_version_names_for_execution(execution, naming_function=get_execution_ste
     version_dict = get_version_name_dict_for_version_ids(version_ids, naming_function=naming_function)
     version_names = [version_dict[version_id] for version_id in version_ids]
     return version_names
+
+def output_as_pretty_table(db_output, collection_name):
+    table = PrettyTable()
+
+    if collection_name == "users":
+        keys = ["_id", "displayName", "email", "github"]
+        table.field_names = ["User ID", "Display Name", "Email", "Github User"]
+
+        for item in db_output:
+            table.add_row([item[key] for key in keys] )
+
+    elif collection_name == "digitalTwins":
+        keys = ["_id", "name", "status", "public", "created_at", "updated_at", "userRef"]
+        table.field_names = keys
+
+        for item in db_output:
+            table.add_row([item[key] for key in keys] )
+
+    elif collection_name == "executions":
+        keys = ["_id", "title", "description", "start_timestamp", "end_timestamp", "digitalTwinRef"]
+        table.field_names = keys
+
+        for item in db_output:
+            table.add_row([item[key] for key in keys] )
+
+    elif collection_name == "components":
+        keys = ["_id", "author", "componentName", "repoLink", "status", "title", "type", "description", "created_at", "updated_at"]
+        table.field_names = keys
+
+        for item in db_output:
+            table.add_row([item[key] for key in keys] )
+
+    elif collection_name == "versions":
+        keys = ["_id", "componentId", "odtp_version", "component_version", "commitHash", "title", "description", "ports", "created_at", "updated_at"]
+        table.field_names = keys
+
+        for item in db_output:
+            table.add_row([item[key] for key in keys] )
+
+    elif collection_name == "outputs":
+        keys = ["_id", "output_type", "s3_bucket", "s3_key", "file_name", "file_size", "file_type", "created_at", "updated_at", "stepRef"]
+        table.field_names = keys
+
+        for item in db_output:
+            table.add_row([item[key] for key in keys] )
+    
+    elif collection_name == "results":
+        keys = ["_id", "executionRef", "digitalTwinRef", "title", "description", "created_at", "updated_at"]
+        table.field_names = keys
+
+        for item in db_output:
+            table.add_row([item[key] for key in keys] )
+
+    print(table)

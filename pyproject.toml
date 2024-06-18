@@ -17,6 +17,7 @@ boto3 = "^1.33.13"
 nicegui = "1.4.22"
 directory-tree = "^0.0.4"
 docker = "7.1.0"
+prettytable = "3.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
