@@ -60,6 +60,7 @@ RUN pip3 install --upgrade pip && \
 
 # Add your application's source code
 COPY . /app
+WORKDIR /app
 RUN pip3 install --break-system-packages --editable .
 
 # Symbolic link between python and python3
