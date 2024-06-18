@@ -1,5 +1,6 @@
 # Use Docker in Docker stable version
 FROM docker:25.0.3-dind-alpine3.19
+ARG PIP_INSTALL_ARGS=
 
 # Install dependencies required
 RUN apk add --no-cache \
@@ -61,13 +62,11 @@ RUN pip3 install --upgrade pip && \
 # Add your application's source code
 COPY . /app
 WORKDIR /app
-RUN pip3 install --break-system-packages --editable .
+RUN pip3 install --break-system-packages $PIP_INSTALL_ARGS .
 
 # Symbolic link between python and python3
 RUN rm /usr/bin/python
 RUN ln -s /usr/local/bin/python3 /usr/bin/python
-
-WORKDIR /app
 
 # Entry point in a sh session
 ENTRYPOINT ["sh"]
