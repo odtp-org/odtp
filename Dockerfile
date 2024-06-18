@@ -11,7 +11,7 @@ RUN apk add --no-cache \
     zlib-dev \
     git \
     curl \
-    wget 
+    wget
 
 # Install Rust and Cargo using rustup (the Rust toolchain installer)
 # Note: The following command installs the stable version of Rust and adds Cargo to the PATH
@@ -20,7 +20,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # Install system dependencies required for compiling Fortran and C++ code
 # Needed for Numpy.
 RUN apk add --no-cache \
-    curl \ 
+    curl \
     gfortran \
     g++ \
     cmake \
@@ -60,11 +60,7 @@ RUN pip3 install --upgrade pip && \
 
 # Add your application's source code
 COPY . /app
-
-WORKDIR /app
-
-RUN pip3 install --upgrade pip && \
-    pip3 install --break-system-packages .
+RUN pip3 install --break-system-packages --editable .
 
 # Symbolic link between python and python3
 RUN rm /usr/bin/python
