@@ -96,7 +96,9 @@ def build_execution_with_steps(execution_id):
     for step_id in step_ids:
         parameters.append(step_dict[step_id].get("parameters", {}))
         ports.append(step_dict[step_id].get("ports", []))
-        outputs.append(step_dict[step_id].get("output", {}))
+        output = step_dict[step_id].get("output")
+        if output:
+            outputs.append(str(output))
         inputs.append(step_dict[step_id].get("input", {}))
     execution_with_steps = {
         "execution_id": execution_id,
