@@ -161,7 +161,7 @@ class DockerManager:
             parameters["ODTP_ACCESS_KEY"] = config.ODTP_ACCESS_KEY
             parameters["ODTP_SECRET_KEY"] = config.ODTP_SECRET_KEY
 
-        env_args = [f"-e \"{key}={value}\"" for key, value in parameters.items()]
+        env_args = [f"-e \"{key}={value}\"" for key, value in parameters.items() if key]
 
         if ports:
             ports_args = [f"-p {port_pair}" for port_pair in ports]
@@ -177,9 +177,8 @@ class DockerManager:
                               "--network", "odtp_odtp-network",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
-        
-        command_string = ' '.join(docker_run_command)
 
+        command_string = ' '.join(docker_run_command)
         if debug:
             log.debug(f"Command to be executed: {command_string}")
 
