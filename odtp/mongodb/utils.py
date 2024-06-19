@@ -44,8 +44,8 @@ def check_port_mappings_for_component_runs(ports):
 def check_parameters_for_execution(parameters):
     if not isinstance(parameters, list):
         raise OdtpDbMongoDBValidationException(f"{parameters} should be a list")
-    for paramters_per_version in parameters:
-        check_parameters_for_component(parameters)
+    for parameters_per_version in parameters:
+        check_parameters_for_component(parameters_per_version)
 
 
 def check_parameters_for_component(parameters):

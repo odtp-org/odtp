@@ -22,6 +22,9 @@ collection_steps = "steps"
 collection_results = "results"
 
 
+log = logging.getLogger(__name__)
+
+
 def get_db():
     """Retrieve all documents from the db"""
     with MongoClient(ODTP_MONGO_SERVER) as client:
@@ -31,6 +34,11 @@ def get_db():
             cursor = db[collection_name].find()
             all_data[collection_name] = [doc for doc in cursor]
     return all_data
+
+
+def check_connection():
+    with MongoClient(ODTP_MONGO_SERVER, serverSelectionTimeoutMS = 2000) as client:
+        return client.server_info()
 
 
 def get_collection_names():
@@ -44,7 +52,7 @@ def get_collection(collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         cursor = db[collection].find({})
-    return mongodb_utils.get_list_from_cursor(cursor)
+        return mongodb_utils.get_list_from_cursor(cursor)
 
 
 def get_all_collections():
@@ -117,7 +125,7 @@ def delete_document_by_id(document_id, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         document = db[collection].delete_one({"_id": ObjectId(document_id)})
-        logging.info(f"Document with ID {document_id} was deleted")
+        log.info(f"Document with ID {document_id} was deleted")
 
 
 def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort_by=None):
@@ -159,7 +167,7 @@ def add_user(name, github, email):
         user_id = (
             client[ODTP_MONGO_DB][collection_users].insert_one(user_data).inserted_id
         )
-    logging.info("User added with ID {}".format(user_id))
+    log.info("User added with ID {}".format(user_id))
     return user_id
 
 
@@ -194,7 +202,7 @@ def add_component_version(
         component = db[collection_components].find_one({"repoLink": repo_url})
         if component:
             component_id = component["_id"]
-            logging.info(
+            log.info(
                 f"Component with ID {component_id} already existed for repo {repo_url}"
             )
         else:
@@ -214,7 +222,7 @@ def add_component_version(
             component_id = (
                 db[collection_components].insert_one(component_data)
             ).inserted_id
-            logging.info(f"Component added with ID {component_id}")
+            log.info(f"Component added with ID {component_id}")
             component = db[collection_components].find_one({"_id": component_id})
         version = db[collection_versions].find_one(
             {
@@ -223,7 +231,7 @@ def add_component_version(
             }
         )
         if version:
-            logging.info(
+            log.info(
                 f"Version {component_version} already existed"
             )
             raise mongodb_utils.OdtpDbMongoDBValidationException(
@@ -256,7 +264,7 @@ def add_component_version(
             if ports:
                 version_data["ports"] = ports
             version_id = db[collection_versions].insert_one(version_data).inserted_id
-            logging.info("Version added with ID {}".format(version_id))
+            log.info("Version added with ID {}".format(version_id))
             db[collection_components].update_one(
                 {"_id": ObjectId(component_id)}, {"$push": {"versions": version_id}}
             )
@@ -279,7 +287,7 @@ def add_digital_twin(userRef, name):
         digital_twin_id = (
             db[collection_digital_twins].insert_one(digital_twin_data).inserted_id
         )
-        logging.info(f"Digital Twin added with ID {digital_twin_id}")
+        log.info(f"Digital Twin added with ID {digital_twin_id}")
 
         # Add digital twin reference to user
         db[collection_users].update_one(
@@ -349,12 +357,12 @@ def add_execution(
                 }
                 steps.append(step)
             execution_id = append_execution_to_digital_twin(db, dt_id, execution)
-            logging.info(f"Execution added with ID {execution_id}")
+            log.info(f"Execution added with ID {execution_id}")
             steps_ids = []
             for step in steps:
                 step_id = append_step_to_execution(db, execution_id, step)
                 steps_ids.append(step_id)
-            logging.info(f"STEPS added with ID {steps_ids}")
+            log.info(f"STEPS added with ID {steps_ids}")
         except Exception as e:
             e.add_note("-> Execution not valid: was not stored in mongodb")
             raise (e)
@@ -419,4 +427,4 @@ def init_collections():
         ]:
             if name not in collection_names:
                 db.create_collection(name)
-                logging.info(f"Collections has been created or exists: {name}")
+                log.info(f"Collections has been created or exists: {name}")

@@ -1,6 +1,6 @@
 import re
 
-FIELD_INPUT_DELIMTER_PATTERN = '[,|+|\s|;]+'
+FIELD_INPUT_DELIMTER_PATTERN = "[,|+|\s|;]+"
 
 
 def parse_ports(input_field):
