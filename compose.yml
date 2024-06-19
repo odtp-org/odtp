@@ -2,7 +2,10 @@ version: "3.8"
 
 services:
   odtp:
-    build: .
+    build:
+      context: .
+      args:
+        PIP_INSTALL_ARGS: ${PIP_INSTALL_ARGS}
     image: odtp
     privileged: true
     ports:
