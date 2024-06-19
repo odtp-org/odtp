@@ -1,13 +1,13 @@
-from nicegui import app, native, ui
+from nicegui import app, ui
 from odtp.helpers.settings import (ODTP_DASHBOARD_PORT, ODTP_DASHBOARD_RELOAD)
 
 import odtp.dashboard.utils.ui_theme as ui_theme
-from odtp.dashboard.pages.page_about import content as about_page
-from odtp.dashboard.pages.page_components import content as components_page
-from odtp.dashboard.pages.page_digital_twins import content as digital_twins_page
-from odtp.dashboard.pages.page_executions import content as executions_page
-from odtp.dashboard.pages.page_run import content as run_page
-from odtp.dashboard.pages.page_user import content as user_page
+from odtp.dashboard.page_about.main import content as about_page
+from odtp.dashboard.page_components.main import content as components_page
+from odtp.dashboard.page_digital_twins.main import content as digital_twins_page
+from odtp.dashboard.page_executions.main import content as executions_page
+from odtp.dashboard.page_run.main import content as run_page
+from odtp.dashboard.page_users.main import content as user_page
 
 
 @ui.page("/")

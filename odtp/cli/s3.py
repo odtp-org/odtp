@@ -1,17 +1,16 @@
 """
 This scripts contains odtp subcommands for 's3'
 """
+from pprint import pprint
+import logging
 import typer
 
-from odtp.setup import s3Database
+from odtp.storage import s3Manager
 
 app = typer.Typer()
 
-#### TODO: S3 Create
 
-#### TODO: S3 Delete
-
-#### TODO: S3 Check
+log = logging.getLogger(__name__)
 
 
 @app.command()
@@ -23,9 +22,20 @@ def download(
         help="Specify the path to the folder where the file is going to be downloaded",
     ),
 ):
-    odtpS3 = s3Database()
-    odtpS3.download_file(s3_path, output_path)
+    odtpS3 = s3Manager()
+    odtpS3.downloadFile(s3_path, output_path)
     odtpS3.close()
+
+
+@app.command()
+def check():  
+    try:
+        s3 = s3Manager()
+        bucket = s3.test_connection()
+        print("S3 is connected. Bucket is ready to use")
+    except Exception as e:
+        log.exception(f"S3 connection could not be established: an Exception {e} occurred")
+        print(f"S3 connection could not be established: an Exception {e} occurred")    
 
 
 if __name__ == "__main__":

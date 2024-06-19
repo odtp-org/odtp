@@ -1,7 +1,6 @@
 """
 This scripts contains odtp subcommands for 'execution'
 """
-import logging
 
 import typer
 from typing_extensions import Annotated
@@ -104,7 +103,7 @@ def output(
         display_tree(project_path)
     except Exception as e:
         print(f"ERROR: Output printing failed: {e}")       
-        raise typer.Abort()  
+        raise typer.Abort()
 
 
 if __name__ == "__main__":

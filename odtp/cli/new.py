@@ -7,7 +7,6 @@ from typing_extensions import Annotated
 import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 import odtp.mongodb.utils as db_utils
-import odtp.helpers.utils as odtp_utils
 import odtp.helpers.git as odtp_git
 
 

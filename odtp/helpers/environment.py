@@ -52,6 +52,8 @@ def directory_has_output(execution_id, project_folder):
     output_dirs = [
         os.path.join(project_folder, subdir, "odtp-output") for subdir in subdirs
     ]
+    if not output_dirs:
+        return False
     for output_dir in output_dirs:
         if len(os.listdir(output_dir)) != 0:
             return True

@@ -1,6 +1,7 @@
 """
 The filepicker was copied from the nicegui examples
 """
+
 import platform
 from pathlib import Path
 from typing import Optional
