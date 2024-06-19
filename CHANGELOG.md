@@ -1,5 +1,18 @@
 ## Changelog
 
+- v0.3.0 Dashboard refactoring
+    - Dashboard was refactored since code files were getting too long
+    - Homepage of the dashboard got an upgrade and also contains now connection checks
+    - the execution run page is now only accessible via the execution
+    - the workflow in the dashboard has been improved
+    - the docker compose setup has now a dev and a prod file
+    - log levels for dashboard and docker runs can now be set separately   
+
+- v0.2.8: Bug fixes and settings updates
+
+- v0.2.7 Hotfix for environment variable
+    - hotfix ODTP port in docker compose
+
 - v0.2.6: Bugs correction
     - Missing `ODTP_PATH` in `compose.yml`. 
 
