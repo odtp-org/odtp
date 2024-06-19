@@ -12,7 +12,7 @@ services:
       - ${ODTP_DASHBOARD_PORT}:${ODTP_DASHBOARD_PORT}
       - "8501:8501"
     volumes:
-      # - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
       - ${ODTP_PATH}:${ODTP_PATH}
       - ${APP_PATH}:/app
     environment:
