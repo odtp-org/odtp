@@ -2,10 +2,7 @@ version: "3.8"
 
 services:
   odtp:
-    build:
-      context: .
-      args:
-        PIP_INSTALL_ARGS: ${PIP_INSTALL_ARGS}
+    build: .
     image: odtp
     privileged: true
     ports:
@@ -25,7 +22,6 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       ODTP_MONGO_DB: ${ODTP_MONGO_DB}
       ODTP_DASHBOARD_PORT: ${ODTP_DASHBOARD_PORT}
-      ODTP_DASHBOARD_RELOAD: ${ODTP_DASHBOARD_RELOAD}
       ODTP_DASHBOARD_JSON_EDITIOR: ${ODTP_DASHBOARD_JSON_EDITIOR}
       ODTP_LOG_LEVEL: ${ODTP_LOG_LEVEL}
       RUN_LOG_LEVEL: ${ODTP_LOG_LEVEL}
