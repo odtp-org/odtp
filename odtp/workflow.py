@@ -28,6 +28,8 @@ class WorkflowManager:
             document_id=execution_data["digitalTwinRef"], 
             collection=db.collection_digital_twins
         )
+        # TODO: Right now, only compatible with one result per digital twin.
+        # Method to create and select other results should be implemented
         self.result_id = str(dt_doc["results"][0])
 
         for step_index in self.schema["workflowExecutorSchema"]:
