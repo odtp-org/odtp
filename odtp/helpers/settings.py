@@ -39,7 +39,6 @@ else:
     ODTP_DASHBOARD_JSON_EDITOR = False
 
 ODTP_PATH = os.getenv("ODTP_PATH")
-
 ODTP_LOG_LEVEL = os.getenv("ODTP_LOG_LEVEL")
 log_levels = logging.getLevelNamesMapping()
 if not ODTP_LOG_LEVEL in log_levels.keys():
@@ -49,3 +48,10 @@ RUN_LOG_LEVEL = os.getenv("RUN_LOG_LEVEL")
 log_levels = logging.getLevelNamesMapping()
 if not RUN_LOG_LEVEL in log_levels.keys():
     RUN_LOG_LEVEL = DEFAULT_RUN_LOG_LEVEL
+
+LOG_TO_FILE = os.getenv("LOG_TO_FILE")
+command_log_handler = logging.FileHandler('odtp_command_log.log')
+FORMATTER = logging.Formatter(
+    '%(asctime)s - [%(module)s:%(levelname)s] %(lineno)d %(filename)s %(funcName)s - %(message)s'
+)
+command_log_handler.setFormatter(FORMATTER)

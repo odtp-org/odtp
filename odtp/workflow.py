@@ -1,13 +1,15 @@
 import os
 from odtp.run import DockerManager, OdtpRunSetupException
 import odtp.helpers.utils as odtp_utils
+import odtp.helpers.settings as config
 import odtp.helpers.environment as env_helpers
 import odtp.mongodb.db as db
 import logging
 import zipfile
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
+log.addHandler(config.command_log_handler)
 
 
 class WorkflowManager:
@@ -171,7 +173,7 @@ class WorkflowManager:
                 secrets,
                 ports=ports,
                 instance_name=self.instance_names[step_index],
-                step_id=self.execution["steps"][step_index]
+                step_id=self.execution["steps"][step_index],
             )
 
     def run_task(self):

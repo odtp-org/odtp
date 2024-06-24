@@ -5,10 +5,13 @@ import shlex
 import sys
 
 from nicegui import ui
+import odtp.helpers.settings as config
 import odtp.dashboard.page_run.helpers as rh
 import odtp.dashboard.page_run.folder as folder
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+log.addHandler(config.command_log_handler)
 
 
 def ui_prepare_execution(dialog, result, current_run, folder_status):
@@ -187,6 +190,7 @@ async def run_command(command: str, dialog, result) -> None:
         result.content = "... loading"
         # NOTE replace with machine-independent Python path (#1240)
         command = command.replace("python3", sys.executable)
+        log.info(command)
         process = await asyncio.create_subprocess_exec(
             *shlex.split(command, posix="win" not in sys.platform.lower()),
             stdout=asyncio.subprocess.PIPE,

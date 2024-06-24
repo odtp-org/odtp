@@ -7,13 +7,12 @@ import logging
 import importlib.metadata as importlib_metadata
 from odtp.helpers.settings import ODTP_LOG_LEVEL
 
-
 __version__ = importlib_metadata.version(__name__)
 
 logging.basicConfig(
+    level=logging.ERROR,
     format='%(asctime)s - [%(module)s:%(levelname)s] %(lineno)d %(filename)s %(funcName)s - %(message)s',
     datefmt='%d/%m/%Y %I:%M:%S %p',
-    level=logging.ERROR
 )
 
 valid_log_levels = logging.getLevelNamesMapping()

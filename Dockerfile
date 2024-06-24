@@ -56,17 +56,15 @@ RUN apk update && apk add \
     py3-pyarrow \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --upgrade pip && \
-    pip3 install --break-system-packages numpy pyarrow==12.0.0
-
 # Add your application's source code
 COPY . /app
 WORKDIR /app
-RUN pip3 install --break-system-packages $PIP_INSTALL_ARGS .
+RUN pip3 install --upgrade pip && \
+    pip3 install --break-system-packages $PIP_INSTALL_ARGS .
 
 # Symbolic link between python and python3
 RUN rm /usr/bin/python
 RUN ln -s /usr/local/bin/python3 /usr/bin/python
 
 # Entry point in a sh session
-ENTRYPOINT ["sh"]
+ENTRYPOINT ["odtp", "dashboard"]

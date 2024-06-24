@@ -3,19 +3,15 @@ This scripts contains odtp subcommands for 'execution'
 """
 
 import typer
+import logging
 from typing_extensions import Annotated
 
 import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 from odtp.workflow import WorkflowManager
 from directory_tree import display_tree
-import odtp.helpers.environment as odtp_env
-from nicegui import ui
 
 app = typer.Typer()
-
-## Adding listing so we can have multiple flags
-from typing import List
 
 
 @app.command()

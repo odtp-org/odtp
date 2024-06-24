@@ -1,6 +1,9 @@
 import json
 import logging
 import os.path
+import os
+import shutil
+from slugify import slugify
 
 from nicegui import app, ui
 import odtp.dashboard.utils.storage as storage
@@ -70,12 +73,8 @@ def ui_prepare_folder(dialog, result, workdir, current_run, folder_status):
         else:
             cli_output_command = None                
     with ui.row().classes("w-full flex items-center"):
-        ui.button(
-            "Choose existing project folder",
-            on_click=lambda: pick_folder(workdir, current_run),
-            icon="folder",
-        ).props("flat")
         project_folder_input = ui.input(
+            value=slugify(execution["title"]),
             label="Project folder name",
             placeholder="execution",
             validation={
@@ -89,11 +88,6 @@ def ui_prepare_folder(dialog, result, workdir, current_run, folder_status):
             on_click=lambda: create_folder(workdir, project_folder_input, current_run),
             icon="add",
         ).props("flat ")
-        ui.button(
-            f"Reset project folder",
-            on_click=lambda: remove_project_folder(current_run),
-            icon="clear",
-        ).props("flat")
     with ui.row().classes("w-full"):
         from odtp.dashboard.page_run.run import run_command
         if cli_output_command:
@@ -131,7 +125,9 @@ def create_folder(workdir, folder_name_input, current_run):
     try:
         folder_name = folder_name_input.value
         project_path = os.path.join(workdir, folder_name)
-        os.mkdir(project_path)
+        if os.path.exists(project_path):
+            shutil.rmtree(project_path)
+        os.makedirs(project_path)
         current_run["project_path"] = project_path
         current_run["stepper"] = rh.STEPPERS[rh.STEPPER_SELECT_FOLDER]
         app.storage.user[storage.EXECUTION_RUN] = json.dumps(current_run)
@@ -149,19 +145,6 @@ def create_folder(workdir, folder_name_input, current_run):
         from odtp.dashboard.page_run.main import ui_workarea, ui_stepper    
         ui_workarea.refresh()
         ui_stepper.refresh()
-
-
-def remove_project_folder(current_run) -> None:
-    try:
-        current_run["project_path"] = ""
-        app.storage.user[storage.EXECUTION_RUN] = json.dumps(current_run)
-        ui.notify("The project path been reset", type="positive")
-    except Exception as e:
-        log.exception(f"The project directory could not be reset: an exception occurred: {e}")
-    else: 
-        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper       
-        ui_stepper.refresh()
-        ui_workarea.refresh()
 
 
 def get_folder_status(execution_id, project_path):

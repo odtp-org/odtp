@@ -15,7 +15,8 @@ OUTPUT_DIR = "odtp-output"
 
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
+log.addHandler(config.command_log_handler)
 
 
 class OdtpRunSetupException(Exception):
@@ -72,7 +73,7 @@ class DockerManager:
         )
 
     def _checks_for_run(self, parameters, ports, image_name):
-        log.info("VALIDATION: check for run") 
+        log.debug("VALIDATION: check for run")
         self._check_project_folder_prepared()
         self._check_image_exists()
         try:
@@ -90,24 +91,34 @@ class DockerManager:
         Args:
             destination (str): The destination directory to download the repository.
         """
-        log.info(f"PREPARE: Downloading repository from {self.repo_url} to {self.repository_path}")
-        subprocess.run(
-            ["git", 
+        log.debug(f"PREPARE: Downloading repository from {self.repo_url} to {self.repository_path}")
+        git_clone_command = [
+            "git",
              "clone",
-             "--recurse-submodules",
              self.repo_url, 
-             os.path.join(self.project_folder, "repository")
-            ]
-        )
-        subprocess.run(
-            ["git", 
+             self.repository_path,
+        ]
+        log.info(" ".join(git_clone_command))
+        subprocess.run(git_clone_command)
+        git_checkout_command = [
+            "git",
              "-C", 
-             os.path.join(self.project_folder, 
-             "repository"), 
+             self.repository_path,
              "checkout", 
-             self.commit_hash
-            ]
-        )
+             self.commit_hash,
+        ]
+        log.info(" ".join(git_checkout_command))
+        subprocess.run(git_checkout_command)
+        git_submodule_command = [
+            "git",
+             "-C",
+             self.repository_path,
+             "submodule",
+             "update",
+            "--init",
+        ]
+        log.info(" ".join(git_submodule_command))
+        subprocess.run(git_submodule_command)
 
     def _build_image(self):
         """
@@ -117,14 +128,14 @@ class DockerManager:
             dockerfile_path (str): The path to the Dockerfile.
             image_name (str): The name of the Docker image to build.
         """
-        log.info(f"RUN: Building Docker image {self.docker_image_name} from {self.dockerfile_path}")
+        log.debug(f"RUN: Building Docker image {self.docker_image_name} from {self.dockerfile_path}")
         subprocess.check_output(["docker", "build", "-t", self.docker_image_name, self.dockerfile_path])
 
     def _check_image_exists(self):
         """
         Check whether a docker image exists
         """
-        log.info(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
+        log.debug(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
         image_exists = subprocess.run(['docker', 'image', 'inspect', self.docker_image_name])
         if not image_exists:
             raise OdtpRunSetupException(f"docker image {self.docker_image_name} does not exist" )   
@@ -136,10 +147,12 @@ class DockerManager:
         Args:
             volume_name (str): The name of the Docker volume to create.
         """
-        log.info(f"RUN: Creating Docker volume {volume_name}")
-        subprocess.run(["docker", "volume", "create", volume_name])
+        log.debug(f"RUN: Creating Docker volume {volume_name}")
+        docker_volume_command = ["docker", "volume", "create", volume_name]
+        log.info(docker_volume_command)
+        subprocess.run(docker_volume_command)
         
-    def run_component(self, parameters, secrets, ports, instance_name, step_id=None, debug=False):
+    def run_component(self, parameters, secrets, ports, instance_name, step_id=None):
         """
         Run a Docker component with the specified parameters.
 
@@ -173,15 +186,22 @@ class DockerManager:
         else:
             secrets_args = [""]
 
-        docker_run_command = ["docker", "run", "--rm", "-it", "--name", instance_name,
-                              "--network", "odtp_odtp-network",
-                              "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
-                              "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
+        input_volume_mapping = f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input"
+        output_volume_mapping = f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"
+
+        docker_run_command = [
+            "docker", "run", "--rm", "-it", "--name", instance_name,
+            "--network", "odtp_odtp-network",
+            "--volume", input_volume_mapping,
+            "--volume", output_volume_mapping
+        ] + env_args + ports_args + secrets_args + [self.docker_image_name]
 
         command_string = ' '.join(docker_run_command)
-        if debug:
-            log.debug(f"Command to be executed: {command_string}")
+        command_string_log_safe = command_string
+        for value in secrets.values():
+            command_string_log_safe = command_string_log_safe.replace(value, "x")
 
+        log.info(command_string_log_safe)
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         output, error = process.communicate()
@@ -206,6 +226,7 @@ class DockerManager:
         """
         log.info(f"Stopping Docker component {name}")
         docker_stop_command = ["docker", "stop", name]
+        log.info(docker_stop_command)
         process = subprocess.Popen(docker_stop_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, error = process.communicate()
 
@@ -227,6 +248,7 @@ class DockerManager:
         """
         log.info(f"Deleting Docker component {instance_name}")
         docker_rm_command = ["docker", "rm", instance_name]
+        log.info(docker_rm_command)
         process = subprocess.Popen(docker_rm_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, error = process.communicate()
 
@@ -245,6 +267,7 @@ class DockerManager:
         """
         log.info(f"Deleting Docker image {self.docker_image_name}")
         docker_rmi_command = ["docker", "rmi", self.docker_image_name]
+        log.info(docker_rmi_command)
         process = subprocess.Popen(docker_rmi_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, error = process.communicate()
 
