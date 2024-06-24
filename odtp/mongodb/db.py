@@ -154,6 +154,16 @@ def get_document_id_by_field_value(field_path, field_value, collection):
             return str(document["_id"])
         else:
             return None
+        
+def get_component_version(component_name, version_tag):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        cursor = db[collection_versions].find({
+            "component.componentName": component_name,
+            "component_version": version_tag
+        })
+        version_documents = mongodb_utils.get_list_from_cursor(cursor)
+    return version_documents
 
 
 def add_user(name, github, email):
