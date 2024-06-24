@@ -14,7 +14,12 @@ def initiate():
     db.init_collections()
 
     odtpS3 = s3Manager()
-    odtpS3.create_folders(["odtp"])
+    bucketAvailable = odtpS3.test_connection()
+    if not bucketAvailable:
+        print("S3 bucket not found. Please create the bucket on minio folder or use the dashboard.")
+        return
+
+    odtpS3.createFolderStructure(["odtp"])
     odtpS3.close()
 
     print("ODTP DB/S3 data generated")
