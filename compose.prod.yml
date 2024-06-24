@@ -11,7 +11,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${ODTP_PATH}:${ODTP_PATH}
-      - ${APP_PATH}:/app
     environment:
       ODTP_PATH: ${ODTP_PATH}
       ODTP_MONGO_SERVER: mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongodb-instance:27017/
