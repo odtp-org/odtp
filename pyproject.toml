@@ -21,6 +21,7 @@ pygwalker = "^0.3.17"
 streamlit-aggrid = "^0.3.4.post3"
 nicegui = "1.4.24"
 directory-tree = "^0.0.4"
+docker = "7.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
