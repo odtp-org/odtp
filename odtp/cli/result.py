@@ -128,3 +128,4 @@ def run(
         raise typer.Abort()           
     else:
         print("SUCCESS: container for the component has been started")
+        
