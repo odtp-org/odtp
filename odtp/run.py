@@ -90,24 +90,34 @@ class DockerManager:
         Args:
             destination (str): The destination directory to download the repository.
         """
-        log.info(f"PREPARE: Downloading repository from {self.repo_url} to {self.repository_path}")
-        subprocess.run(
-            ["git", 
+        log.debug(f"PREPARE: Downloading repository from {self.repo_url} to {self.repository_path}")
+        git_clone_command = [
+            "git",
              "clone",
-             "--recurse-submodules",
              self.repo_url, 
-             os.path.join(self.project_folder, "repository")
-            ]
-        )
-        subprocess.run(
-            ["git", 
+             self.repository_path,
+        ]
+        log.info(" ".join(git_clone_command))
+        subprocess.run(git_clone_command)
+        git_checkout_command = [
+            "git",
              "-C", 
-             os.path.join(self.project_folder, 
-             "repository"), 
+             self.repository_path,
              "checkout", 
-             self.commit_hash
-            ]
-        )
+             self.commit_hash,
+        ]
+        log.info(" ".join(git_checkout_command))
+        subprocess.run(git_checkout_command)
+        git_submodule_command = [
+            "git",
+             "-C",
+             self.repository_path,
+             "submodule",
+             "update",
+            "--init",
+        ]
+        log.info(" ".join(git_submodule_command))
+        subprocess.run(git_submodule_command)
 
     def _build_image(self):
         """
