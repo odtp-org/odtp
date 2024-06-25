@@ -9,9 +9,13 @@ import odtp.helpers.settings as config
 import odtp.dashboard.page_run.helpers as rh
 import odtp.dashboard.page_run.folder as folder
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
-log.addHandler(config.command_log_handler)
+def new_func(__name__):
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    log.addHandler(config.command_log_handler)
+    return log
+
+log = new_func(__name__)
 
 
 def ui_prepare_execution(dialog, result, current_run, folder_status):
