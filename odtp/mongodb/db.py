@@ -336,17 +336,19 @@ def add_execution(
                     "component_versions": versions,
                     "workflowExecutorSchema": workflow,
                 },
-                "start_timestamp": datetime.now(timezone.utc),
-                "end_timestamp": datetime.now(timezone.utc),
+                "start_timestamp": None,
+                "end_timestamp": None,
                 # Array of ObjectIds referencing Steps collection. Change in a future by DAG graph
                 "steps": [],
+                "createdAt": datetime.now(timezone.utc),
+                "updatedAt": datetime.now(timezone.utc)
             }
             steps = []
             for i, version in enumerate(versions):
                 step = {
                     "timestamp": datetime.now(timezone.utc),
-                    "start_timestamp": datetime.now(timezone.utc),
-                    "end_timestamp": datetime.now(timezone.utc),
+                    "start_timestamp": None,
+                    "end_timestamp": None,
                     "type": "ephemeral",
                     "logs": [],
                     "inputs": {},
@@ -354,6 +356,8 @@ def add_execution(
                     "component_version": versions[i],
                     "parameters": parameters[i] or {},
                     "ports": ports[i],
+                    "createdAt": datetime.now(timezone.utc),
+                    "updatedAt": datetime.now(timezone.utc)
                 }
                 steps.append(step)
             execution_id = append_execution_to_digital_twin(db, dt_id, execution)
