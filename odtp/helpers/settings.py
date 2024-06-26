@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+code_file_dir = os.path.abspath(__file__)
 
 DEFAULT_LOG_LEVEL = "ERROR"
 DEFAULT_RUN_LOG_LEVEL = "INFO"
@@ -49,3 +50,12 @@ RUN_LOG_LEVEL = os.getenv("RUN_LOG_LEVEL")
 log_levels = logging.getLevelNamesMapping()
 if not RUN_LOG_LEVEL in log_levels.keys():
     RUN_LOG_LEVEL = DEFAULT_RUN_LOG_LEVEL
+
+def get_command_log_handler():
+    log_file_path = os.path.join(os.path.dirname(os.path.dirname(code_file_dir)), 'odtp.log')
+    command_log_handler = logging.FileHandler(log_file_path)
+    FORMATTER = logging.Formatter(
+        '%(asctime)s - [%(module)s:%(levelname)s] %(lineno)d %(filename)s %(funcName)s - %(message)s'
+    )
+    command_log_handler.setFormatter(FORMATTER)
+    return command_log_handler

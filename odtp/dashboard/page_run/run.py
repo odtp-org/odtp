@@ -5,10 +5,13 @@ import shlex
 import sys
 
 from nicegui import ui
+import odtp.helpers.settings as config
 import odtp.dashboard.page_run.helpers as rh
 import odtp.dashboard.page_run.folder as folder
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+log.addHandler(config.get_command_log_handler())
 
 
 def ui_prepare_execution(dialog, result, current_run, folder_status):
