@@ -31,7 +31,7 @@ def download(
 def check():  
     try:
         s3 = s3Manager()
-        bucket = s3.test_connection()
+        s3.test_connection()
         print("S3 is connected. Bucket is ready to use")
     except Exception as e:
         log.exception(f"S3 connection could not be established: an Exception {e} occurred")
