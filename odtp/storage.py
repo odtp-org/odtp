@@ -16,12 +16,7 @@ class s3Manager:
         self.bucketName = settings.ODTP_BUCKET_NAME
 
     def test_connection(self):
-        try:
-            bucket = self.s3.head_bucket(Bucket=self.bucketName)
-
-            return bucket
-        except:
-            return False
+        bucket = self.s3.head_bucket(Bucket=self.bucketName)
 
     # Method to close the client connection
     def closeConnection(self):
