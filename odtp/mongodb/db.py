@@ -20,6 +20,8 @@ collection_digital_twins = "digitalTwins"
 collection_executions = "executions"
 collection_steps = "steps"
 collection_results = "results"
+collection_logs = "logs"
+collection_outputs = "outputs"
 
 
 log = logging.getLogger(__name__)
@@ -422,8 +424,11 @@ def init_collections():
             collection_users,
             collection_components,
             collection_digital_twins,
+            collection_executions,
+            collection_outputs,
             collection_results,
             collection_versions,
+            collection_logs,
         ]:
             if name not in collection_names:
                 db.create_collection(name)
