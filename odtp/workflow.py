@@ -20,7 +20,7 @@ class WorkflowManager:
         self.image_names = []
         self.repo_urls = []
         self.commits = []
-        self.container_name = []
+        self.container_names = []
         self.steps_folder_paths = []
         self.secrets = secrets
 
@@ -173,7 +173,7 @@ class WorkflowManager:
                 parameters,
                 secrets,
                 ports=ports,
-                container_name=self.container_name[step_index],
+                container_name=self.container_names[step_index],
                 step_id=self.execution["steps"][step_index]
             )
 
