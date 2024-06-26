@@ -11,7 +11,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${ODTP_PATH}:${ODTP_PATH}
-      - ${APP_PATH}:/app
     environment:
       ODTP_PATH: ${ODTP_PATH}
       ODTP_MONGO_SERVER: mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongodb-instance:27017/
@@ -22,9 +21,9 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       ODTP_MONGO_DB: ${ODTP_MONGO_DB}
       ODTP_DASHBOARD_PORT: ${ODTP_DASHBOARD_PORT}
-      ODTP_DASHBOARD_JSON_EDITIOR: ${ODTP_DASHBOARD_JSON_EDITIOR}
+      ODTP_DASHBOARD_JSON_EDITOR: ${ODTP_DASHBOARD_JSON_EDITOR}
       ODTP_LOG_LEVEL: ${ODTP_LOG_LEVEL}
-      RUN_LOG_LEVEL: ${ODTP_LOG_LEVEL}
+      RUN_LOG_LEVEL: ${RUN_LOG_LEVEL}
 
     stdin_open: true
     tty: true
