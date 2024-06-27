@@ -18,6 +18,7 @@ boto3 = "^1.33.13"
 nicegui = "1.4.24"
 directory-tree = "^0.0.4"
 python-slugify = "^8.0.4"
+pandas = "^2.2.2"
 
 
 [tool.poetry.group.dev.dependencies]
