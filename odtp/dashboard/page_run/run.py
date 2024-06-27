@@ -7,6 +7,7 @@ import sys
 from nicegui import ui
 import odtp.dashboard.page_run.helpers as rh
 import odtp.dashboard.page_run.folder as folder
+import odtp.helpers.utils as odtp_utils
 
 log = logging.getLogger(__name__)
 
@@ -149,6 +150,16 @@ def ui_run_execution(dialog, result, current_run, folder_status):
             execution_id=execution["execution_id"],
             project_path=project_path,
         )
+        execution_container_names =  odtp_utils.get_image_names_for_execution(
+            version_ids=execution["versions"]
+        )
+        ui.label(execution_container_names)
+        cli_log_commands = []
+        for container_name in execution_container_names:
+            cli_log_commands.append(f"docker logs -f {container_name}")
+        cli_log_command = "&&".join(cli_log_commands)
+        ui.label(cli_log_commands)
+        ui.label(cli_log_command)
         with ui.row().classes("w-full"):
             ui.label(cli_run_command).classes("font-mono")
         with ui.row().classes("w-full"):
@@ -161,6 +172,12 @@ def ui_run_execution(dialog, result, current_run, folder_status):
             ui.button(
                 "Run execution",
                 on_click=lambda: run_command(cli_run_command, dialog, result),
+                icon="rocket",
+            ).props("no-caps")
+        with ui.row().classes("w-full"):
+            ui.button(
+                "show logs",
+                on_click=lambda: run_command(cli_log_command, dialog, result),
                 icon="rocket",
             ).props("no-caps")
     else:    
@@ -185,8 +202,6 @@ async def run_command(command: str, dialog, result) -> None:
     try:
         dialog.open()
         result.content = "... loading"
-        # NOTE replace with machine-independent Python path (#1240)
-        command = command.replace("python3", sys.executable)
         process = await asyncio.create_subprocess_exec(
             *shlex.split(command, posix="win" not in sys.platform.lower()),
             stdout=asyncio.subprocess.PIPE,

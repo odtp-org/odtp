@@ -34,14 +34,6 @@ def component_version_for_table(version):
     return version_cleaned
 
 
-def get_execution_step_display_name(
-    component_name,
-    component_version,
-):
-    display_name = f"{component_name}:{component_version}"
-    return display_name
-
-
 def get_key_from_parameters(current_component_parameters, index):
     if index >= len(current_component_parameters):
         return ""
@@ -79,8 +71,10 @@ def build_execution_with_steps(execution_id):
         document_id=execution_id, collection=db.collection_executions
     )
     version_tags = odtp_utils.get_version_names_for_execution(
-        execution=execution,
-        naming_function=get_execution_step_display_name,
+        version_ids=execution["workflowSchema"]["component_versions"]
+    )
+    image_names = odtp_utils.get_image_names_for_execution(
+        version_ids=execution["workflowSchema"]["component_versions"]
     )
     step_ids = [str(step_id) for step_id in execution["steps"]]
     step_documents = db.get_document_by_ids_in_collection(
@@ -106,6 +100,7 @@ def build_execution_with_steps(execution_id):
         "timestamp": execution.get("start_timestamp").strftime("%m/%d/%Y, %H:%M:%S"),
         "versions": execution["workflowSchema"]["component_versions"],
         "version_tags": version_tags,
+        "image_names": image_names,
         "steps": step_ids,
         "ports": ports,
         "parameters": parameters,

@@ -16,6 +16,7 @@ class WorkflowManager:
         # This class should contain flags used to know the status of the workflow. 
         self.execution = execution_data
         self.schema = execution_data["workflowSchema"]
+        self.versions = self.schema["component_versions"]
         self.working_path = working_path
         self.image_names = []
         self.repo_urls = []
@@ -25,39 +26,33 @@ class WorkflowManager:
         self.secrets = secrets
 
         for step_index in self.schema["workflowExecutorSchema"]:
-            try: 
-                step_index = int(step_index)
+            step_index = int(step_index)
 
-                version_id = self.schema["component_versions"][step_index]
-                version_doc = db.get_document_by_id(
-                    document_id=version_id, 
-                    collection=db.collection_versions
-                )
-                component_name = version_doc["component"]["componentName"]
-                component_version = version_doc["component_version"]
-                repo_link = version_doc["component"]["repoLink"]
-                commit_hash = version_doc["commitHash"]
+            version_id = self.schema["component_versions"][step_index]
+            version_doc = db.get_document_by_id(
+                document_id=version_id, 
+                collection=db.collection_versions
+            )
+            component_name = version_doc["component"]["componentName"]
+            component_version = version_doc["component_version"]
+            repo_link = version_doc["component"]["repoLink"]
+            commit_hash = version_doc["commitHash"]
 
-                step_name = odtp_utils.get_execution_step_name(
-                    component_name=component_name, 
-                    component_version=component_version, 
-                    step_index=step_index
-                )
-                
-                # Create folder structure
-                step_folder_path = os.path.join(self.working_path, step_name)
-                self.steps_folder_paths.append(step_folder_path)
-
-                image_name = step_name
-
-                self.image_names.append(image_name)
-                self.repo_urls.append(repo_link)
-                self.commits.append(commit_hash)
-                self.instance_names.append(image_name)
-            except Exception as e:
-                raise OdtpRunSetupException(
-                    f"Workflowmanager could not be intialized: Exception occured: {e}"
-                )    
+            step_name = odtp_utils.get_execution_step_name(
+                component_name=component_name, 
+                component_version=component_version, 
+                step_index=step_index
+            )
+            
+            # Create folder structure
+            step_folder_path = os.path.join(self.working_path, step_name)
+            self.steps_folder_paths.append(step_folder_path)
+            self.repo_urls.append(repo_link)
+            self.commits.append(commit_hash) 
+        self.image_names = odtp_utils.get_image_names_for_execution(
+            version_ids=self.versions
+        )
+        self.instance_names = self.image_names          
     
 
     def check_env_for_prepare_workflow(self):
@@ -103,7 +98,7 @@ class WorkflowManager:
     def extract_parameters(self):
         # Implement the logic to extract parameters from the Barfi schema
         # These parameters will be send as environment variable.
-        self.paramenters = {}
+        self.parameters = {}
         pass
 
     def run_workflow(self):

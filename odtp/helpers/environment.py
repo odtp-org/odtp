@@ -38,9 +38,10 @@ def directory_folder_matches_execution(execution_id, project_folder):
     execution = db.get_document_by_id(
         document_id=execution_id, collection=db.collection_executions
     )
-    step_names = odtp_utils.get_version_names_for_execution(execution)
-    expected_dir_names = [f"{i}_{step}" for i, step in enumerate(step_names)]
-    if set(subdirs) != set(expected_dir_names):
+    folder_names = odtp_utils.get_folder_names_for_execution(
+        version_ids=execution["workflowSchema"]["component_versions"]
+    )
+    if set(subdirs) != set(folder_names):
         return False
     return True
 

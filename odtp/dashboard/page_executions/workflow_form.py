@@ -2,6 +2,7 @@ from nicegui import ui
 
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.validators as validators
+import odtp.helpers.utils as odtp_utils
 import odtp.mongodb.db as db
 
 
@@ -27,9 +28,10 @@ class ContainerWorkflow(object):
         )
         select_options = {}
         for version in component_versions:
-            version_display_name = helpers.get_execution_step_display_name(
+            version_display_name = odtp_utils.get_component_version_name(
                 component_name=version["component"]["componentName"],
                 component_version=version["component_version"],
+                delimiter=":",
             )
             select_options[(str(version["_id"]), version_display_name)] = (
                 f"{version_display_name}"

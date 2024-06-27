@@ -23,6 +23,7 @@ def content() -> None:
         current_execution = storage.get_active_object_from_storage(
             storage.CURRENT_EXECUTION
         )
+        ui.json_editor({'content': {'json': current_execution}})
         if not current_execution:
             return
         current_run = rh.execution_run_init(
