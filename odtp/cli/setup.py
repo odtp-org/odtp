@@ -5,7 +5,7 @@ import typer
 import logging
 from odtp.storage import s3Manager
 import odtp.mongodb.db as db
-from odtp.helpers.filesystem import create_folders, delete_folders
+from odtp.helpers.filesystem import create_main_folders, delete_main_folders
 
 app = typer.Typer()
 
@@ -17,16 +17,16 @@ def initiate():
 
     odtpS3 = s3Manager()
     try:
-        bucketAvailable = odtpS3.test_connection()
+        odtpS3.test_connection()
     except Exception as e:
-        logging.error("S3 bucket not found. Please create the bucket on minio folder or use the dashboard.")
+        log.error("S3 bucket not found. Please create the bucket on minio folder or use the dashboard.")
         log.exception(e)
 
 
     odtpS3.createFolderStructure(["odtp"])
     odtpS3.close()
 
-    create_folders()
+    create_main_folders()
 
     print("ODTP DB/S3 data generated")
 
@@ -38,7 +38,7 @@ def delete():
     odtpS3 = s3Manager()
     odtpS3.deleteAll()
 
-    delete_folders()
+    delete_main_folders()
 
     print("All deleted")
 
