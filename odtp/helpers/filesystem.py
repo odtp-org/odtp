@@ -4,16 +4,22 @@ import shutil
 import os
 import odtp.helpers.settings as config
 
-def create_main_folders(odtp_path = config.ODTP_PATH):
-    users_folder = os.path.join(odtp_path, 'users')
+log = logging.getLogger(__name__)
 
-    os.makedirs(users_folder, exist_ok=True)
+def create_folders(relative_paths, odtp_path = config.ODTP_PATH, exist_ok=False):
+    for relative_path in relative_paths:
+        full_path = os.path.join(odtp_path, relative_path)
 
-    logging.info("Folders created: %s, %s", users_folder)
+        os.makedirs(full_path, exist_ok=exist_ok)
 
-def delete_main_folders(odtp_path = config.ODTP_PATH):
-    users_folder = os.path.join(odtp_path, 'users')
+        log.debug(f"Folder created: {full_path}")
 
-    shutil.rmtree(users_folder)
 
-    logging.info("Folders deleted: %s, %s", users_folder)
+def delete_folders(relative_paths, odtp_path = config.ODTP_PATH):
+    for relative_path in relative_paths:
+        full_path = os.path.join(odtp_path, relative_path)
+
+        shutil.rmtree(full_path)
+
+        log.debug(f"Folder created: {full_path}")
+
