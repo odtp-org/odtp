@@ -11,7 +11,7 @@ import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 import odtp.mongodb.utils as db_utils
 import odtp.helpers.git as odtp_git
-from odtp.helpers.filesystem import create_folders, delete_folders
+import odtp.helpers.filesystem as odtp_filesystem
 
 import os
 
@@ -30,8 +30,14 @@ def user_entry(
     """Add new user in the MongoDB"""
     user_id = db.add_user(name=name, github=github, email=email)
     
+    user_doc = db.get_document_by_id(
+        document_id=user_id, 
+        collection=db.collection_users
+        )
+    
     try:
-        create_folders([name])
+        user_path = odtp_filesystem.generate_user_path(user_doc)
+        odtp_filesystem.create_folders([user_path])
     except Exception as e:
         log.error("Problem creating user folder. Does the folder exists already?")
         log.exception(e)
@@ -91,14 +97,22 @@ def digital_twin_entry(
         user_id = db.get_document_id_by_field_value("user_email", user_email, "users")
     
     dt_id = db.add_digital_twin(userRef=user_id, name=name)
-    user_name = db.get_document_by_id(
+
+    dt_doc = db.get_document_by_id(
+        document_id=dt_id, 
+        collection=db.collection_digital_twins
+        )
+
+    user_doc = db.get_document_by_id(
         document_id=user_id, 
         collection=db.collection_users
-        )["name"]
-    dt_path = os.path.join(user_name, name)
+        )
+    
+
+    dt_path = odtp_filesystem.generate_digital_twin_path(user_doc, dt_doc)
 
     try:
-        create_folders([dt_path])
+        odtp_filesystem.create_folders([dt_path])
     except Exception as e:
         log.error("Problem creating user folder. Does the folder exists already?")
         log.exception(e)
@@ -140,20 +154,25 @@ def execution_entry(
         if component_tags:
             component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
         
+        execution_doc = db.get_document_by_id(
+            document_id=dt_id, 
+            collection=db.collection_executions
+            )
         dt_doc = db.get_document_by_id(
             document_id=dt_id, 
             collection=db.collection_digital_twins
-            )["name"]
+            )
         user_id = dt_doc["userRef"]
-        user_name = db.get_document_by_id(
+        user_doc = db.get_document_by_id(
             document_id=user_id, 
             collection=db.collection_users
-            )["name"]
-        dt_path = os.path.join(user_name, dt_name)
-        execution_path = os.path.join(dt_path, execution_name)
+            )
+        
+        execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution_doc)
+
 
         try:
-            create_folders([execution_path])
+            odtp_filesystem.create_folders([execution_path])
         except Exception as e:
             log.error("Problem creating user folder. Does the folder exists already?")
             log.exception(e)

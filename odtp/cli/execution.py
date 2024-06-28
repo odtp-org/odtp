@@ -12,6 +12,7 @@ from odtp.workflow import WorkflowManager
 from directory_tree import display_tree
 import odtp.helpers.environment as odtp_env
 import odtp.helpers.settings as config
+import odtp.helpers.filesystem as odtp_filesystem
 import os
 
 from nicegui import ui
@@ -51,17 +52,13 @@ def prepare(
                 document_id=dt_id, 
                 collection=db.collection_digital_twins
             )
-            dt_name = dt_doc["name"]
             user_id = dt_doc["userRef"]
             user_doc = db.get_document_by_id(
                 document_id=user_id, 
                 collection=db.collection_users
             )
-            user_name = user_doc["name"]
 
-            user_path = os.path.join(config.ODTP_PATH, user_name)
-            dt_path = os.path.join(user_path, dt_name)
-            execution_path = os.path.join(dt_path, execution_name)
+            execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution)
             project_path = execution_path
 
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
@@ -109,17 +106,13 @@ def run(
                 document_id=dt_id, 
                 collection=db.collection_digital_twins
             )
-            dt_name = dt_doc["name"]
             user_id = dt_doc["userRef"]
             user_doc = db.get_document_by_id(
                 document_id=user_id, 
                 collection=db.collection_users
             )
-            user_name = user_doc["name"]
 
-            user_path = os.path.join(config.ODTP_PATH, user_name)
-            dt_path = os.path.join(user_path, dt_name)
-            execution_path = os.path.join(dt_path, execution_name)
+            execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution)
             project_path = execution_path
 
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
