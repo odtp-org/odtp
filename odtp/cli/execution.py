@@ -4,17 +4,20 @@ This scripts contains odtp subcommands for 'execution'
 import sys
 import typer
 from typing_extensions import Annotated
-
+## Adding listing so we can have multiple flags
+from typing import List
 import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 from odtp.workflow import WorkflowManager
 from directory_tree import display_tree
+import odtp.helpers.environment as odtp_env
+import odtp.helpers.settings as config
 import os
+
+from nicegui import ui
 
 app = typer.Typer()
 
-## Adding listing so we can have multiple flags
-from typing import List
 
 
 @app.command()
@@ -40,6 +43,27 @@ def prepare(
             document_id=execution_id, 
             collection=db.collection_executions
         )
+
+        if not project_path:
+            #Inferring project path from naming convention
+            dt_id = execution["digitalTwinRef"]
+            dt_doc = db.get_document_by_id(
+                document_id=dt_id, 
+                collection=db.collection_digital_twins
+            )
+            dt_name = dt_doc["name"]
+            user_id = dt_doc["userRef"]
+            user_doc = db.get_document_by_id(
+                document_id=user_id, 
+                collection=db.collection_users
+            )
+            user_name = user_doc["name"]
+
+            user_path = os.path.join(config.ODTP_PATH, user_name)
+            dt_path = os.path.join(user_path, dt_name)
+            execution_path = os.path.join(dt_path, execution_name)
+            project_path = execution_path
+
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
         secrets = [None for i in range(step_count)]
         flowManager = WorkflowManager(execution, project_path, secrets)
@@ -77,6 +101,27 @@ def run(
             document_id=execution_id, 
             collection=db.collection_executions
         )
+
+        if not project_path:
+            #Inferring project path from naming convention
+            dt_id = execution["digitalTwinRef"]
+            dt_doc = db.get_document_by_id(
+                document_id=dt_id, 
+                collection=db.collection_digital_twins
+            )
+            dt_name = dt_doc["name"]
+            user_id = dt_doc["userRef"]
+            user_doc = db.get_document_by_id(
+                document_id=user_id, 
+                collection=db.collection_users
+            )
+            user_name = user_doc["name"]
+
+            user_path = os.path.join(config.ODTP_PATH, user_name)
+            dt_path = os.path.join(user_path, dt_name)
+            execution_path = os.path.join(dt_path, execution_name)
+            project_path = execution_path
+
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
         secrets = odtp_parse.parse_parameters_for_multiple_files(
             parameter_files=secrets_files, step_count=step_count)

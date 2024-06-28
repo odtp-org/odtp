@@ -3,18 +3,23 @@ This scripts contains odtp subcommands for 'new'
 """
 import typer
 from typing_extensions import Annotated
+## Adding listing so we can have multiple flags
+from typing import List
+import logging
 
 import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 import odtp.mongodb.utils as db_utils
 import odtp.helpers.git as odtp_git
+from odtp.helpers.filesystem import create_folders, delete_folders
+
+import os
 
 
-## Adding listing so we can have multiple flags
-from typing import List
+log = logging.getLogger(__name__)
+
 
 app = typer.Typer()
-
 
 @app.command()
 def user_entry(
@@ -24,6 +29,13 @@ def user_entry(
 ):
     """Add new user in the MongoDB"""
     user_id = db.add_user(name=name, github=github, email=email)
+    
+    try:
+        create_folders([name])
+    except Exception as e:
+        log.error("Problem creating user folder. Does the folder exists already?")
+        log.exception(e)
+
     print(f"A user has been added {user_id}")
 
 
@@ -77,8 +89,20 @@ def digital_twin_entry(
 
     if user_email:
         user_id = db.get_document_id_by_field_value("user_email", user_email, "users")
-
+    
     dt_id = db.add_digital_twin(userRef=user_id, name=name)
+    user_name = db.get_document_by_id(
+        document_id=user_id, 
+        collection=db.collection_users
+        )["name"]
+    dt_path = os.path.join(user_name, name)
+
+    try:
+        create_folders([dt_path])
+    except Exception as e:
+        log.error("Problem creating user folder. Does the folder exists already?")
+        log.exception(e)
+
     print(f"Digital Twin added with ID {dt_id}")
 
 
@@ -116,6 +140,24 @@ def execution_entry(
         if component_tags:
             component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
         
+        dt_doc = db.get_document_by_id(
+            document_id=dt_id, 
+            collection=db.collection_digital_twins
+            )["name"]
+        user_id = dt_doc["userRef"]
+        user_name = db.get_document_by_id(
+            document_id=user_id, 
+            collection=db.collection_users
+            )["name"]
+        dt_path = os.path.join(user_name, dt_name)
+        execution_path = os.path.join(dt_path, execution_name)
+
+        try:
+            create_folders([execution_path])
+        except Exception as e:
+            log.error("Problem creating user folder. Does the folder exists already?")
+            log.exception(e)
+
         versions = odtp_parse.parse_versions(component_versions)
         step_count = len(versions)
         ports = odtp_parse.parse_port_mappings_for_multiple_components(

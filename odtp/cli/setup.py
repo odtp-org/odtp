@@ -5,7 +5,7 @@ import typer
 import logging
 from odtp.storage import s3Manager
 import odtp.mongodb.db as db
-from odtp.helpers.filesystem import create_main_folders, delete_main_folders
+from odtp.helpers.filesystem import create_folders, delete_folders
 
 app = typer.Typer()
 
@@ -26,7 +26,7 @@ def initiate():
     odtpS3.createFolderStructure(["odtp"])
     odtpS3.close()
 
-    create_main_folders()
+    create_folders(["users"])
 
     print("ODTP DB/S3 data generated")
 
@@ -38,7 +38,7 @@ def delete():
     odtpS3 = s3Manager()
     odtpS3.deleteAll()
 
-    delete_main_folders()
+    delete_folders(["odtp"])
 
     print("All deleted")
 
