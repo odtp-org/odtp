@@ -16,7 +16,8 @@ LOG_DIR = "odtp-logs"
 
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
+log.addHandler(config.get_command_log_handler())
 
 
 class OdtpRunSetupException(Exception):
@@ -194,7 +195,7 @@ class DockerManager:
 
         command_string = ' '.join(docker_run_command)
         if debug:
-            log.debug(f"Command to be executed: {command_string}")
+            log.info(f"Command to be executed: {command_string}")
 
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 

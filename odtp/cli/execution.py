@@ -9,8 +9,7 @@ import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 from odtp.workflow import WorkflowManager
 from directory_tree import display_tree
-import odtp.helpers.environment as odtp_env
-from nicegui import ui
+import os
 
 app = typer.Typer()
 
@@ -92,9 +91,6 @@ def run(
 
 @app.command()
 def output(
-    execution_id: str = typer.Option(
-        ..., "--execution-id", help="Specify the ID of the execution"
-    ),
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
@@ -103,6 +99,19 @@ def output(
         display_tree(project_path)
     except Exception as e:
         print(f"ERROR: Output printing failed: {e}")       
+        raise typer.Abort()
+
+
+@app.command()
+def logs(
+    project_path: str = typer.Option(
+        ..., "--project-path", help="Specify the path for the execution"
+    ),
+): 
+    try:
+        os.system(f"tail -f {project_path}/*/odtp-logs/*")
+    except Exception as e:
+        print(f"ERROR: Streaming logs failed: {e}")       
         raise typer.Abort()
 
 

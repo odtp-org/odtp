@@ -21,8 +21,7 @@ def ui_add_secrets_form(current_run, workdir):
     if not version_tags:
         return
     with ui.row():
-        ui.icon("check").classes("text-teal text-lg")
-        ui.label("Adding Secrets files is an optional step").classes("text-teal")        
+        ui.label("Adding Secrets files is an optional step")        
     with ui.grid(columns=2).classes("flex items-center w-full"):
         for j, version_tag in enumerate(version_tags):
             secret_file = current_run["secret_files"][j]
@@ -52,7 +51,7 @@ def ui_add_secrets_form(current_run, workdir):
             on_click=lambda: remove_secrets_files(current_run),
             icon="clear",
         ).props("flat")                    
-    rh.ui_next_back(current_run)
+    rh.ui_next_back(current_run, ready_for_next=True)
 
 
 async def pick_secrets_file(step_nr, workdir, current_run) -> None:
