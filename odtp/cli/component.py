@@ -88,11 +88,6 @@ def run(
         log.info("SUCCESS: container for the component has been started")
 
 
-#### TODO: Stop Component
-@app.command()
-def stop():
-    pass
-
 
 @app.command()
 def delete_instance(
