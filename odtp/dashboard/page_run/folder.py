@@ -12,91 +12,41 @@ import odtp.helpers.environment as odtp_env
 import odtp.dashboard.page_run.helpers as rh
 from odtp.dashboard.utils.file_picker import local_file_picker
 
-FOLDER_NOT_SET = 0
-FOLDER_DOES_NOT_MATCH = 1
-FOLDER_EMPTY = 2
-FOLDER_PREPARED = 3
-FOLDER_HAS_OUTPUT = 4
-
-FOLDER_STATUS = {
-    "not_set"
-    "no_match",
-    "empty",
-    "prepared",
-    "output",
-}
-
 log = logging.getLogger(__name__)
 
 
-def ui_prepare_folder(dialog, result, workdir, current_run, folder_status):
+def ui_prepare_folder(workdir, current_run, folder_status, project_path):
     stepper = current_run.get("stepper")
     if stepper and rh.STEPPERS.index(stepper) != rh.STEPPER_SELECT_FOLDER:
         return
-    project_path = current_run.get("project_path")
-    execution = current_run.get("execution")    
     if project_path:
-        with ui.row().classes("w-full"):
-            ui.markdown(
-                f"""
-                **project path**: {project_path}
-                """
-            )      
-    with ui.row():
-        if folder_status == FOLDER_EMPTY:
-            ui.icon("check").classes("text-teal text-lg")
-            ui.label("Project folder for the execution run has been selected").classes("text-teal") 
-        elif folder_status == FOLDER_NOT_SET:
-            ui.icon("clear").classes("text-red text-lg")
-            ui.label("Project folder missing: please select one").classes("text-red") 
-        elif folder_status == FOLDER_DOES_NOT_MATCH:
-            ui.icon("clear").classes("text-red text-lg")
-            ui.label("The project folder structure does not match the steps of the execution: choose an empty project folder or create a new project folder").classes("text-red")  
-        elif folder_status == FOLDER_PREPARED:
-            ui.icon("check").classes("text-teal text-lg")
-            ui.label("The execution has been prepared").classes("text-teal")      
-        elif folder_status == FOLDER_HAS_OUTPUT:
-            ui.icon("check").classes("text-teal text-lg")
-            ui.label("The execution has been run").classes("text-teal")   
-        folder_matches = folder_status in [
-            FOLDER_EMPTY,
-            FOLDER_HAS_OUTPUT,
-            FOLDER_PREPARED,
-        ]
-        if folder_matches:
-            from odtp.dashboard.page_run.run import build_command
-            cli_output_command = build_command(
-                cmd="output",
-                execution_id=execution["execution_id"],
-                project_path=project_path,
-            )
-        else:
-            cli_output_command = None                
-    with ui.row().classes("w-full flex items-center"):
-        project_folder_input = ui.input(
-            value=slugify(execution["title"]),
-            label="Project folder name",
-            placeholder="execution",
-            validation={
-                f"Please provide a folder name does not yet exist in the working directory": lambda value: validators.validate_folder_does_not_exist(
-                    value, workdir
+        ui.label(project_path)
+        rh.ui_display_folder_status(folder_status)
+    if not project_path:
+        execution = current_run.get("execution")
+        preset_value = slugify(execution["title"])
+        if not project_path:
+            with ui.row().classes("w-full flex items-center"):
+                project_folder_input = ui.input(
+                    value=preset_value,
+                    label="Project folder name",
+                    placeholder="execution",
+                    validation={
+                        f"Project folder already exists and is not empty": lambda value: validators.validate_folder_does_not_exist(
+                            value, workdir
+                        )
+                    },
                 )
-            },
-        )
-        ui.button(
-            "Create new project folder",
-            on_click=lambda: create_folder(workdir, project_folder_input, current_run),
-            icon="add",
-        ).props("flat ")
-    with ui.row().classes("w-full"):
-        from odtp.dashboard.page_run.run import run_command
-        if cli_output_command:
-            ui.button(
-                "Show project folder",
-                on_click=lambda: run_command(cli_output_command, dialog, result),
-                icon="info",
-            ).props("no-caps")
-    rh.ui_next_back(current_run)
+                ui.button(
+                    "Create new project folder",
+                    on_click=lambda: create_folder(workdir, project_folder_input, current_run),
+                    icon="add",
+                ).props("flat ")
+    if folder_status >= rh.FOLDER_EMPTY:
+        ready_for_next = True
+    else:
+        ready_for_next = False
+    rh.ui_next_back(current_run, ready_for_next)
 
 
 async def pick_folder(workdir, current_run) -> None:
@@ -122,6 +72,13 @@ async def pick_folder(workdir, current_run) -> None:
 
 
 def create_folder(workdir, folder_name_input, current_run):
+    if (
+        not folder_name_input.validate()
+    ):
+        ui.notify(
+            "Project folder already exists and is not empty", type="negative"
+        )
+        return
     try:
         folder_name = folder_name_input.value
         project_path = os.path.join(workdir, folder_name)
@@ -145,21 +102,3 @@ def create_folder(workdir, folder_name_input, current_run):
         from odtp.dashboard.page_run.main import ui_workarea, ui_stepper    
         ui_workarea.refresh()
         ui_stepper.refresh()
-
-
-def get_folder_status(execution_id, project_path):
-    folder_empty = odtp_env.project_folder_is_empty(project_folder=project_path)
-    folder_matches_execution = odtp_env.directory_folder_matches_execution(
-        project_folder=project_path, execution_id=execution_id
-    )
-    folder_has_output = odtp_env.directory_has_output(
-        execution_id=execution_id, project_folder=project_path
-    )
-    if folder_empty:
-        return FOLDER_EMPTY
-    elif folder_matches_execution and not folder_has_output:
-        return FOLDER_PREPARED
-    elif folder_matches_execution and folder_has_output:
-        return FOLDER_HAS_OUTPUT
-    else:
-        return FOLDER_DOES_NOT_MATCH

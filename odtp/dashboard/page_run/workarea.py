@@ -2,6 +2,7 @@ from nicegui import app, ui
 
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
+import odtp.dashboard.page_run.helpers as rh
 
 
 def ui_workarea_layout(current_user, workdir, current_execution, current_digital_twin):
@@ -45,8 +46,13 @@ def ui_workarea_layout(current_user, workdir, current_execution, current_digital
         secret_files = ""
     else:
         ",".join(secret_files)
+    folder_status = rh.get_folder_status(
+        execution_id=current_execution["execution_id"],
+        project_path=project_path,
+    )
+    project_path_display = project_path
     if not project_path:
-        project_path = ui_theme.MISSING_VALUE
+        project_path_display = ui_theme.MISSING_VALUE
     with ui.grid(columns=2):
         with ui.column():
             ui.markdown(
@@ -57,9 +63,11 @@ def ui_workarea_layout(current_user, workdir, current_execution, current_digital
                 - **current execution**: {current_execution.get("title")}
                 - **secret files**: {secret_files}
                 - **work directory**: {workdir}
-                - **project directory**: {project_path}
+                - **project directory**: {project_path_display}
                 """
             )
+            rh.ui_display_folder_status(folder_status)
+            rh.ui_display_secrets(secret_files)
         with ui.column():
             if current_execution:
                 ui.markdown(
