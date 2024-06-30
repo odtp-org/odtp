@@ -6,6 +6,7 @@ services:
       context: .
       args:
         PIP_INSTALL_ARGS: ${PIP_INSTALL_ARGS}
+        ODTP_PATH: ${ODTP_PATH}
     image: odtp
     privileged: true
     ports:
@@ -14,7 +15,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${ODTP_PATH}:${ODTP_PATH}
-      - ${APP_PATH}:/app
     environment:
       ODTP_PATH: ${ODTP_PATH}
       ODTP_MONGO_SERVER: mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongodb-instance:27017/

@@ -1,6 +1,8 @@
 # Use Docker in Docker stable version
+ARG ODTP_PATH
+ARG PIP_INSTALL_ARGS
 FROM docker:25.0.3-dind-alpine3.19
-ARG PIP_INSTALL_ARGS=
+
 
 # Install dependencies required
 RUN apk add --no-cache \
