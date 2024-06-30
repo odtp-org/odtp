@@ -92,20 +92,6 @@ class WorkflowManager:
 
             log.info("COMPONENTS DOWNLOADED AND BUILT")
 
-    def download_data_from_storage(self):
-        # Implement the logic to download data from S3
-        pass
-
-    def download_and_build_components(self):
-        # This method will clone the githubs and build the components.
-        pass
-
-    def extract_parameters(self):
-        # Implement the logic to extract parameters from the Barfi schema
-        # These parameters will be send as environment variable.
-        self.paramenters = {}
-        pass
-
     def run_workflow(self):
         # Implement the logic to send tasks following the DAG schema. 
         # This can make use of barfi workflow execution function. Each 
