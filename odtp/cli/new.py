@@ -3,6 +3,7 @@ This scripts contains odtp subcommands for 'new'
 """
 import typer
 from typing_extensions import Annotated
+import logging 
 
 import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
@@ -15,6 +16,7 @@ from typing import List
 
 app = typer.Typer()
 
+log = logging.getLogger(__name__)
 
 @app.command()
 def user_entry(
@@ -24,7 +26,7 @@ def user_entry(
 ):
     """Add new user in the MongoDB"""
     user_id = db.add_user(name=name, github=github, email=email)
-    print(f"A user has been added {user_id}")
+    log.info(f"A user has been added {user_id}")
 
 
 @app.command()
@@ -57,11 +59,11 @@ def odtp_component_entry(
                 ports=ports,
             )
     except Exception as e:
-        print(f"ERROR: {e}")
+        log.error(f"ERROR: {e}")
         if hasattr(e, "__notes__"):
-            print(f"{','.join(e.__notes__)}") 
+            log.error(f"{','.join(e.__notes__)}") 
         raise typer.Abort()     
-    print(f"""SUCCESS: component version has been added: see above for the details.
+    log.info(f"""SUCCESS: component version has been added: see above for the details.
           component_id: {component_id}
           version_id: {version_id}""")
 
@@ -79,7 +81,7 @@ def digital_twin_entry(
         user_id = db.get_document_id_by_field_value("user_email", user_email, "users")
 
     dt_id = db.add_digital_twin(userRef=user_id, name=name)
-    print(f"Digital Twin added with ID {dt_id}")
+    log.info(f"Digital Twin added with ID {dt_id}")
 
 
 @app.command()
@@ -130,11 +132,11 @@ def execution_entry(
             ports=ports,
         )
     except Exception as e:
-        print(f"ERROR: {e}")
+        log.error(f"ERROR: {e}")
         if hasattr(e, "__notes__"):
-            print(f"{','.join(e.__notes__)}") 
+            log.error(f"{','.join(e.__notes__)}") 
             raise typer.Abort()     
-    print(f"""SUCCESS: execution has been added: see above for the details.
+    log.info(f"""SUCCESS: execution has been added: see above for the details.
           execution id: {execution_id}
           step_ids: {step_ids}""")
 

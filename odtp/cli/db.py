@@ -3,12 +3,14 @@ This scripts contains odtp subcommands for 'db'
 """
 import typer
 from typing_extensions import Annotated
+import logging 
 
 import odtp.mongodb.db as db
 import odtp.helpers.utils as odtp_utils
 
 app = typer.Typer()
 
+log = logging.getLogger(__name__)
 
 @app.command()
 def get(
@@ -76,7 +78,7 @@ def delete_document(
     id: str = typer.Option(help="Specify the id")
 ):
     db.delete_document_by_id(document_id=id, collection=collection)
-    print(f"Document with ID {id} was deleted")
+    log.info(f"Document with ID {id} was deleted")
 
 
 @app.command()
@@ -84,13 +86,13 @@ def delete_collection(
     collection: str = typer.Option(..., "--collection", help="Specify the collection"),
 ):
     db.delete_collection(collection=collection)
-    print(f"Collection {collection} was deleted.")
+    log.info(f"Collection {collection} was deleted.")
 
 
 @app.command()
 def deleteAll():
     db.delete_all()
-    print("All collection deleted.")
+    log.info("All collection deleted.")
 
 
 if __name__ == "__main__":

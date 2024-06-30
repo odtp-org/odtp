@@ -36,7 +36,7 @@ class s3Manager:
             # Add a trailing slash to make S3 recognize it as a folder
             self.s3.put_object(Bucket=self.bucketName, Key=path + '/')
 
-        print("Folder Structure Created")
+        log.info("Folder Structure Created")
 
     # Method to create a specific folder 
     # The idea is to create paths such as Digital Twin > Execution > Step > Output 
@@ -105,7 +105,7 @@ class s3Manager:
         # This will delete all objects in the bucket.
         bucket.objects.all().delete()
 
-        print("Folder Structure Deleted")
+        log.info("Folder Structure Deleted")
 
     # Method to delete one file in s3 
     def deleteFile(self, s3_path):
