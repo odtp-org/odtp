@@ -173,32 +173,3 @@ class WorkflowManager:
                 instance_name=self.instance_names[step_index],
                 step_id=self.execution["steps"][step_index]
             )
-
-    def run_task(self):
-        # Implement the logic of running one single task. 
-        # Send the step ID as Environment variable so the component can log the progress
-        pass
-
-    def stop_workflow(self):
-        # This will stop the execution of the workflow. 
-        pass
-
-    def stop_task(self):
-        # This will stop one single task
-        pass
-
-    def delete_workflow(self):
-        # This method will delete all records in the DB and related docker components downloaded in the folder. 
-        pass
-
-    def delete_db_entry(self):
-        # Method to remove the workflow execution from the database
-        pass
-
-    def delete_docker_components(self):
-        # Method to remove all docker containers used by this workflow.
-        pass
-
-    def restart_workflow(self):
-        # This will restart the execution of the workflow. 
-        pass
