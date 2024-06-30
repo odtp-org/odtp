@@ -19,7 +19,7 @@ nicegui = "1.4.24"
 directory-tree = "^0.0.4"
 python-slugify = "^8.0.4"
 pandas = "^2.2.2"
-
+prettytable = "3.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"
