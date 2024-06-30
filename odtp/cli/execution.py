@@ -135,6 +135,9 @@ def output(
         s3M = s3Manager()
         s3M.deletePaths(s3_keys)
 
+        # DB
+        db.delete_execution(execution_id)
+
         # Folders
         odtp_env.delete_folder(project_path)
 
