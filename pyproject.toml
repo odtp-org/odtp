@@ -17,6 +17,7 @@ python-dotenv = "^1.0.0"
 boto3 = "^1.33.13"
 nicegui = "1.4.24"
 directory-tree = "^0.0.4"
+docker = "7.1.0"
 python-slugify = "^8.0.4"
 pandas = "^2.2.2"
 
