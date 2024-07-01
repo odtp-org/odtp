@@ -113,11 +113,18 @@ class WorkflowManager:
 
         # Temporally the parameters are taken from the environment files and not 
         # taken from the steps documents
+
+        # Start execution timestamp
+        db.set_document_timestamp(self.execution["_id"], db.collection_executions, "start_timestamp")
+
         for step_index in self.schema["workflowExecutorSchema"]:
             log.info(f"running step {step_index}")
             step_index = int(step_index)
 
             step_id = self.execution["steps"][step_index]
+
+            # Start step timestamp
+            db.set_document_timestamp(step_id, db.collection_steps, "start_timestamp")
 
             secrets = self.secrets[step_index]
 
@@ -173,6 +180,12 @@ class WorkflowManager:
                 instance_name=self.instance_names[step_index],
                 step_id=self.execution["steps"][step_index]
             )
+            
+            # End step timestamp
+            db.set_document_timestamp(step_id, db.collection_steps, "end_timestamp")
+
+        # End execution timestamp
+        db.set_document_timestamp(self.execution["_id"], db.collection_executions, "end_timestamp")
 
     def run_task(self):
         # Implement the logic of running one single task. 
