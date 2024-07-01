@@ -12,7 +12,7 @@ app = typer.Typer()
 
 @app.command()
 def get(
-    collection: str = typer.Option(..., "--collection", help="Specify the collection"),
+    collection: str = typer.Argument(...,help="Specify the collection"),
     id: Annotated[str, typer.Option(help="Specify the id")] = None,
 ):
     if id:
@@ -21,6 +21,11 @@ def get(
         db_output = db.get_collection(collection=collection)
     odtp_utils.print_output_as_json(db_output)
 
+@app.command()
+def ls(collection_name: str):
+    """List all documents in a collection"""
+    db_output = db.get_collection(collection=collection_name)
+    odtp_utils.output_as_pretty_table(db_output, collection_name)
 
 @app.command()
 def showAll():
