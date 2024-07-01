@@ -1,7 +1,7 @@
 """
 This scripts contains odtp subcommands for 'execution'
 """
-
+import sys
 import typer
 from typing_extensions import Annotated
 
@@ -112,10 +112,10 @@ def logs(
     ),
 ):
     try:
-        os.system(f"tail -f {project_path}/{step_nr}_*/odtp-logs/*")
-    except Exception as e:
-        print(f"ERROR: Streaming logs failed: {e}")
-        raise typer.Abort()
+        log_file_path = f"{project_path}/{step_nr}_*/odtp-logs/*"
+        os.system(f"tail -f {log_file_path}")     
+    except KeyboardInterrupt:
+        sys.exit()
 
 
 if __name__ == "__main__":
