@@ -12,6 +12,7 @@ import odtp.mongodb.db as db
 REPO_DIR = "repository"
 INPUT_DIR = "odtp-input"
 OUTPUT_DIR = "odtp-output"
+LOG_DIR = "odtp-logs"
 
 
 log = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ class DockerManager:
         self.dockerfile_path = os.path.join(self.project_folder, REPO_DIR)
         self.docker_image_name = image_name
         self.input_volume = os.path.join(self.project_folder, INPUT_DIR)
+        self.log_volume = os.path.join(self.project_folder, LOG_DIR)
         self.output_volume = os.path.join(self.project_folder, OUTPUT_DIR)
 
     def prepare_component(self):
@@ -47,7 +49,8 @@ class DockerManager:
         os.makedirs(self.repository_path, exist_ok=True)
         os.makedirs(self.input_volume, exist_ok=True)
         os.makedirs(self.output_volume, exist_ok=True)    
-    
+        os.makedirs(self.log_volume, exist_ok=True)
+
     def _check_project_folder_prepared(self):  
         log.debug(f"VALIDATION: check project folder structure: {self.project_folder}")  
         """check whether the project folder is prepared with the expected 
@@ -57,7 +60,7 @@ class DockerManager:
             for entry in entries:
                 if entry.is_dir():
                     subdirs.append(entry.name)
-        if set(subdirs) != set(REPO_DIR, INPUT_DIR, OUTPUT_DIR):
+        if set(subdirs) != set(REPO_DIR, INPUT_DIR, OUTPUT_DIR, LOG_DIR):
             raise OdtpRunSetupException(
                 f"""project folder {self.project_folder} does not have 
                 expected directory structure with {REPO_DIR}, {INPUT_DIR}, {OUTPUT_DIR}"""
@@ -186,6 +189,7 @@ class DockerManager:
         docker_run_command = ["docker", "run", "--rm", "-it", "--name", instance_name,
                               "--network", "odtp_odtp-network",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
+                              "--volume", f"{os.path.abspath(self.log_volume)}:/odtp/odtp-logs",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
 
         command_string = ' '.join(docker_run_command)
