@@ -69,13 +69,10 @@ def ui_stepper(
         stepper = current_run.get("stepper")
         execution = current_run["execution"]
         project_path = current_run.get("project_path")
-        if project_path:
-            folder_status = folder.get_folder_status(
-                execution_id=execution["execution_id"],
-                project_path=project_path,
-            )
-        else:
-            folder_status = folder.FOLDER_NOT_SET       
+        folder_status = rh.get_folder_status(
+            execution_id=execution["execution_id"],
+            project_path=project_path,
+        )
         if ODTP_DASHBOARD_JSON_EDITOR:
             with ui.expansion("Current Execution Run as JSON"):
                 ui.json_editor(
@@ -87,22 +84,21 @@ def ui_stepper(
         with ui.stepper(value=stepper).props("vertical").classes("w-full") as stepper:
             with ui.step(rh.STEPPERS[rh.STEPPER_DISPLAY_EXECUTION]):
                 rh.ui_execution_details(current_run)
+            with ui.step(rh.STEPPERS[rh.STEPPER_SELECT_FOLDER]):
+                with ui.stepper_navigation():
+                    with ui.row():
+                        folder.ui_prepare_folder(
+                            current_run=current_run,
+                            workdir=workdir,
+                            project_path=project_path,
+                            folder_status=folder_status,
+                        )
             with ui.step(rh.STEPPERS[rh.STEPPER_ADD_SECRETS]):
                 with ui.stepper_navigation():
                     with ui.row():
                         secrets.ui_add_secrets_form(
                             current_run=current_run,
                             workdir=workdir,
-                        )
-            with ui.step(rh.STEPPERS[rh.STEPPER_SELECT_FOLDER]):
-                with ui.stepper_navigation():
-                    with ui.row():
-                        folder.ui_prepare_folder(
-                            dialog=dialog,
-                            result=result,
-                            current_run=current_run,
-                            workdir=workdir,
-                            folder_status=folder_status,
                         )
             with ui.step(rh.STEPPERS[rh.STEPPER_PREPARE_EXECUTION]):
                 with ui.stepper_navigation():
