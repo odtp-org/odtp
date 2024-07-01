@@ -107,9 +107,12 @@ def logs(
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
+    step_nr: str = typer.Option(
+        ..., "--step-nr", help="Specify the step for the execution"
+    ),
 ):
     try:
-        os.system(f"tail -f {project_path}/*/odtp-logs/*")
+        os.system(f"tail -f {project_path}/{step_nr}_*/odtp-logs/*")
     except Exception as e:
         print(f"ERROR: Streaming logs failed: {e}")
         raise typer.Abort()

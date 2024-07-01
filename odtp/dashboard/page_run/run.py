@@ -64,7 +64,6 @@ def ui_run_execution(dialog, result, current_run, folder_status):
     execution = current_run["execution"]
     project_path = current_run["project_path"]
     secret_files = current_run["secret_files"]
-    ui.label(f"folder status {folder_status}")
     if folder_status >= rh.FOLDER_PREPARED:
         cli_run_command = rh.build_cli_command(
             cmd="run",
@@ -72,10 +71,13 @@ def ui_run_execution(dialog, result, current_run, folder_status):
             execution_id=execution["execution_id"],
             project_path=project_path,
         )
-        cli_log_command = rh.build_cli_command(
-            cmd="logs",
-            project_path=project_path,
-        )
+        cli_log_commands = []
+        for i, _ in enumerate(execution["versions"]):
+            cli_log_commands. append(rh.build_cli_command(
+                cmd="logs",
+                project_path=project_path,
+                step_nr=str(i)
+            ))
         with ui.row().classes("w-full"):
             ui.label(cli_run_command).classes("font-mono")
         with ui.row().classes("w-full"):
@@ -85,11 +87,20 @@ def ui_run_execution(dialog, result, current_run, folder_status):
                 icon="rocket",
             ).props("no-caps")
         with ui.row().classes("w-full"):
-            ui.button(
-                "show logs",
-                on_click=lambda: run_command(cli_log_command, dialog, result),
-                icon="info",
-            ).props("no-caps")
+            ui.icon("warning").classes("text-lg text-yellow")
+            ui.label(
+                """The logs for a step only become available once it is running.
+                So if they are not available right away, they may be so when you 
+                click the button again.
+                """
+            )            
+        for i, cli_log_command in enumerate(cli_log_commands):    
+            with ui.row().classes("w-full"):
+                ui.button(
+                    f"show logs for step {i}",
+                    on_click=lambda cli_log_command=cli_log_command: run_command(cli_log_command, dialog, result),
+                    icon="info",
+                ).props("no-caps")
     rh.ui_next_back(current_run, ready_for_next=False)
 
 

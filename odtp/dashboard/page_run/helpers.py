@@ -175,7 +175,7 @@ def ui_display_secrets(secrets):
 
 
 
-def build_cli_command(cmd, project_path, execution_id=None, secret_files=None):
+def build_cli_command(cmd, project_path, execution_id=None, secret_files=None, step_nr=None):
     cli_parameters = [
         f"--project-path {project_path}",
     ]
@@ -183,6 +183,10 @@ def build_cli_command(cmd, project_path, execution_id=None, secret_files=None):
         cli_parameters.append(
             f"--execution-id {execution_id}",
         )
+    if step_nr:
+        cli_parameters.append(
+            f"--step-nr {step_nr}",
+        )             
     if secret_files and [secret_file for secret_file in secret_files]:
         secret_files_for_run = ",".join(secret_files)
         if secret_files_for_run:
