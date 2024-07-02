@@ -78,7 +78,7 @@ class DockerManager:
         )
 
     def _checks_for_run(self, parameters, ports, image_name):
-        log.debug("VALIDATION: check for run")
+        log.info("VALIDATION: check for run")
         self._check_project_folder_prepared()
         self._check_image_exists()
         try:
@@ -147,14 +147,14 @@ class DockerManager:
             dockerfile_path (str): The path to the Dockerfile.
             image_name (str): The name of the Docker image to build.
         """
-        log.debug(f"RUN: Building Docker image {self.docker_image_name} from {self.dockerfile_path}")
+        log.info(f"RUN: Building Docker image {self.docker_image_name} from {self.dockerfile_path}")
         subprocess.check_output(["docker", "build", "-t", self.docker_image_name, self.dockerfile_path])
 
     def _check_image_exists(self):
         """
         Check whether a docker image exists
         """
-        log.debug(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
+        log.info(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
         image_exists = subprocess.run(['docker', 'image', 'inspect', self.docker_image_name])
         if not image_exists:
             raise OdtpRunSetupException(f"docker image {self.docker_image_name} does not exist" )   
@@ -166,12 +166,10 @@ class DockerManager:
         Args:
             volume_name (str): The name of the Docker volume to create.
         """
-        log.debug(f"RUN: Creating Docker volume {volume_name}")
-        docker_volume_command = ["docker", "volume", "create", volume_name]
-        log.info(docker_volume_command)
-        subprocess.run(docker_volume_command)
+        log.info(f"RUN: Creating Docker volume {volume_name}")
+        subprocess.run(["docker", "volume", "create", volume_name])
         
-    def run_component(self, parameters, secrets, ports, container_name, step_id=None, debug=False):
+    def run_component(self, parameters, secrets, ports, container_name, step_id=None):
         """
         Run a Docker component with the specified parameters.
 
@@ -213,6 +211,8 @@ class DockerManager:
 
         command_string = ' '.join(docker_run_command)
         command_string_log_safe = command_string
+        for value in [parameters["ODTP_SECRET_KEY"], parameters["ODTP_ACCESS_KEY"], parameters["ODTP_MONGO_SERVER"]]:
+            command_string_log_safe = command_string_log_safe.replace(value, "x")
         if secrets:
             for value in secrets.values():
                 command_string_log_safe = command_string_log_safe.replace(value, "x")
@@ -242,7 +242,6 @@ class DockerManager:
         """
         log.info(f"Stopping Docker component {name}")
         docker_stop_command = ["docker", "stop", name]
-        log.info(docker_stop_command)
         process = subprocess.Popen(docker_stop_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, error = process.communicate()
 
@@ -282,7 +281,6 @@ class DockerManager:
         """
         log.info(f"Deleting Docker image {self.docker_image_name}")
         docker_rmi_command = ["docker", "rmi", self.docker_image_name]
-        log.info(docker_rmi_command)
         process = subprocess.Popen(docker_rmi_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, error = process.communicate()
 
