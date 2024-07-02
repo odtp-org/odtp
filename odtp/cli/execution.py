@@ -92,7 +92,20 @@ def run(
     else:
         log.info("SUCCESS: containers for the execution have been run")      
 
-
+@app.command()
+def output(
+        execution_id: str = typer.Option(
+        ..., "--execution-id", help="Specify the ID of the execution"
+    ),
+    project_path: str = typer.Option(
+        ..., "--project-path", help="Specify the path for the execution"
+    ),
+): 
+    try:
+        display_tree(project_path)
+    except Exception as e:
+        print(f"ERROR: Output printing failed: {e}")       
+        raise typer.Abort()
 
 if __name__ == "__main__":
     app()
