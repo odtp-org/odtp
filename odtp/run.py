@@ -17,7 +17,8 @@ LOG_DIR = "odtp-logs"
 
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
+log.addHandler(config.get_command_log_handler())
 
 
 class OdtpRunSetupException(Exception):
@@ -77,7 +78,7 @@ class DockerManager:
         )
 
     def _checks_for_run(self, parameters, ports, image_name):
-        log.info("VALIDATION: check for run") 
+        log.info("VALIDATION: check for run")
         self._check_project_folder_prepared()
         self._check_image_exists()
         try:
@@ -168,7 +169,7 @@ class DockerManager:
         log.info(f"RUN: Creating Docker volume {volume_name}")
         subprocess.run(["docker", "volume", "create", volume_name])
         
-    def run_component(self, parameters, secrets, ports, container_name, step_id=None, debug=False):
+    def run_component(self, parameters, secrets, ports, container_name, step_id=None):
         """
         Run a Docker component with the specified parameters.
 
@@ -209,9 +210,14 @@ class DockerManager:
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
 
         command_string = ' '.join(docker_run_command)
-        if debug:
-            log.debug(f"Command to be executed: {command_string}")
+        command_string_log_safe = command_string
+        for value in [parameters["ODTP_SECRET_KEY"], parameters["ODTP_ACCESS_KEY"], parameters["ODTP_MONGO_SERVER"]]:
+            command_string_log_safe = command_string_log_safe.replace(value, "x")
+        if secrets:
+            for value in secrets.values():
+                command_string_log_safe = command_string_log_safe.replace(value, "x")
 
+        log.info(command_string_log_safe)
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         output, error = process.communicate()

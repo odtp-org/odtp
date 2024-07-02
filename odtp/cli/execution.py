@@ -47,10 +47,14 @@ def prepare(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.prepare_workflow()
     except Exception as e:
-        log.error(f"ERROR: Prepare execution failed: {e}") 
+        msg = f"ERROR: Prepare execution failed: {e}"
+        log.exception(msg) 
+        print(msg)
         raise typer.Abort()           
     else:
-        log.info("SUCCESS: images for the execution have been build")    
+        msg = "SUCCESS: images for the execution have been build"
+        log.info(msg)
+        print(msg)
 
 
 @app.command()
@@ -85,10 +89,14 @@ def run(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.run_workflow()
     except Exception as e:
-        log.error(f"ERROR: Prepare execution failed: {e}")       
+        msg = f"ERROR: Prepare execution failed: {e}"
+        log.exception(msg)
+        print(msg)     
         raise typer.Abort()
     else:
-        log.info("SUCCESS: containers for the execution have been run")      
+        msg = "SUCCESS: containers for the execution have been run"
+        log.info(msg)
+        print(msg)
 
 
 @app.command()
