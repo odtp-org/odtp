@@ -38,7 +38,7 @@ def prepare(
             raise typer.Exit("Please provide either --execution-name or --execution-id")
 
         if execution_name:
-            execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
+            execution_id = db.get_document_id_by_field_value("title", execution_name, db.collection_executions)
 
         execution_doc = db.get_document_by_id(
             document_id=execution_id, 
@@ -83,7 +83,7 @@ def run(
             raise typer.Exit("Please provide either --execution-name or --execution-id")
 
         if execution_name:
-            execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
+            execution_id = db.get_document_id_by_field_value("title", execution_name, db.collection_executions)
 
         execution_doc = db.get_document_by_id(
             document_id=execution_id, 

@@ -308,7 +308,6 @@ def get_execution_path_docs(db, execution_id):
         collection=db.collection_executions
         )
     dt_id = execution_doc["digitalTwinRef"]
-    print(dt_id)
     dt_doc = db.get_document_by_id(
         document_id=dt_id, 
         collection=db.collection_digital_twins
