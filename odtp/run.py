@@ -217,11 +217,11 @@ class DockerManager:
         output, error = process.communicate()
 
         if process.returncode != 0:
-            log.exception(f"Failed to run Docker component {instance_name}: {error.decode()}")
+            log.exception(f"Failed to run Docker component {container_name}: {error.decode()}")
             return None
         else:
             docker_run_id = output.decode().strip()
-            log.info(f"Docker run was started with success: {instance_name}")
+            log.info(f"Docker run was started with success: {container_name}")
             return docker_run_id
 
     def stop_component(self, name="odtpruntest"):
@@ -245,7 +245,7 @@ class DockerManager:
         else:
             return f"Docker component {name} has been stopped."
 
-    def delete_component(self, instance_name="odtpruntest"):
+    def delete_component(self, container_name="odtpruntest"):
         """
         Delete a Docker component.
 
@@ -255,16 +255,16 @@ class DockerManager:
         Returns:
             str: A message indicating the Docker component has been deleted.
         """
-        log.info(f"Deleting Docker component {instance_name}")
-        docker_rm_command = ["docker", "rm", instance_name]
+        log.info(f"Deleting Docker component {container_name}")
+        docker_rm_command = ["docker", "rm", container_name]
         process = subprocess.Popen(docker_rm_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, error = process.communicate()
 
         if process.returncode != 0:
-            log.exception(f"Failed to delete Docker component {instance_name}: {error.decode()}")
+            log.exception(f"Failed to delete Docker component {container_name}: {error.decode()}")
             return None
         else:
-            return f"Docker component {instance_name} has been deleted."
+            return f"Docker component {container_name} has been deleted."
         
     def delete_image(self):
         """
