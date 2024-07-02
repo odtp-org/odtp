@@ -95,20 +95,6 @@ class WorkflowManager:
 
             log.info("COMPONENTS DOWNLOADED AND BUILT")
 
-    def download_data_from_storage(self):
-        # Implement the logic to download data from S3
-        pass
-
-    def download_and_build_components(self):
-        # This method will clone the githubs and build the components.
-        pass
-
-    def extract_parameters(self):
-        # Implement the logic to extract parameters from the Barfi schema
-        # These parameters will be send as environment variable.
-        self.paramenters = {}
-        pass
-
     def run_workflow(self):
         # Implement the logic to send tasks following the DAG schema. 
         # This can make use of barfi workflow execution function. Each 
@@ -189,32 +175,3 @@ class WorkflowManager:
 
         # End execution timestamp
         db.set_document_timestamp(self.execution["_id"], db.collection_executions, "end_timestamp")
-
-    def run_task(self):
-        # Implement the logic of running one single task. 
-        # Send the step ID as Environment variable so the component can log the progress
-        pass
-
-    def stop_workflow(self):
-        # This will stop the execution of the workflow. 
-        pass
-
-    def stop_task(self):
-        # This will stop one single task
-        pass
-
-    def delete_workflow(self):
-        # This method will delete all records in the DB and related docker components downloaded in the folder. 
-        pass
-
-    def delete_db_entry(self):
-        # Method to remove the workflow execution from the database
-        pass
-
-    def delete_docker_components(self):
-        # Method to remove all docker containers used by this workflow.
-        pass
-
-    def restart_workflow(self):
-        # This will restart the execution of the workflow. 
-        pass

@@ -18,7 +18,7 @@ def initiate():
     try:
         bucketAvailable = odtpS3.test_connection()
     except Exception as e:
-        logging.error("S3 bucket not found. Please create the bucket on minio folder or use the dashboard.")
+        log.error("S3 bucket not found. Please create the bucket on minio folder or use the dashboard.")
         log.exception(e)
 
 
@@ -35,7 +35,7 @@ def delete():
     odtpS3 = s3Manager()
     odtpS3.deleteAll()
 
-    print("All deleted")
+    log.info("All deleted")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ This scripts contains odtp subcommands for 'execution'
 import sys
 import typer
 from typing_extensions import Annotated
+import logging 
 
 import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
@@ -12,6 +13,8 @@ from directory_tree import display_tree
 import os
 
 app = typer.Typer()
+
+log = logging.getLogger(__name__)
 
 ## Adding listing so we can have multiple flags
 from typing import List
@@ -45,10 +48,10 @@ def prepare(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.prepare_workflow()
     except Exception as e:
-        print(f"ERROR: Prepare execution failed: {e}") 
+        log.error(f"ERROR: Prepare execution failed: {e}") 
         raise typer.Abort()           
     else:
-        print("SUCCESS: images for the execution have been build")    
+        log.info("SUCCESS: images for the execution have been build")    
 
 
 @app.command()
@@ -83,14 +86,17 @@ def run(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.run_workflow()
     except Exception as e:
-        print(f"ERROR: Run execution failed: {e}")       
+        log.error(f"ERROR: Prepare execution failed: {e}")       
         raise typer.Abort()
     else:
-        print("SUCCESS: containers for the execution have been run")      
-
+        log.info("SUCCESS: containers for the execution have been run")      
 
 @app.command()
 def output(
+
+        execution_id: str = typer.Option(
+        ..., "--execution-id", help="Specify the ID of the execution"
+    ),
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),

@@ -3,6 +3,7 @@ This scripts contains odtp subcommands for 'components'
 """
 import typer
 from typing_extensions import Annotated
+import logging
 
 from odtp.run import DockerManager
 import odtp.helpers.git as odtp_git
@@ -10,6 +11,9 @@ import odtp.helpers.parse as odtp_parse
 import odtp.helpers.utils as odtp_utils
 
 app = typer.Typer()
+
+log = logging.getLogger(__name__)
+
 
 ## Adding listing so we can have multiple flags
 from typing import List
@@ -34,10 +38,10 @@ def prepare(
         )
         componentManager.prepare_component()
     except Exception as e:
-        print(f"ERROR: Prepare component failed: {e}") 
+        log.error(f"ERROR: Prepare component failed: {e}") 
         raise typer.Abort()           
     else:
-        print("SUCCESS: image for the component has been build")
+        log.info("SUCCESS: image for the component has been build")
 
 @app.command()
 def run(
@@ -78,16 +82,11 @@ def run(
             instance_name=instance_name
         )
     except Exception as e:
-        print(f"ERROR: Run of component failed: {e}") 
+        log.error(f"ERROR: Run of component failed: {e}") 
         raise typer.Abort()           
     else:
-        print("SUCCESS: container for the component has been started")
+        log.info("SUCCESS: container for the component has been started")
 
-
-#### TODO: Stop Component
-@app.command()
-def stop():
-    pass
 
 
 @app.command()
@@ -98,7 +97,7 @@ def delete_instance(
 ):
     componentManager = DockerManager()
     componentManager.delete_component(instance_name=instance_name)
-    print("Container deleted")
+    log.info("Container deleted")
 
 
 @app.command()
@@ -109,7 +108,7 @@ def delete_image(
 ):
     componentManager = DockerManager(image_name=image_name)
     componentManager.delete_image()
-    print("Image deleted")
+    log.info("Image deleted")
 
 
 if __name__ == "__main__":
