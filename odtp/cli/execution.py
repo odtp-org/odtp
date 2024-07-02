@@ -30,7 +30,7 @@ def prepare(
         None, "--execution-id", help="Specify the ID of the execution"
     ),
     project_path: str = typer.Option(
-        ..., "--project-path", help="Specify the path for the execution"
+        None, "--project-path", help="Specify the path for the execution"
     ),
 ):  
     try:
@@ -72,7 +72,7 @@ def run(
         None, "--execution-id", help="Specify the ID of the execution"
     ),
     project_path: str = typer.Option(
-        ..., "--project-path", help="Specify the path for the execution"
+        None, "--project-path", help="Specify the path for the execution"
     ),
     secrets_files: Annotated[str, typer.Option(
         help="List the files containing the secrets by step separated by commas"
