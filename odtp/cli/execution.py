@@ -146,7 +146,7 @@ def delete(
         None, "--execution-id", help="Specify the ID of the execution"
     ),
     project_path: str = typer.Option(
-        ..., "--project-path", help="Specify the path for the execution"
+        None "--project-path", help="Specify the path for the execution"
     ),
     keep_project_path: bool = typer.Option(
         True, "--keep-project-path", help="Keep the project directory after deleting contents"
