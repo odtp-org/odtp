@@ -332,6 +332,7 @@ def add_digital_twin(userRef, name):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         digital_twin_data["userRef"] = userRef
+        print(digital_twin_data)
         digital_twin_id = (
             db[collection_digital_twins].insert_one(digital_twin_data).inserted_id
         )

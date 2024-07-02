@@ -30,7 +30,7 @@ def user_entry(
     """Add new user in the MongoDB"""
     user_id = db.add_user(name=name, github=github, email=email)
     
-    user_doc = get_user_path_doc(db, user_id)
+    user_doc = db.get_user_path_doc(db, user_id)
     
     try:
         user_path = odtp_filesystem.generate_user_path(user_doc)
@@ -91,11 +91,11 @@ def digital_twin_entry(
         raise typer.Exit("Please provide either --user-id or --user-email")
 
     if user_email:
-        user_id = db.get_document_id_by_field_value("user_email", user_email, "users")
+        user_id = db.get_document_id_by_field_value("email", user_email, db.collection_users)
     
     dt_id = db.add_digital_twin(userRef=user_id, name=name)
 
-    user_doc, dt_doc = get_digital_twin_path_docs(db, dt_id)
+    user_doc, dt_doc = db.get_digital_twin_path_docs(db, dt_id)
     dt_path = odtp_filesystem.generate_digital_twin_path(user_doc, dt_doc)
 
     try:
@@ -156,7 +156,7 @@ def execution_entry(
         )
 
 
-        user_doc, dt_doc, execution_doc = get_execution_path_docs(db, execution_id)
+        user_doc, dt_doc, execution_doc = db.get_execution_path_docs(db, execution_id)
         execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution_doc)
 
 

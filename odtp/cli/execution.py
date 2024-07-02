@@ -47,7 +47,7 @@ def prepare(
 
         if not project_path:
             #Inferring project path from naming convention
-            dt_doc, user_doc, _ = get_execution_path_docs(db, execution_id)
+            dt_doc, user_doc, _ = db.get_execution_path_docs(db, execution_id)
 
             execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution_doc)
             project_path = execution_path
@@ -92,7 +92,7 @@ def run(
 
         if not project_path:
             #Inferring project path from naming convention
-            user_doc, dt_doc, _ = get_execution_path_docs(db, execution_id)
+            user_doc, dt_doc, _ = db.get_execution_path_docs(db, execution_id)
 
             execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution_doc)
             project_path = execution_path
