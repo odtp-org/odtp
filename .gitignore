@@ -4,3 +4,4 @@ __pycache__/
 !.env*.dist
 .nicegui
 .local
+odtp/odtp.log
