@@ -221,7 +221,7 @@ class DockerManager:
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         output, error = process.communicate()
-
+        
         if process.returncode != 0:
             log.exception(f"Failed to run Docker component {container_name}: {error.decode()}")
             return None
