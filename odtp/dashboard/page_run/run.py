@@ -74,7 +74,7 @@ def ui_run_execution(dialog, result, current_run, folder_status):
         cli_log_commands = []
         for i, _ in enumerate(execution["versions"]):
             cli_log_commands. append(rh.build_cli_command(
-                cmd="logs",
+                cmd="streamlogs",
                 project_path=project_path,
                 step_nr=str(i)
             ))
