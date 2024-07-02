@@ -62,8 +62,11 @@ def directory_has_output(execution_id, project_folder):
             return True
     return False
 
-def delete_folder(folder_path):
+def delete_folder(folder_path, keep_project_path=True):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
+
+    if keep_project_path:
+        os.mkdir(folder_path)
 
     log.info("Folder deleted: %s", folder_path)

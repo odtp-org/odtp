@@ -130,6 +130,28 @@ def output(
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
+): 
+    try:
+        display_tree(project_path)
+    except Exception as e:
+        print(f"ERROR: Output printing failed: {e}")       
+        raise typer.Abort()
+
+@app.command()
+def delete(
+    execution_name: str = typer.Option(
+        None, "--execution-name", help="Specify the name of the execution"
+    ),
+    execution_id: str = typer.Option(
+        None, "--execution-id", help="Specify the ID of the execution"
+    ),
+    project_path: str = typer.Option(
+        ..., "--project-path", help="Specify the path for the execution"
+    ),
+    keep_project_path: bool = typer.Option(
+        True, "--keep-project-path", help="Keep the project directory after deleting contents"
+    ),
+
 ):
     try:
         if execution_id is None and execution_name is None:
@@ -147,7 +169,7 @@ def output(
         db.delete_execution(execution_id)
 
         # Folders
-        odtp_env.delete_folder(project_path)
+        odtp_env.delete_folder(project_path,keep_project_path=keep_project_path) 
 
     except Exception as e:
         log.error(f"ERROR: Delete execution failed: {e}")       
