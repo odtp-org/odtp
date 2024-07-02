@@ -121,22 +121,6 @@ def streamlogs(
         sys.exit()
 
 
-
-@app.command()
-def output(
-    execution_id: str = typer.Option(
-        ..., "--execution-id", help="Specify the ID of the execution"
-    ),
-    project_path: str = typer.Option(
-        ..., "--project-path", help="Specify the path for the execution"
-    ),
-): 
-    try:
-        display_tree(project_path)
-    except Exception as e:
-        print(f"ERROR: Output printing failed: {e}")       
-        raise typer.Abort()
-
 @app.command()
 def delete(
     execution_name: str = typer.Option(
@@ -146,19 +130,18 @@ def delete(
         None, "--execution-id", help="Specify the ID of the execution"
     ),
     project_path: str = typer.Option(
-        None "--project-path", help="Specify the path for the execution"
+        None, "--project-path", help="Specify the path for the execution"
     ),
     keep_project_path: bool = typer.Option(
         True, "--keep-project-path", help="Keep the project directory after deleting contents"
     ),
-
 ):
     try:
         if execution_id is None and execution_name is None:
             raise typer.Exit("Please provide either --execution-name or --execution-id")
 
         if execution_name:
-            execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
+            execution_id = db.get_document_id_by_field_value("title", execution_name, db.collection_executions)
 
         # S3
         s3_keys = db.get_all_outputs_s3_keys(execution_id)
