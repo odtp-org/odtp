@@ -14,9 +14,9 @@ def ui_table_layout(executions):
     df = pd.DataFrame(data=executions)
     df["_id"] = df["_id"].astype("string")
     df["createdAt"] = df["createdAt"]
-    df["start_timestamp"] = df["start_timestamp"]
-    df["end_timestamp"] = df["end_timestamp"]
+    df["start_timestamp"] = df["start_timestamp"].fillna('')
+    df["end_timestamp"] = df["end_timestamp"].fillna('')
     df["steps"] = df["steps"].apply(helpers.pd_lists_to_counts).astype("string")
-    df = df[["createdAt", "title", "steps"]]
+    df = df[["createdAt", "title", "steps", "start_timestamp", "end_timestamp"]]
     df = df.sort_values(by="createdAt", ascending=False)
     ui.table.from_pandas(df)
