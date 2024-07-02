@@ -62,14 +62,14 @@ def get_execution_select_options(digital_twin_id):
         sub_collection=db.collection_executions,
         item_id=digital_twin_id,
         ref_name=db.collection_executions,
-        sort_by=[("start_timestamp", db.DESCENDING)],
+        sort_by=[("createdAt", db.DESCENDING)],
     )
     if not executions:
         return {}
     execution_options = {}
     for execution in executions:
         execution_options[str(execution["_id"])] = (
-            f"{execution['start_timestamp'].strftime('%d/%m/%y')} {execution.get('title')}"
+            f"{execution['createdAt'].strftime('%d/%m/%y')} {execution.get('title')}"
         )
     return execution_options
 
@@ -103,7 +103,7 @@ def build_execution_with_steps(execution_id):
     execution_with_steps = {
         "execution_id": execution_id,
         "title": execution.get("title"),
-        "timestamp": execution.get("start_timestamp").strftime("%m/%d/%Y, %H:%M:%S"),
+        "createdAt": execution.get("createdAt").strftime("%m/%d/%Y, %H:%M:%S"),
         "versions": execution["workflowSchema"]["component_versions"],
         "version_tags": version_tags,
         "steps": step_ids,
