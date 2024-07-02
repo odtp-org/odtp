@@ -314,7 +314,6 @@ def get_execution_path_docs(db, execution_id):
         collection=db.collection_digital_twins
         )
     user_id = dt_doc["userRef"]
-    print(user_id)
     user_doc = db.get_document_by_id(
         document_id=user_id, 
         collection=db.collection_users
