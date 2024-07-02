@@ -1,7 +1,7 @@
 """
 This scripts contains odtp subcommands for 'execution'
 """
-
+import sys
 import typer
 from typing_extensions import Annotated
 import logging 
@@ -10,8 +10,7 @@ import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 from odtp.workflow import WorkflowManager
 from directory_tree import display_tree
-import odtp.helpers.environment as odtp_env
-from nicegui import ui
+import os
 
 app = typer.Typer()
 
@@ -94,6 +93,7 @@ def run(
 
 @app.command()
 def output(
+
         execution_id: str = typer.Option(
         ..., "--execution-id", help="Specify the ID of the execution"
     ),
@@ -106,6 +106,23 @@ def output(
     except Exception as e:
         print(f"ERROR: Output printing failed: {e}")       
         raise typer.Abort()
+
+
+@app.command()
+def logs(
+    project_path: str = typer.Option(
+        ..., "--project-path", help="Specify the path for the execution"
+    ),
+    step_nr: str = typer.Option(
+        ..., "--step-nr", help="Specify the step for the execution"
+    ),
+):
+    try:
+        log_file_path = f"{project_path}/{step_nr}_*/odtp-logs/*"
+        os.system(f"tail -f {log_file_path}")     
+    except KeyboardInterrupt:
+        sys.exit()
+
 
 if __name__ == "__main__":
     app()

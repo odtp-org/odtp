@@ -2,6 +2,7 @@ import logging
 import os
 import json
 import subprocess
+import docker
 import odtp.helpers.settings as config
 import odtp.helpers.git as git_helpers
 import odtp.helpers.environment as env_helpers
@@ -12,6 +13,7 @@ import odtp.mongodb.db as db
 REPO_DIR = "repository"
 INPUT_DIR = "odtp-input"
 OUTPUT_DIR = "odtp-output"
+LOG_DIR = "odtp-logs"
 
 
 log = logging.getLogger(__name__)
@@ -33,13 +35,15 @@ class DockerManager:
         self.dockerfile_path = os.path.join(self.project_folder, REPO_DIR)
         self.docker_image_name = image_name
         self.input_volume = os.path.join(self.project_folder, INPUT_DIR)
+        self.log_volume = os.path.join(self.project_folder, LOG_DIR)
         self.output_volume = os.path.join(self.project_folder, OUTPUT_DIR)
 
     def prepare_component(self):
         self._checks_for_prepare()
         self._create_project_folder_structure()
-        self._download_repo()
-        self._build_image()    
+        if not self._check_if_image_exists():
+            self._download_repo()
+            self._build_image()   
 
     def _create_project_folder_structure(self):
         """Create all the folder structure in project_folder""" 
@@ -47,7 +51,8 @@ class DockerManager:
         os.makedirs(self.repository_path, exist_ok=True)
         os.makedirs(self.input_volume, exist_ok=True)
         os.makedirs(self.output_volume, exist_ok=True)    
-    
+        os.makedirs(self.log_volume, exist_ok=True)
+
     def _check_project_folder_prepared(self):  
         log.debug(f"VALIDATION: check project folder structure: {self.project_folder}")  
         """check whether the project folder is prepared with the expected 
@@ -57,7 +62,7 @@ class DockerManager:
             for entry in entries:
                 if entry.is_dir():
                     subdirs.append(entry.name)
-        if set(subdirs) != set(REPO_DIR, INPUT_DIR, OUTPUT_DIR):
+        if set(subdirs) != set(REPO_DIR, INPUT_DIR, OUTPUT_DIR, LOG_DIR):
             raise OdtpRunSetupException(
                 f"""project folder {self.project_folder} does not have 
                 expected directory structure with {REPO_DIR}, {INPUT_DIR}, {OUTPUT_DIR}"""
@@ -82,6 +87,20 @@ class DockerManager:
         
         db_utils.check_port_mappings_for_component_runs(ports)
         self._check_image_exists()
+
+    def _check_if_image_exists(self):
+        """
+        Check whether a docker image exists
+        """
+        logging.info(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
+        client = docker.from_env()
+        images = client.images.list(name=self.docker_image_name)
+        logging.info(f"Images found: {images}") 
+
+        if len(images) > 0:
+            return True
+        else:
+            return False   
 
     def _download_repo(self):
         """
@@ -149,14 +168,14 @@ class DockerManager:
         log.info(f"RUN: Creating Docker volume {volume_name}")
         subprocess.run(["docker", "volume", "create", volume_name])
         
-    def run_component(self, parameters, secrets, ports, instance_name, step_id=None, debug=False):
+    def run_component(self, parameters, secrets, ports, container_name, step_id=None, debug=False):
         """
         Run a Docker component with the specified parameters.
 
         Args:
             secrets (dict): The secrets variables to pass to the Docker component.
             parameters (dict): The environment variables to pass to the Docker component.
-            instance_name (str, optional): The name of the Docker container. Defaults to "odtp_component".
+            container_name (str, optional): The name of the Docker container. Defaults to "odtp_component".
 
         Returns:
             str: The ID of the Docker run.
@@ -183,9 +202,10 @@ class DockerManager:
         else:
             secrets_args = [""]
 
-        docker_run_command = ["docker", "run", "--rm", "-it", "--name", instance_name,
+        docker_run_command = ["docker", "run", "--rm", "-it", "--name", container_name,
                               "--network", "odtp_odtp-network",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
+                              "--volume", f"{os.path.abspath(self.log_volume)}:/odtp/odtp-logs",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
 
         command_string = ' '.join(docker_run_command)
