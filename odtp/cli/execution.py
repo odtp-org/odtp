@@ -40,30 +40,21 @@ def prepare(
         if execution_name:
             execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
 
-        execution = db.get_document_by_id(
+        execution_doc = db.get_document_by_id(
             document_id=execution_id, 
             collection=db.collection_executions
         )
 
         if not project_path:
             #Inferring project path from naming convention
-            dt_id = execution["digitalTwinRef"]
-            dt_doc = db.get_document_by_id(
-                document_id=dt_id, 
-                collection=db.collection_digital_twins
-            )
-            user_id = dt_doc["userRef"]
-            user_doc = db.get_document_by_id(
-                document_id=user_id, 
-                collection=db.collection_users
-            )
+            dt_doc, user_doc, _ = get_execution_path_docs(db, execution_id)
 
-            execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution)
+            execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution_doc)
             project_path = execution_path
 
-        step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
+        step_count = len(execution_doc["workflowSchema"]["workflowExecutorSchema"])
         secrets = [None for i in range(step_count)]
-        flowManager = WorkflowManager(execution, project_path, secrets)
+        flowManager = WorkflowManager(execution_doc, project_path, secrets)
         flowManager.prepare_workflow()
     except Exception as e:
         print(f"ERROR: Prepare execution failed: {e}") 
@@ -94,31 +85,22 @@ def run(
         if execution_name:
             execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
 
-        execution = db.get_document_by_id(
+        execution_doc = db.get_document_by_id(
             document_id=execution_id, 
             collection=db.collection_executions
         )
 
         if not project_path:
             #Inferring project path from naming convention
-            dt_id = execution["digitalTwinRef"]
-            dt_doc = db.get_document_by_id(
-                document_id=dt_id, 
-                collection=db.collection_digital_twins
-            )
-            user_id = dt_doc["userRef"]
-            user_doc = db.get_document_by_id(
-                document_id=user_id, 
-                collection=db.collection_users
-            )
+            user_doc, dt_doc, _ = get_execution_path_docs(db, execution_id)
 
-            execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution)
+            execution_path = odtp_filesystem.generate_execution_path(user_doc, dt_doc, execution_doc)
             project_path = execution_path
 
-        step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
+        step_count = len(execution_doc["workflowSchema"]["workflowExecutorSchema"])
         secrets = odtp_parse.parse_parameters_for_multiple_files(
             parameter_files=secrets_files, step_count=step_count)
-        flowManager = WorkflowManager(execution, project_path, secrets)
+        flowManager = WorkflowManager(execution_doc, project_path, secrets)
         flowManager.run_workflow()
     except Exception as e:
         print(f"ERROR: Run execution failed: {e}")       

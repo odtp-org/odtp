@@ -282,6 +282,42 @@ def add_component_version(
             )
     return component_id, version_id
 
+def get_user_path_doc(db, user_id):
+    user_doc = db.get_document_by_id(
+        document_id=user_id, 
+        collection=db.collection_users
+        )
+    return user_doc
+
+def get_digital_twin_path_docs(db, dt_id):
+    dt_doc = db.get_document_by_id(
+        document_id=dt_id, 
+        collection=db.collection_digital_twins
+        )
+    user_id = dt_doc["userRef"]
+    user_doc = db.get_document_by_id(
+        document_id=user_id, 
+        collection=db.collection_users
+        )
+
+    return user_doc, dt_doc
+
+def get_execution_path_docs(db, execution_id):
+    execution_doc = db.get_document_by_id(
+        document_id=execution_id, 
+        collection=db.collection_executions
+        )
+    dt_id = execution_doc["digitalTwinRef"]
+    dt_doc = db.get_document_by_id(
+        document_id=dt_id, 
+        collection=db.collection_digital_twins
+        )
+    user_id = dt_doc["userRef"]
+    user_doc = db.get_document_by_id(
+        document_id=user_id, 
+        collection=db.collection_users
+        )
+    return user_doc, dt_doc, execution_doc
 
 def add_digital_twin(userRef, name):
     """add digital twin"""
