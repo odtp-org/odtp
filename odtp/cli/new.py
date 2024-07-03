@@ -78,7 +78,7 @@ def digital_twin_entry(
         raise typer.Exit("Please provide either --user-id or --user-email")
 
     if user_email:
-        user_id = db.get_document_id_by_field_value("user_email", user_email, "users")
+        user_id = db.get_document_id_by_field_value("email", user_email, "users")
 
     dt_id = db.add_digital_twin(userRef=user_id, name=name)
     log.info(f"Digital Twin added with ID {dt_id}")
