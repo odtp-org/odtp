@@ -156,10 +156,14 @@ def delete(
             odtp_env.delete_folder(project_path, keep_project_path=keep_project_path) 
 
     except Exception as e:
-        log.error(f"ERROR: Delete execution failed: {e}")       
+        msg = f"ERROR: Delete execution failed: {e}"
+        log.exception(msg)
+        print(msg)       
         raise typer.Abort()  
     else:
-        log.info("SUCCESS: execution has been deleted")
+        msg = "SUCCESS: execution has been deleted"
+        log.info(msg)
+        print(msg)
 
 if __name__ == "__main__":
     app()

@@ -137,7 +137,6 @@ class s3Manager:
             if 'Contents' in objects_to_delete:
                 for key in objects_to_delete['Contents']:
                     self.s3.delete_object(Bucket=self.bucketName, Key=key['Key'])
-                    print(key['Key'])
                 log.info(f"Path '{s3_path}' deleted from S3 bucket")
 
     def create_folders(self, structure):
