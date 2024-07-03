@@ -1,7 +1,7 @@
 __pycache__/
 .DS_Store
 .env*
-!.env*.dist
+!.env.dist.*
 .nicegui
 .local
 odtp/odtp.log
