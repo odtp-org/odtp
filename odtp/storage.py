@@ -16,8 +16,7 @@ class s3Manager:
         self.bucketName = settings.ODTP_BUCKET_NAME
 
     def test_connection(self):
-        bucket = self.s3.head_bucket(Bucket=self.bucketName)
-        return bucket    
+        self.s3.head_bucket(Bucket=self.bucketName)
 
     # Method to close the client connection
     def closeConnection(self):
@@ -37,7 +36,7 @@ class s3Manager:
             # Add a trailing slash to make S3 recognize it as a folder
             self.s3.put_object(Bucket=self.bucketName, Key=path + '/')
 
-        print("Folder Structure Created")
+        log.info("Folder Structure Created")
 
     # Method to create a specific folder 
     # The idea is to create paths such as Digital Twin > Execution > Step > Output 
@@ -106,7 +105,7 @@ class s3Manager:
         # This will delete all objects in the bucket.
         bucket.objects.all().delete()
 
-        print("Folder Structure Deleted")
+        log.info("Folder Structure Deleted")
 
     # Method to delete one file in s3 
     def deleteFile(self, s3_path):
@@ -122,6 +121,23 @@ class s3Manager:
         """
         self.s3.delete_object(Bucket=self.bucketName, Key=s3_path)
         log.info(f"File '{s3_path}' deleted from S3 bucket")
+
+    # Method to delete multiple files in s3 
+    def deletePaths(self, s3_paths):
+        """
+        Deletes multiple files from specific paths in the S3 bucket.
+        Args:
+            s3_paths (list): A list of S3 paths of the files to delete.
+        Returns:
+            None
+        """
+
+        for s3_path in s3_paths:
+            objects_to_delete = self.s3.list_objects(Bucket=self.bucketName, Prefix=s3_path)
+            if 'Contents' in objects_to_delete:
+                for key in objects_to_delete['Contents']:
+                    self.s3.delete_object(Bucket=self.bucketName, Key=key['Key'])
+                log.info(f"Path '{s3_path}' deleted from S3 bucket")
 
     def create_folders(self, structure):
         self.s3.createFolderStructure(structure)

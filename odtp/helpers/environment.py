@@ -1,9 +1,12 @@
 import os
+import shutil
+import logging
 
 import odtp.helpers.utils as utils
 import odtp.helpers.utils as odtp_utils
 import odtp.mongodb.db as db
 
+log = logging.getLogger(__name__)
 
 class OdtpLocalEnvironmentException(Exception):
     pass
@@ -58,3 +61,12 @@ def directory_has_output(execution_id, project_folder):
         if len(os.listdir(output_dir)) != 0:
             return True
     return False
+
+def delete_folder(folder_path, keep_project_path=True):
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+
+    if keep_project_path:
+        os.mkdir(folder_path)
+
+    log.info("Folder deleted: %s", folder_path)

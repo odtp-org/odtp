@@ -2,6 +2,7 @@ import logging
 import os
 import json
 import subprocess
+import docker
 import odtp.helpers.settings as config
 import odtp.helpers.git as git_helpers
 import odtp.helpers.environment as env_helpers
@@ -12,10 +13,12 @@ import odtp.mongodb.db as db
 REPO_DIR = "repository"
 INPUT_DIR = "odtp-input"
 OUTPUT_DIR = "odtp-output"
+LOG_DIR = "odtp-logs"
 
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
+log.addHandler(config.get_command_log_handler())
 
 
 class OdtpRunSetupException(Exception):
@@ -33,13 +36,15 @@ class DockerManager:
         self.dockerfile_path = os.path.join(self.project_folder, REPO_DIR)
         self.docker_image_name = image_name
         self.input_volume = os.path.join(self.project_folder, INPUT_DIR)
+        self.log_volume = os.path.join(self.project_folder, LOG_DIR)
         self.output_volume = os.path.join(self.project_folder, OUTPUT_DIR)
 
     def prepare_component(self):
         self._checks_for_prepare()
         self._create_project_folder_structure()
-        self._download_repo()
-        self._build_image()    
+        if not self._check_if_image_exists():
+            self._download_repo()
+            self._build_image()   
 
     def _create_project_folder_structure(self):
         """Create all the folder structure in project_folder""" 
@@ -47,7 +52,8 @@ class DockerManager:
         os.makedirs(self.repository_path, exist_ok=True)
         os.makedirs(self.input_volume, exist_ok=True)
         os.makedirs(self.output_volume, exist_ok=True)    
-    
+        os.makedirs(self.log_volume, exist_ok=True)
+
     def _check_project_folder_prepared(self):  
         log.debug(f"VALIDATION: check project folder structure: {self.project_folder}")  
         """check whether the project folder is prepared with the expected 
@@ -57,7 +63,7 @@ class DockerManager:
             for entry in entries:
                 if entry.is_dir():
                     subdirs.append(entry.name)
-        if set(subdirs) != set(REPO_DIR, INPUT_DIR, OUTPUT_DIR):
+        if set(subdirs) != set(REPO_DIR, INPUT_DIR, OUTPUT_DIR, LOG_DIR):
             raise OdtpRunSetupException(
                 f"""project folder {self.project_folder} does not have 
                 expected directory structure with {REPO_DIR}, {INPUT_DIR}, {OUTPUT_DIR}"""
@@ -72,7 +78,7 @@ class DockerManager:
         )
 
     def _checks_for_run(self, parameters, ports, image_name):
-        log.info("VALIDATION: check for run") 
+        log.info("VALIDATION: check for run")
         self._check_project_folder_prepared()
         self._check_image_exists()
         try:
@@ -83,6 +89,20 @@ class DockerManager:
         db_utils.check_port_mappings_for_component_runs(ports)
         self._check_image_exists()
 
+    def _check_if_image_exists(self):
+        """
+        Check whether a docker image exists
+        """
+        logging.info(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
+        client = docker.from_env()
+        images = client.images.list(name=self.docker_image_name)
+        logging.info(f"Images found: {images}") 
+
+        if len(images) > 0:
+            return True
+        else:
+            return False   
+
     def _download_repo(self):
         """
         Download a GitHub repository to the specified destination.
@@ -90,24 +110,34 @@ class DockerManager:
         Args:
             destination (str): The destination directory to download the repository.
         """
-        log.info(f"PREPARE: Downloading repository from {self.repo_url} to {self.repository_path}")
-        subprocess.run(
-            ["git", 
+        log.debug(f"PREPARE: Downloading repository from {self.repo_url} to {self.repository_path}")
+        git_clone_command = [
+            "git",
              "clone",
-             "--recurse-submodules",
              self.repo_url, 
-             os.path.join(self.project_folder, "repository")
-            ]
-        )
-        subprocess.run(
-            ["git", 
+             self.repository_path,
+        ]
+        log.info(" ".join(git_clone_command))
+        subprocess.run(git_clone_command)
+        git_checkout_command = [
+            "git",
              "-C", 
-             os.path.join(self.project_folder, 
-             "repository"), 
+             self.repository_path,
              "checkout", 
-             self.commit_hash
-            ]
-        )
+             self.commit_hash,
+        ]
+        log.info(" ".join(git_checkout_command))
+        subprocess.run(git_checkout_command)
+        git_submodule_command = [
+            "git",
+             "-C",
+             self.repository_path,
+             "submodule",
+             "update",
+            "--init",
+        ]
+        log.info(" ".join(git_submodule_command))
+        subprocess.run(git_submodule_command)
 
     def _build_image(self):
         """
@@ -139,14 +169,14 @@ class DockerManager:
         log.info(f"RUN: Creating Docker volume {volume_name}")
         subprocess.run(["docker", "volume", "create", volume_name])
         
-    def run_component(self, parameters, secrets, ports, instance_name, step_id=None, debug=False):
+    def run_component(self, parameters, secrets, ports, container_name, step_id=None):
         """
         Run a Docker component with the specified parameters.
 
         Args:
             secrets (dict): The secrets variables to pass to the Docker component.
             parameters (dict): The environment variables to pass to the Docker component.
-            instance_name (str, optional): The name of the Docker container. Defaults to "odtp_component".
+            container_name (str, optional): The name of the Docker container. Defaults to "odtp_component".
 
         Returns:
             str: The ID of the Docker run.
@@ -173,25 +203,31 @@ class DockerManager:
         else:
             secrets_args = [""]
 
-        docker_run_command = ["docker", "run", "--rm", "-it", "--name", instance_name,
+        docker_run_command = ["docker", "run", "--rm", "-it", "--name", container_name,
                               "--network", "odtp_odtp-network",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
+                              "--volume", f"{os.path.abspath(self.log_volume)}:/odtp/odtp-logs",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
 
         command_string = ' '.join(docker_run_command)
-        if debug:
-            log.debug(f"Command to be executed: {command_string}")
+        command_string_log_safe = command_string
+        for value in [parameters["ODTP_SECRET_KEY"], parameters["ODTP_ACCESS_KEY"], parameters["ODTP_MONGO_SERVER"]]:
+            command_string_log_safe = command_string_log_safe.replace(value, "x")
+        if secrets:
+            for value in secrets.values():
+                command_string_log_safe = command_string_log_safe.replace(value, "x")
 
+        log.info(command_string_log_safe)
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         output, error = process.communicate()
-
+        
         if process.returncode != 0:
-            log.exception(f"Failed to run Docker component {instance_name}: {error.decode()}")
+            log.exception(f"Failed to run Docker component {container_name}: {error.decode()}")
             return None
         else:
             docker_run_id = output.decode().strip()
-            log.info(f"Docker run was started with success: {instance_name}")
+            log.info(f"Docker run was started with success: {container_name}")
             return docker_run_id
 
     def stop_component(self, name="odtpruntest"):
@@ -215,7 +251,7 @@ class DockerManager:
         else:
             return f"Docker component {name} has been stopped."
 
-    def delete_component(self, instance_name="odtpruntest"):
+    def delete_component(self, container_name="odtpruntest"):
         """
         Delete a Docker component.
 
@@ -225,16 +261,16 @@ class DockerManager:
         Returns:
             str: A message indicating the Docker component has been deleted.
         """
-        log.info(f"Deleting Docker component {instance_name}")
-        docker_rm_command = ["docker", "rm", instance_name]
+        log.info(f"Deleting Docker component {container_name}")
+        docker_rm_command = ["docker", "rm", container_name]
         process = subprocess.Popen(docker_rm_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, error = process.communicate()
 
         if process.returncode != 0:
-            log.exception(f"Failed to delete Docker component {instance_name}: {error.decode()}")
+            log.exception(f"Failed to delete Docker component {container_name}: {error.decode()}")
             return None
         else:
-            return f"Docker component {instance_name} has been deleted."
+            return f"Docker component {container_name} has been deleted."
         
     def delete_image(self):
         """
