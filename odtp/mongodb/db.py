@@ -124,11 +124,11 @@ def check_document_id_in_collection(document_id, collection):
 
 
 def delete_document_by_id(document_id, collection):
-    log.info(f"Deleting {collection} : {document_id}")
+    log.debug(f"Deleting {collection} : {document_id}")
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         document = db[collection].delete_one({"_id": ObjectId(document_id)})
-        log.info(f"Document with ID {document_id} was deleted")
+        log.debug(f"Document with ID {document_id} was deleted")
 
 
 def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort_by=None):
