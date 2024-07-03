@@ -122,6 +122,23 @@ class s3Manager:
         self.s3.delete_object(Bucket=self.bucketName, Key=s3_path)
         log.info(f"File '{s3_path}' deleted from S3 bucket")
 
+    # Method to delete multiple files in s3 
+    def deletePaths(self, s3_paths):
+        """
+        Deletes multiple files from specific paths in the S3 bucket.
+        Args:
+            s3_paths (list): A list of S3 paths of the files to delete.
+        Returns:
+            None
+        """
+
+        for s3_path in s3_paths:
+            objects_to_delete = self.s3.list_objects(Bucket=self.bucketName, Prefix=s3_path)
+            if 'Contents' in objects_to_delete:
+                for key in objects_to_delete['Contents']:
+                    self.s3.delete_object(Bucket=self.bucketName, Key=key['Key'])
+                log.info(f"Path '{s3_path}' deleted from S3 bucket")
+
     def create_folders(self, structure):
         self.s3.createFolderStructure(structure)
         log.info("Folder structure generated")
