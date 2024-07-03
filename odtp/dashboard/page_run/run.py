@@ -41,7 +41,7 @@ def ui_prepare_execution(dialog, result, current_run, folder_status):
             )        
             with ui.grid(columns=1):
                 with ui.row().classes("w-full"):
-                    ui.label(cli_prepare_command).classes("font-mono")
+                    ui.label(cli_prepare_command).classes("font-mono w-full")
                 with ui.row().classes("w-full"):
                     ui.button(
                         "Prepare execution",
