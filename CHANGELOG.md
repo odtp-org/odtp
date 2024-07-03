@@ -5,6 +5,7 @@
     - gui: validation has been implemented in the forms to make sure data that is entered will be valid
     - gui: the run page for executions has been improved in the gui: logs are now also available from the gui when a workflow runs
     - gui: on the dashboard homepage you can now directly see whether all services including github are connected
+    - gui: the workarea in the dashboard was removed and replace by an info section on top of the pages
     - logging: improve logging at GUI/CLI: run commands are now logged to a file, while everything else is still logged to the command line: this is so run commands can be easier debugged by knowing what was run in docker and how that run was triggered 
     - logging: the logs of the execution runs are now exposed as volumes, so that will be directly available when the component starts and will remain in the project path even after a component exited prematurely
     - execution: execution and step timestamps
