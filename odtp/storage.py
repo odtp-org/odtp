@@ -1,35 +1,23 @@
-# Here is where all  the s3Manager related methods should be placed.
-
-# Env variables needed: 
-
-
-# Some previous methods
-
-####################################################
-
 import boto3
 import logging
+from odtp.helpers import settings
+
+
+log = logging.getLogger(__name__)
+
 
 class s3Manager:
-    def __init__(self, s3Server, bucketName, accessKey, secretKey):
-        self.s3Server = s3Server
-        self.bucketName = bucketName
-        self.accessKey = accessKey
-        self.secretKey = secretKey
+    def __init__(self):
+        self.s3 = boto3.client('s3',
+            endpoint_url=settings.ODTP_S3_SERVER,
+            aws_access_key_id=settings.ODTP_ACCESS_KEY,
+            aws_secret_access_key=settings.ODTP_SECRET_KEY
+        )
+        self.bucketName = settings.ODTP_BUCKET_NAME
 
-        self.connect()
-
-        # Add logging Info
-        
-    # Method to connect to s3 server
-    def connect(self):
-        s3 = boto3.client('s3', endpoint_url=self.s3Server,
-                    aws_access_key_id=self.accessKey, 
-                    aws_secret_access_key=self.secretKey)
-        
-        self.s3 = s3
-
-        # Add logging info
+    def test_connection(self):
+        bucket = self.s3.head_bucket(Bucket=self.bucketName)
+        return bucket    
 
     # Method to close the client connection
     def closeConnection(self):
@@ -37,7 +25,7 @@ class s3Manager:
         Closes the connection to the S3 client.
         """
         self.s3.meta.client.close()
-        logging.info("Connection closed")
+        log.info("Connection closed")
 
     # Create folder structure
     def createFolderStructure(self, structure=["odtp"]):
@@ -64,7 +52,7 @@ class s3Manager:
             None
         """
         self.s3.put_object(Bucket=self.bucketName, Key=path + '/')
-        logging.info(f"Folder '{path}' created")
+        log.info(f"Folder '{path}' created")
 
     # Method to upload one file to specific path in s3
     def uploadFile(self, local_path, s3_path):
@@ -79,7 +67,7 @@ class s3Manager:
             None
         """
         self.s3.upload_file(local_path, self.bucketName, s3_path)
-        logging.info(f"File '{local_path}' uploaded to '{s3_path}'")
+        log.info(f"File '{local_path}' uploaded to '{s3_path}'")
 
     # Method to download one file from s3 and place it in a folder
     # This is needed to make the input/output logic out of barfi
@@ -95,7 +83,7 @@ class s3Manager:
             None
         """
         self.s3.download_file(self.bucketName, s3_path, local_path)
-        logging.info(f"File '{s3_path}' downloaded to '{local_path}'")
+        log.info(f"File '{s3_path}' downloaded to '{local_path}'")
 
     # Method to list folders in s3
     def checkObjects(self):
@@ -133,8 +121,12 @@ class s3Manager:
             None
         """
         self.s3.delete_object(Bucket=self.bucketName, Key=s3_path)
-        logging.info(f"File '{s3_path}' deleted from S3 bucket")
+        log.info(f"File '{s3_path}' deleted from S3 bucket")
+
+    def create_folders(self, structure):
+        self.s3.createFolderStructure(structure)
+        log.info("Folder structure generated")
 
     def close(self):
         del self.s3
-        logging.info("S3 Session deleted")
+        log.info("S3 Session deleted")

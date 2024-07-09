@@ -12,8 +12,10 @@ from odtp.helpers.settings import ODTP_KEYCLOAK_REDIRECT
 
 def jwt_decode_from_client(encoded: str, url:str, audience:str):
     """Decodes the payload of a JWT token using a client and verifying . (Giving data like issuer, groups, etc.)"""
+    
+    print(f"url {url}")
     jwks_client = PyJWKClient(url)
-
+    
     signing_key = jwks_client.get_signing_key_from_jwt(encoded)
     payload = jwt.decode(encoded, 
                          signing_key.key, 
@@ -46,7 +48,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
    
     
     async def dispatch(self, request:Request, call_next): 
+        print(f"self.url {self.url}")
+        print(f"self.audience {self.audience}")
         header = request.headers.get("authorization")  
+        print(f"header {header}")
         if not header or not header.startswith("Bearer "):
             #app.storage.user[storage.AUTH_USER_KEYCLOAK] = 'NONE'
             return RedirectResponse(ODTP_KEYCLOAK_REDIRECT)     

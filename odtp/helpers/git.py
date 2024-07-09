@@ -9,6 +9,9 @@ from odtp.helpers.settings import GITHUB_TOKEN
 GITHUB_API_REPOS_URL = "https://api.github.com/repos"
 
 
+log = logging.getLogger(__name__)
+
+
 class OdtpGithubException(Exception):
     pass
 
@@ -22,11 +25,12 @@ def get_github_repo_url(repo_url):
         path = repo_url.replace("git@github.com:", "").replace(".git", "")
         return f"{GITHUB_API_REPOS_URL}/{path}"
     else:
+        log.exception(f"{repo_url} is not a github repo")
         raise OdtpGithubException(f"{repo_url} is not a github repo")
 
 
 def make_github_api_call(url):
-    logging.info(f"make github api call: {url}")
+    log.info(f"make github api call: {url}")
     headers = {"Authorization": "token " + GITHUB_TOKEN}
     response = requests.get(url, headers=headers)
     return response
@@ -70,18 +74,23 @@ def get_github_repo_info(repo_url):
 
 
 def check_commit_for_repo(repo_url, commit_hash=None):
+    if commit_hash:
+        github_api_commit_url = f"{get_github_repo_url(repo_url)}/commits/{commit_hash}"
+        response = make_github_api_call(github_api_commit_url)
+        if response.status_code == 200:
+            return commit_hash
+        else:
+            log.exception(f"Github repo {repo_url} has no commit {commit_hash}.")            
+            raise OdtpGithubException(f"Github repo {repo_url} has no commit {commit_hash}.")
     github_api_commits_url = f"{get_github_repo_url(repo_url)}/commits"
     response = make_github_api_call(github_api_commits_url)
     if response.status_code == 200:
         content = json.loads(response.content)
         if not commit_hash:
-            commit_hash = content[0].get("sha")
-            return commit_hash
-        else:
-            commits = [item.get("sha") for item in content]
-            if commit_hash in commits:
-                return commit_hash
-    raise OdtpGithubException(f"Github repo {repo_url} has no commit {commit_hash}")
+            latest_commit_hash = content[0].get("sha")
+            return latest_commit_hash
+    log.exception(f"Github repo {repo_url} has no commits, see {github_api_commits_url}.")
+    raise OdtpGithubException(f"Github repo {repo_url} has no commits, see {github_api_commits_url}.")
 
 
 def get_commit_of_component_version(repo_info, component_version):
@@ -91,5 +100,12 @@ def get_commit_of_component_version(repo_info, component_version):
     version_commit = [version["commit"] for version in tagged_versions
                       if version["name"] == component_version]
     if not version_commit:
+        log.exception(f"Github repo {repo_info.get('url')} has no version {component_version}")
         raise OdtpGithubException(f"Github repo {repo_info.get('url')} has no version {component_version}")
     return version_commit[0]
+
+
+def test_token():
+    github_api_user_url = "https://api.github.com/user"
+    response = make_github_api_call(github_api_user_url)
+    return response

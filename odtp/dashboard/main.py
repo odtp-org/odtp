@@ -1,13 +1,13 @@
-from nicegui import app, native, ui
+from nicegui import app, ui
 from odtp.helpers.settings import (ODTP_DASHBOARD_PORT, ODTP_DASHBOARD_RELOAD, ODTP_KEYCLOAK_LOGOUT, ODTP_KEYCLOAK_AUDIENCE,ODTP_KEYCLOAK_URL,ODTP_AUTHENTICATION)
 
 import odtp.dashboard.utils.ui_theme as ui_theme
-from odtp.dashboard.pages.page_about import content as about_page
-from odtp.dashboard.pages.page_components import content as components_page
-from odtp.dashboard.pages.page_digital_twins import content as digital_twins_page
-from odtp.dashboard.pages.page_executions import content as executions_page
-from odtp.dashboard.pages.page_run import content as run_page
-from odtp.dashboard.pages.page_user import content as user_page
+from odtp.dashboard.page_about.main import content as about_page
+from odtp.dashboard.page_components.main import content as components_page
+from odtp.dashboard.page_digital_twins.main import content as digital_twins_page
+from odtp.dashboard.page_executions.main import content as executions_page
+from odtp.dashboard.page_run.main import content as run_page
+from odtp.dashboard.page_users.main import content as user_page
 from odtp.dashboard.utils.middleware import AuthMiddleware
 from odtp.dashboard.utils.storage import reset_all
 
@@ -46,7 +46,7 @@ def components():
 def components():
     with ui_theme.frame("Executions"):
         executions_page()
-        
+
 @ui.page("/logout")
 def ui_logout() -> None:
     url = ODTP_KEYCLOAK_LOGOUT
@@ -55,11 +55,16 @@ def ui_logout() -> None:
 
 
 app.add_static_files("/static", "static")
+print(f"ODTP_AUTHENTICATION {ODTP_AUTHENTICATION}")
 if ODTP_AUTHENTICATION :
     url = ODTP_KEYCLOAK_URL
     audience = ODTP_KEYCLOAK_AUDIENCE
     app.add_middleware(AuthMiddleware, url=url, audience=audience)
 print(f"ODTP_AUTHENTICATION {ODTP_AUTHENTICATION}")
+
+
+app.add_static_files("/static", "static")
+
 ui.run(
     title="ODTP", 
     storage_secret="private key to secure the browser session cookie", 

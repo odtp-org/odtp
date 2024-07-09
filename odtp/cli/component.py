@@ -60,7 +60,7 @@ def run(
         help="Specify the path to the environment file"
     )] = None,     
     ports: Annotated[str, typer.Option(
-        help="Specify port mappings seperated by a plus sign i.e. 8501:8501+8201:8201"
+        help="Specify port mappings separated by a plus sign i.e. 8501:8501+8201:8201"
     )] = None,  
 ):
     try:
@@ -71,7 +71,7 @@ def run(
             image_name=image_name, 
         )
         ports = odtp_parse.parse_port_mappings_for_one_component(ports) 
-        parameters = odtp_parse.parse_paramters_for_one_file(parameter_file)
+        parameters = odtp_parse.parse_parameters_for_one_file(parameter_file)
         componentManager.run_component(
             parameters=parameters, 
             ports=ports, 

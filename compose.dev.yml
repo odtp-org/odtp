@@ -1,0 +1,90 @@
+version: "3.8"
+
+services:
+  odtp:
+    build:
+      context: .
+      args:
+        PIP_INSTALL_ARGS: ${PIP_INSTALL_ARGS}
+        ODTP_PATH: ${ODTP_PATH}
+    image: odtp
+    privileged: true
+    ports:
+      - ${ODTP_DASHBOARD_PORT}:${ODTP_DASHBOARD_PORT}
+      - "8501:8501"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${ODTP_PATH}:${ODTP_PATH}
+    environment:
+      ODTP_PATH: ${ODTP_PATH}
+      ODTP_MONGO_SERVER: mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongodb-instance:27017/
+      ODTP_S3_SERVER: http://minio-instance:9000
+      ODTP_BUCKET_NAME: ${ODTP_BUCKET_NAME}
+      ODTP_ACCESS_KEY: ${ODTP_ACCESS_KEY}
+      ODTP_SECRET_KEY: ${ODTP_SECRET_KEY}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      ODTP_MONGO_DB: ${ODTP_MONGO_DB}
+      ODTP_DASHBOARD_PORT: ${ODTP_DASHBOARD_PORT}
+      ODTP_DASHBOARD_RELOAD: ${ODTP_DASHBOARD_RELOAD}
+      ODTP_DASHBOARD_JSON_EDITOR: ${ODTP_DASHBOARD_JSON_EDITOR}
+      ODTP_LOG_LEVEL: ${ODTP_LOG_LEVEL}
+      RUN_LOG_LEVEL: ${ODTP_LOG_LEVEL}
+
+    stdin_open: true
+    tty: true
+    networks:
+      - odtp-network
+    depends_on:
+      - mongodb-instance
+      - mongodb-express
+      - minio-instance
+
+  mongodb-instance:
+    image: mongo:7.0.8
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${ODTP_MONGO_DB}
+    networks:
+      - odtp-network
+    volumes:
+      - ${MONGODB_PATH}:/data/db
+
+  mongodb-express:
+    image: mongo-express:1.0.2-18
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_OPTIONS_EDITORTHEME: "ambiance"
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongodb-instance:27017/
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: true
+    networks:
+      - odtp-network
+    depends_on:
+      - mongodb-instance
+
+  minio-instance:
+    image: minio/minio:RELEASE.2024-03-30T09-41-56Z
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${ODTP_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${ODTP_SECRET_KEY}
+    command: server --console-address :9001 /data
+    networks:
+      - odtp-network
+    volumes:
+      - ${MINIO_PATH}:/data
+
+volumes:
+  mongodb_data:
+  minio_data:
+
+networks:
+  odtp-network:
+    driver: bridge

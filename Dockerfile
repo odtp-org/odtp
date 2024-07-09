@@ -1,5 +1,8 @@
 # Use Docker in Docker stable version
+ARG ODTP_PATH
+ARG PIP_INSTALL_ARGS
 FROM docker:25.0.3-dind-alpine3.19
+
 
 # Install dependencies required
 RUN apk add --no-cache \
@@ -11,7 +14,7 @@ RUN apk add --no-cache \
     zlib-dev \
     git \
     curl \
-    wget 
+    wget
 
 # Install Rust and Cargo using rustup (the Rust toolchain installer)
 # Note: The following command installs the stable version of Rust and adds Cargo to the PATH
@@ -20,7 +23,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # Install system dependencies required for compiling Fortran and C++ code
 # Needed for Numpy.
 RUN apk add --no-cache \
-    curl \ 
+    curl \
     gfortran \
     g++ \
     cmake \
@@ -43,34 +46,16 @@ RUN wget https://www.python.org/ftp/python/3.11.0/Python-3.11.0.tar.xz \
 # Remove the Python source and tarball to reduce image size
 RUN rm -rf Python-3.11.0.tar.xz Python-3.11.0
 
-# Install Python and Poetry
-RUN python3 -m ensurepip && \
-    pip3 install --upgrade pip setuptools
-
-# Install PyArrow in ALPINE
-## https://stackoverflow.com/questions/49059779/how-to-install-pyarrow-on-an-alpine-docker-image/53116069#53116069
-## https://discuss.streamlit.io/t/anyone-tried-to-install-streamlit-in-alpine-docker-image/56893
-RUN apk update && apk add \
-    apache-arrow-dev \
-    py3-pyarrow \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip3 install --upgrade pip && \
-    pip3 install --break-system-packages numpy pyarrow==12.0.0
-
-# Add your application's source code
+# Adding odtp source code and installing it.
 COPY . /app
-
 WORKDIR /app
+RUN pip3 install --break-system-packages $PIP_INSTALL_ARGS .
 
-RUN pip3 install --upgrade pip && \
-    pip3 install --break-system-packages .
+# Symbolic link to ODTP_PATH to facilitate debugging
+RUN ln -s $ODTP_PATH /ODTP_PATH
 
 # Symbolic link between python and python3
-RUN rm /usr/bin/python
 RUN ln -s /usr/local/bin/python3 /usr/bin/python
-
-WORKDIR /app
 
 # Entry point in a sh session
 ENTRYPOINT ["sh"]

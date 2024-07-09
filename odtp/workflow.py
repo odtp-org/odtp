@@ -6,6 +6,9 @@ import odtp.mongodb.db as db
 import logging
 import zipfile
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+
 
 class WorkflowManager:
     def __init__(self, execution_data, working_path, secrets):
@@ -41,7 +44,6 @@ class WorkflowManager:
                     step_index=step_index
                 )
                 
-
                 # Create folder structure
                 step_folder_path = os.path.join(self.working_path, step_name)
                 self.steps_folder_paths.append(step_folder_path)
@@ -88,7 +90,7 @@ class WorkflowManager:
 
             componentManager.prepare_component()
 
-            logging.info("COMPONENTS DOWNLOADED AND BUILT")
+            log.info("COMPONENTS DOWNLOADED AND BUILT")
 
     def download_data_from_storage(self):
         # Implement the logic to download data from S3
@@ -111,8 +113,8 @@ class WorkflowManager:
 
         # Temporally the parameters are taken from the environment files and not 
         # taken from the steps documents
-        logging.info(self.steps_folder_paths)
         for step_index in self.schema["workflowExecutorSchema"]:
+            log.info(f"running step {step_index}")
             step_index = int(step_index)
 
             step_id = self.execution["steps"][step_index]
@@ -125,27 +127,31 @@ class WorkflowManager:
             )
 
             ports = step_doc["ports"]
+            log.info(f"set ports {ports}")
             parameters = step_doc["parameters"]
+            log.info(f"set parameters {parameters}")
 
             # Copying the compressed output files into the new input ones
             # Extracting the files
             if step_index !=0:
+                log.info(f"get output from previous step {step_index-1}")
                 previous_output_path = os.path.join(self.steps_folder_paths[step_index-1], "odtp-output")
 
                 # Specify the path to the output.zip file and the actual_input_path
                 output_zip_path = os.path.join(previous_output_path, 'odtp-output.zip')
                 actual_input_path = os.path.join(self.steps_folder_paths[step_index], 'odtp-input')
                 
-                logging.info(output_zip_path)
-                logging.info(actual_input_path)
-                
                 # Extract the contents of the output.zip file into the actual_input_path
-                with zipfile.ZipFile(output_zip_path, 'r') as zip_ref:
-                    zip_ref.extractall(actual_input_path)
+                if output_zip_path:
+                    log.info(f"output found at {output_zip_path}")
+                    with zipfile.ZipFile(output_zip_path, 'r') as zip_ref:
+                        zip_ref.extractall(actual_input_path)
+                else:
+                    log.info(f"no output found from step {step_index-1}. Did it run with success?")
 
                 # List the contents of the actual_input_path directory
                 contents = os.listdir(actual_input_path)
-                logging.info(f"Contents of the folder: {contents}")
+                log.info(f"Contents of the folder: {contents}")
 
 
             # Change image_name by Component ID_version
@@ -158,7 +164,8 @@ class WorkflowManager:
             )
             
             # instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
-            #logging.info(env_files[step_index])
+            #log.info(env_files[step_index])
+            log.info(f"run docker image {self.image_names[step_index]} at path {self.steps_folder_paths[step_index]}")
             componentManager.run_component(
                 parameters,
                 secrets,
