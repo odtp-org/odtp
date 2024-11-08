@@ -20,6 +20,7 @@ class WorkflowManager:
         self.schema = execution_data["workflowSchema"]
         self.working_path = working_path
         self.image_names = []
+        self.image_links = []
         self.repo_urls = []
         self.commits = []
         self.container_names = []
@@ -38,6 +39,7 @@ class WorkflowManager:
                 component_name = version_doc["component"]["componentName"]
                 component_version = version_doc["component_version"]
                 repo_link = version_doc["component"]["repoLink"]
+                image_link = version_doc["imageLink"]
                 commit_hash = version_doc["commitHash"]
 
                 step_name = odtp_utils.get_execution_step_name(
@@ -57,6 +59,7 @@ class WorkflowManager:
 
                 self.image_names.append(image_name)
                 self.repo_urls.append(repo_link)
+                self.image_links.append(image_link)
                 self.commits.append(commit_hash)
                 self.container_names.append(step_name)
             except Exception as e:
@@ -90,6 +93,7 @@ class WorkflowManager:
                 repo_url=self.repo_urls[step_index],
                 commit_hash=self.commits[step_index],
                 image_name=self.image_names[step_index],
+                image_link=self.image_link[step_index]
                 project_folder=self.steps_folder_paths[step_index]
             )
 

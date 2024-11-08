@@ -26,6 +26,9 @@ def prepare(
     image_name: str = typer.Option(
         ..., "--image_name", help="Specify the name of the component image"
     ),
+    image_link: str = typer.Option(
+        None, "--image_link", help="Specify the name of the component image link"
+    ),
     repository: str = typer.Option(
         ..., "--repository", help="Specify the git repository url"
     ),
@@ -33,7 +36,8 @@ def prepare(
     try:
         componentManager = DockerManager(
             repo_url=repository, 
-            image_name=image_name, 
+            image_name=image_name,
+            image_link=image_link, 
             project_folder=folder
         )
         componentManager.prepare_component()

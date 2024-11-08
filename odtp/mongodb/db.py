@@ -208,6 +208,7 @@ def add_component_version(
     repo_info,
     component_name,
     component_version,
+    image,
     type,
     ports,
 ):
@@ -226,7 +227,7 @@ def add_component_version(
         version_commit = [version["commit"] for version in tagged_versions
                           if version["name"] == component_version]
         if not version_commit:
-            raise Exception("Version does not exist in repo")
+            log.warning("Version does not exist in repo and it will only be valid if the image is already built")
     except Exception as e:
         e.add_note("-> Component Version not valid: was not stored in mongodb")
         raise (e)
@@ -243,6 +244,7 @@ def add_component_version(
                 "author": "Test",
                 "componentName": component_name,
                 "repoLink": repo_url,
+                "imageLink": image,
                 "status": "active",
                 "title": "Title for ComponentX",
                 "type": type,
@@ -277,6 +279,7 @@ def add_component_version(
                     "componentId": component_id,
                     "componentName": component.get("componentName"),
                     "repoLink": component.get("repoLink"),
+                    "imageLink": component.get("imageLink"),
                     "type": component.get("type"),
                 },
                 "odtp_version": odtp_utils.get_odtp_version(),

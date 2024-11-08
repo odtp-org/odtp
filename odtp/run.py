@@ -26,7 +26,7 @@ class OdtpRunSetupException(Exception):
 
 
 class DockerManager:
-    def __init__(self, repo_url="", commit_hash="", image_name="", project_folder=""):
+    def __init__(self, repo_url="", commit_hash="", image_name="", project_folder="", image_link=None):
         log.debug(f"""Docker manager initialized with repo_url: {repo_url},
                      commit_hash: {commit_hash}, project_folder: {project_folder}, image_name: {image_name}""")
         self.repo_url = repo_url
@@ -34,6 +34,7 @@ class DockerManager:
         self.project_folder = project_folder
         self.repository_path = os.path.join(self.project_folder, REPO_DIR)
         self.dockerfile_path = os.path.join(self.project_folder, REPO_DIR)
+        self.docker_image_link = image_link
         self.docker_image_name = image_name
         self.input_volume = os.path.join(self.project_folder, INPUT_DIR)
         self.log_volume = os.path.join(self.project_folder, LOG_DIR)
@@ -43,8 +44,11 @@ class DockerManager:
         self._checks_for_prepare()
         self._create_project_folder_structure()
         if not self._check_if_image_exists():
-            self._download_repo()
-            self._build_image()   
+            if not self.docker_image_link:
+                self._download_repo()
+                self._build_image()
+            else:
+                self._pull_image()
 
     def _create_project_folder_structure(self):
         """Create all the folder structure in project_folder""" 
@@ -101,7 +105,8 @@ class DockerManager:
         if len(images) > 0:
             return True
         else:
-            return False   
+            return False
+        
 
     def _download_repo(self):
         """
@@ -149,6 +154,17 @@ class DockerManager:
         """
         log.info(f"RUN: Building Docker image {self.docker_image_name} from {self.dockerfile_path}")
         subprocess.check_output(["docker", "build", "-t", self.docker_image_name, self.dockerfile_path])
+
+    def _pull_image(self):
+        """
+        Pull a Docker image from a Docker registry.
+    
+        Args:
+            image_name (str): The name of the Docker image to pull.
+        """
+        image_with_tag = f"{self.docker_image_name}:{self.component_version}"
+        log.info(f"RUN: Pulling Docker image {image_with_tag}")
+        subprocess.check_output(["docker", "pull", image_with_tag])
 
     def _check_image_exists(self):
         """
