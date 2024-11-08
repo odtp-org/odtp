@@ -3,7 +3,7 @@ version: "3.8"
 services:
   odtp:
     build: .
-    image: odtp
+    image: odtp:v0.5.0-rc.1
     privileged: true
     ports:
       - ${ODTP_DASHBOARD_PORT}:${ODTP_DASHBOARD_PORT}
