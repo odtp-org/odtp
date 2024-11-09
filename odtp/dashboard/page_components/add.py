@@ -84,6 +84,15 @@ def ui_form_component_add_step2(new_component_to_add):
                     )
                 },
             ).classes("w-1/3")
+            component_version_image_link_input = ui.input(
+                value=repo_info.get("image"),
+                label="Version docker image id",
+                placeholder="user/component:version",
+                validation={
+                    "A component name is required": lambda value: validators.validate_required_input(value) if value else True,
+                    "Invalid component name format": lambda value: isinstance(value, str) if value else True
+                },
+            ).classes("w-2/3")
             with ui.row():
                 ports_inputs = []
                 for i in range(3):
@@ -105,6 +114,7 @@ def ui_form_component_add_step2(new_component_to_add):
                     component_type_input=component_type_input,
                     ports_inputs=ports_inputs,
                     new_component=new_component_to_add,
+                    component_version_image_link_input=component_version_image_link_input
                 ),
             )
 
@@ -145,6 +155,7 @@ def register_new_component(
     component_type_input,
     ports_inputs,
     new_component,
+    component_version_image_link_input,
 ):
     if (
         not component_name_input.validate()
@@ -164,6 +175,7 @@ def register_new_component(
             component_name=component_name_input.value,
             repo_info=new_component.get("repo_info"),
             component_version=component_version_input.value[0],
+            image=component_version_image_link_input.value,
             type=component_type_input.value,
             ports=ports,
         )

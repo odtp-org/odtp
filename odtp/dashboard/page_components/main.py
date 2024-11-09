@@ -22,7 +22,7 @@ def ui_tabs():
         list = ui.tab("Registered Components")
         select = ui.tab("Component options")
         add_component = ui.tab("Add Component")
-    with ui.tab_panels(tabs, value=select).classes("w-full"):
+    with ui.tab_panels(tabs, value=list).classes("w-full"):
         with ui.tab_panel(select):
             ui_component_select()
             ui_component_show()
@@ -38,7 +38,7 @@ def ui_components_list() -> None:
         versions = db.get_collection(
             collection=db.collection_versions,
         )
-        info.ui_component_table(versions)
+        info.ui_component_nodf_table(versions)
     except Exception as e:
         log.exception(
             f"Components table could not be loaded. An Exception occurred: {e}"
