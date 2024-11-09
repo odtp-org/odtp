@@ -19,8 +19,8 @@ class WorkflowManager:
         self.execution = execution_data
         self.schema = execution_data["workflowSchema"]
         self.working_path = working_path
-        self.image_names = []
-        self.image_links = []
+        self.docker_image_names = []
+        self.docker_image_links = []
         self.repo_urls = []
         self.commits = []
         self.container_names = []
@@ -52,14 +52,19 @@ class WorkflowManager:
                 step_folder_path = os.path.join(self.working_path, step_name)
                 self.steps_folder_paths.append(step_folder_path)
 
-                image_name = odtp_utils.get_execution_step_name(
+                step_name = odtp_utils.get_execution_step_name(
                     component_name=component_name, 
                     component_version=component_version
                 )
 
-                self.image_names.append(image_name)
+                image_name = odtp_utils.get_execution_step_image_name(
+                    component_name=component_name, 
+                    component_version=component_version
+                )
+
+                self.docker_image_names.append(image_name)
                 self.repo_urls.append(repo_link)
-                self.image_links.append(image_link)
+                self.docker_image_links.append(image_link)
                 self.commits.append(commit_hash)
                 self.container_names.append(step_name)
             except Exception as e:
@@ -92,8 +97,8 @@ class WorkflowManager:
             componentManager = DockerManager(
                 repo_url=self.repo_urls[step_index],
                 commit_hash=self.commits[step_index],
-                image_name=self.image_names[step_index],
-                image_link=self.image_link[step_index],
+                docker_image_name=self.docker_image_names[step_index],
+                docker_image_link=self.docker_image_links[step_index],
                 project_folder=self.steps_folder_paths[step_index]
             )
 
@@ -161,13 +166,13 @@ class WorkflowManager:
             # By now the image_name is just the name of the component and the version
             componentManager = DockerManager(
                 repo_url=self.repo_urls[step_index], 
-                image_name=self.image_names[step_index],
+                docker_image_name=self.docker_image_names[step_index],
                 project_folder=self.steps_folder_paths[step_index]
             )
             
             # instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
             #log.info(env_files[step_index])
-            log.info(f"run docker image {self.image_names[step_index]} at path {self.steps_folder_paths[step_index]}")
+            log.info(f"run docker image {self.docker_image_names[step_index]} at path {self.steps_folder_paths[step_index]}")
             componentManager.run_component(
                 parameters,
                 secrets,

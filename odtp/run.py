@@ -26,16 +26,16 @@ class OdtpRunSetupException(Exception):
 
 
 class DockerManager:
-    def __init__(self, repo_url="", commit_hash="", image_name="", project_folder="", image_link=None):
+    def __init__(self, repo_url="", commit_hash="", docker_image_name="", project_folder="", docker_image_link=None):
         log.debug(f"""Docker manager initialized with repo_url: {repo_url},
-                     commit_hash: {commit_hash}, project_folder: {project_folder}, image_name: {image_name}""")
+                     commit_hash: {commit_hash}, project_folder: {project_folder}, image_name: {docker_image_name}""")
         self.repo_url = repo_url
         self.commit_hash = commit_hash
         self.project_folder = project_folder
         self.repository_path = os.path.join(self.project_folder, REPO_DIR)
         self.dockerfile_path = os.path.join(self.project_folder, REPO_DIR)
-        self.docker_image_link = image_link
-        self.docker_image_name = image_name
+        self.docker_image_link = docker_image_link
+        self.docker_image_name = docker_image_name
         self.input_volume = os.path.join(self.project_folder, INPUT_DIR)
         self.log_volume = os.path.join(self.project_folder, LOG_DIR)
         self.output_volume = os.path.join(self.project_folder, OUTPUT_DIR)

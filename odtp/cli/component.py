@@ -36,8 +36,8 @@ def prepare(
     try:
         componentManager = DockerManager(
             repo_url=repository, 
-            image_name=image_name,
-            image_link=image_link, 
+            docker_image_name=image_name,
+            docker_image_link=image_link, 
             project_folder=folder
         )
         componentManager.prepare_component()
@@ -79,7 +79,7 @@ def run(
             project_folder=folder,
             repo_url=repository,
             commit_hash=commit, 
-            image_name=image_name, 
+            docker_image_name=image_name, 
         )
         ports = odtp_parse.parse_port_mappings_for_one_component(ports) 
         parameters = odtp_parse.parse_parameters_for_one_file(parameter_file)
