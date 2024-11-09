@@ -93,7 +93,7 @@ class WorkflowManager:
                 repo_url=self.repo_urls[step_index],
                 commit_hash=self.commits[step_index],
                 image_name=self.image_names[step_index],
-                image_link=self.image_link[step_index]
+                image_link=self.image_link[step_index],
                 project_folder=self.steps_folder_paths[step_index]
             )
 

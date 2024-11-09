@@ -162,9 +162,10 @@ class DockerManager:
         Args:
             image_name (str): The name of the Docker image to pull.
         """
-        image_with_tag = f"{self.docker_image_name}:{self.component_version}"
-        log.info(f"RUN: Pulling Docker image {image_with_tag}")
-        subprocess.check_output(["docker", "pull", image_with_tag])
+        log.info(f"RUN: Pulling Docker image {self.docker_image_name}")
+        subprocess.check_output(["docker", "pull", self.docker_image_link])
+        subprocess.check_output(["docker", "tag", self.docker_image_link, self.docker_image_name])
+        subprocess.check_output(["docker", "rmi", self.docker_image_link])
 
     def _check_image_exists(self):
         """
@@ -197,15 +198,15 @@ class DockerManager:
         Returns:
             str: The ID of the Docker run.
         """
-        log.info(f"RUN: Running Docker component {self.repo_url} in docker with name {self.docker_image_name}")
+        log.info(f"RUN: Running ODTP component. Repo: {self.repo_url}, Image name: {self.docker_image_name}, Container Name: {container_name}")
         
         if step_id:
             parameters["ODTP_STEP_ID"] = step_id
-            parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
-            parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
-            parameters["ODTP_BUCKET_NAME"] = config.ODTP_BUCKET_NAME
-            parameters["ODTP_ACCESS_KEY"] = config.ODTP_ACCESS_KEY
-            parameters["ODTP_SECRET_KEY"] = config.ODTP_SECRET_KEY
+        parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
+        parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
+        parameters["ODTP_BUCKET_NAME"] = config.ODTP_BUCKET_NAME
+        parameters["ODTP_ACCESS_KEY"] = config.ODTP_ACCESS_KEY
+        parameters["ODTP_SECRET_KEY"] = config.ODTP_SECRET_KEY
 
         env_args = [f"-e \"{key}={value}\"" for key, value in parameters.items() if key]
 
