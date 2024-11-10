@@ -26,15 +26,16 @@ class OdtpRunSetupException(Exception):
 
 
 class DockerManager:
-    def __init__(self, repo_url="", commit_hash="", image_name="", project_folder=""):
+    def __init__(self, repo_url="", commit_hash="", docker_image_name="", project_folder="", docker_image_link=None):
         log.debug(f"""Docker manager initialized with repo_url: {repo_url},
-                     commit_hash: {commit_hash}, project_folder: {project_folder}, image_name: {image_name}""")
+                     commit_hash: {commit_hash}, project_folder: {project_folder}, image_name: {docker_image_name}""")
         self.repo_url = repo_url
         self.commit_hash = commit_hash
         self.project_folder = project_folder
         self.repository_path = os.path.join(self.project_folder, REPO_DIR)
         self.dockerfile_path = os.path.join(self.project_folder, REPO_DIR)
-        self.docker_image_name = image_name
+        self.docker_image_link = docker_image_link
+        self.docker_image_name = docker_image_name
         self.input_volume = os.path.join(self.project_folder, INPUT_DIR)
         self.log_volume = os.path.join(self.project_folder, LOG_DIR)
         self.output_volume = os.path.join(self.project_folder, OUTPUT_DIR)
@@ -43,8 +44,11 @@ class DockerManager:
         self._checks_for_prepare()
         self._create_project_folder_structure()
         if not self._check_if_image_exists():
-            self._download_repo()
-            self._build_image()   
+            if not self.docker_image_link:
+                self._download_repo()
+                self._build_image()
+            else:
+                self._pull_image()
 
     def _create_project_folder_structure(self):
         """Create all the folder structure in project_folder""" 
@@ -101,7 +105,8 @@ class DockerManager:
         if len(images) > 0:
             return True
         else:
-            return False   
+            return False
+        
 
     def _download_repo(self):
         """
@@ -150,6 +155,18 @@ class DockerManager:
         log.info(f"RUN: Building Docker image {self.docker_image_name} from {self.dockerfile_path}")
         subprocess.check_output(["docker", "build", "-t", self.docker_image_name, self.dockerfile_path])
 
+    def _pull_image(self):
+        """
+        Pull a Docker image from a Docker registry.
+    
+        Args:
+            image_name (str): The name of the Docker image to pull.
+        """
+        log.info(f"RUN: Pulling Docker image {self.docker_image_name}")
+        subprocess.check_output(["docker", "pull", self.docker_image_link])
+        subprocess.check_output(["docker", "tag", self.docker_image_link, self.docker_image_name])
+        subprocess.check_output(["docker", "rmi", self.docker_image_link])
+
     def _check_image_exists(self):
         """
         Check whether a docker image exists
@@ -181,15 +198,15 @@ class DockerManager:
         Returns:
             str: The ID of the Docker run.
         """
-        log.info(f"RUN: Running Docker component {self.repo_url} in docker with name {self.docker_image_name}")
+        log.info(f"RUN: Running ODTP component. Repo: {self.repo_url}, Image name: {self.docker_image_name}, Container Name: {container_name}")
         
         if step_id:
             parameters["ODTP_STEP_ID"] = step_id
-            parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
-            parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
-            parameters["ODTP_BUCKET_NAME"] = config.ODTP_BUCKET_NAME
-            parameters["ODTP_ACCESS_KEY"] = config.ODTP_ACCESS_KEY
-            parameters["ODTP_SECRET_KEY"] = config.ODTP_SECRET_KEY
+        parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
+        parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
+        parameters["ODTP_BUCKET_NAME"] = config.ODTP_BUCKET_NAME
+        parameters["ODTP_ACCESS_KEY"] = config.ODTP_ACCESS_KEY
+        parameters["ODTP_SECRET_KEY"] = config.ODTP_SECRET_KEY
 
         env_args = [f"-e \"{key}={value}\"" for key, value in parameters.items() if key]
 
