@@ -33,11 +33,27 @@ def menu() -> None:
 def frame(navtitle: str):
     """Custom page frame to share the same styling and behavior across all pages"""
     ui.colors(primary="black", secondary="black", accent="black", positive="teal")
-    with ui.header().classes("justify-between text-white"):
-        ui.label("OTDP").classes("font-bold")
-        with ui.row():
-            menu()
-    yield
+    
+
+    with ui.header().classes("justify-between text-white w-full"):
+        with ui.element('div').classes('container mx-auto px-4'):
+            with ui.row().classes('justify-between items-center'):
+                ui.label("OTDP").classes("font-bold")
+                with ui.row():
+                    menu()
+        
+
+    # Wrap yield in container with same classes as header/footer
+    with ui.element('div').classes('container mx-auto px-4'):
+        yield
+        
+    # Footer
+    with ui.footer().classes("bg-black text-white w-full"):
+        with ui.element('div').classes('container mx-auto px-4'):
+            with ui.row().classes("justify-between items-center"):
+                ui.label("© 2024 ODTP").classes("font-bold")
+                with ui.row():
+                    menu()
 
 
 def ui_add_first(item_name, page_link, action="select"):
