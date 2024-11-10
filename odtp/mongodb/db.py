@@ -474,6 +474,51 @@ def delete_execution(execution_id, debug=True):
     # Update the digital twin document without the execution reference
     _ = remove_value_from_list_in_field(collection_digital_twins, digital_twin_id, "executions", ObjectId(execution_id))
 
+def delete_component_version(component_id, version_id):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        # Check if component exists
+        component = db[collection_components].find_one({"_id": ObjectId(component_id)})
+        if not component:
+            raise mongodb_utils.OdtpDbMongoDBValidationException(
+                f"document with {component_id} does not exist in collection {collection_components}"
+            )
+        # Check if version exists
+        version = db[collection_versions].find_one({"_id": ObjectId(version_id)})
+        if not version:
+            raise mongodb_utils.OdtpDbMongoDBValidationException(
+                f"document with {version_id} does not exist in collection {collection_versions}"
+            )
+        # Check if version is in component
+        if ObjectId(version_id) not in component["versions"]:
+            raise mongodb_utils.OdtpDbMongoDBValidationException(
+                f"document with {version_id} does not exist in component {component_id}"
+            )
+        # Delete version
+        db[collection_versions].delete_one({"_id": ObjectId(version_id)})
+        
+        # Remove version from component
+        db[collection_components].update_one(
+            {"_id": ObjectId(component_id)},
+            {"$pull": {"versions": ObjectId(version_id)}}
+        )
+        log.info(f"Version with ID {version_id} was deleted")
+
+def delete_component(component_id):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        # Check if component exists
+        component = db[collection_components].find_one({"_id": ObjectId(component_id)})
+        if not component:
+            raise mongodb_utils.OdtpDbMongoDBValidationException(
+                f"document with {component_id} does not exist in collection {collection_components}"
+            )
+
+        # Delete all versions associated with the component
+        for version_id in component["versions"]:
+            delete_component_version(component_id, version_id)
+        db[collection_components].delete_one({"_id": ObjectId(component_id)})
+        log.info(f"Component with ID {component_id} was deleted")
 
 def delete_collection(collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:

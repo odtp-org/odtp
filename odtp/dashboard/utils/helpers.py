@@ -26,6 +26,7 @@ def component_version_for_table(version):
     component = version.get("component")
     version_cleaned = {
         "component": component.get("componentName"),
+        "id": str(component.get("componentId")),
         "version": version.get("component_version"),
         "repository": component.get("repoLink"),
         "commit": version.get("commitHash")[:8],
@@ -113,3 +114,7 @@ def build_execution_with_steps(execution_id):
         "inputs": inputs,
     }
     return execution_with_steps
+
+def delete_component(component_id):
+    db.delete_component(component_id=component_id)
+    return True

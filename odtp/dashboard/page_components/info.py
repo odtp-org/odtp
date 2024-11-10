@@ -22,6 +22,7 @@ def ui_component_table(versions):
         df = df.sort_values(by=["component", "version"], ascending=False)
         ui.table.from_pandas(df).classes("bg-violet-100")
 
+@ui.refreshable
 def ui_component_nodf_table(versions):
     with ui.column().classes("w-full"):
         if not versions:
@@ -34,6 +35,8 @@ def ui_component_nodf_table(versions):
         
         df = pd.DataFrame(data=versions_cleaned)
         df = df.sort_values(by=["component", "version"], ascending=False)
+
+        repo_col_index = df.columns.get_loc("repository")
 
         # Container for the table
         with ui.column().classes("w-full border rounded-lg overflow-hidden"):
@@ -49,21 +52,24 @@ def ui_component_nodf_table(versions):
             for _, row in df.iterrows():
                 with ui.row().classes("w-full hover:bg-gray-50 border-b last:border-b-0"):
                     # Data columns
-                    for value in row:
+                    for idx, value in enumerate(row):
                         with ui.element().classes("flex-1 px-4 py-2"):
-                            ui.label(str(value))
+                            if idx == repo_col_index:
+                                ui.link(str(value), str(value)).classes("text-blue-500 hover:text-blue-700")
+                            else:
+                                ui.label(str(value))
                     # Action button
                     with ui.element().classes("w-24 p-2 flex justify-center"):
                         ui.button(
-                            "Action", 
-                            on_click=lambda v=row["version"]: handle_action(v)
+                            "Delete", 
+                            on_click=lambda v=row["id"]: handle_action(v)
                         ).classes(
                             "bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
                         )
 
-def handle_action(version: str):
-    """Handle button click action"""
-    print(f"Action clicked for version: {version}")
+def handle_action(_id: str):
+    _ = helpers.delete_component(_id)
+    ui_component_nodf_table.refresh()
 
 
 def ui_component_display(current_component):
