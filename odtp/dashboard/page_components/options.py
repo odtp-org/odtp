@@ -123,8 +123,8 @@ def store_selected_component(value):
                 "latest_commit": latest_commit,
                 "repo_info": repo_info,
             }
-        )  
-        app.storage.user[storage.CURRENT_COMPONENT] = current_component      
+        )
+        app.storage.user[storage.CURRENT_COMPONENT] = current_component
     except Exception as e:
         log.exception(
             f"Selected component could not be stored. An Exception occurred: {e}"
@@ -169,7 +169,7 @@ def register_new_version(
     else:
         from odtp.dashboard.page_components.main import (
             ui_component_add, ui_component_select, ui_component_show, ui_version_add, ui_components_list
-        )        
+        )
         ui_components_list.refresh()
         ui_component_show.refresh()
         ui_component_select.refresh()

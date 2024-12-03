@@ -37,13 +37,13 @@ def ui_git_info_show(component):
     with ui.card().classes("bg-gray-100"):
         ui.markdown(
             f"""
-            ###### Git repo            
-            - **link to repo**: [{repo_info.get('name')}]({repo_info.get('html_url')})   
-            - **description**: {repo_info.get('description')}         
+            ###### Git repo
+            - **link to repo**: [{repo_info.get('name')}]({repo_info.get('html_url')})
+            - **description**: {repo_info.get('description')}
             - **license**: {repo_info.get('license')}
             - **repo visibility**: {repo_info.get('visibility')}
             - **latest commit on main**: {component.get("latest_commit")[:7]}
-            
+
             Available Versions:
             """
         )
@@ -61,7 +61,7 @@ def ui_odtp_info_show(component):
             f"""
             ###### Registered in ODTP
             - **name**: {component.get('name')}
-   
+
             - **component-type**: {component.get('type')}
             """
         )
@@ -87,4 +87,3 @@ def ui_odtp_info_show(component):
             df = pd.DataFrame(data=versions_for_display)
             df = df.sort_values(by=["component_version"], ascending=False)
             ui.table.from_pandas(df).classes("bg-violet-100")
-        

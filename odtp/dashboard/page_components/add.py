@@ -114,7 +114,7 @@ def cancel_component_entry():
         storage.reset_storage_delete([storage.NEW_COMPONENT])
     except Exception as e:
         log.exception(f"Cancel of component entry failed {e}")
-    else:    
+    else:
         from odtp.dashboard.page_components.main import ui_component_add
         ui_component_add.refresh()
 
@@ -185,7 +185,7 @@ def register_new_component(
             ui_component_add, ui_component_select, ui_component_show, ui_version_add, ui_components_list, ui_tabs
         )
         from odtp.dashboard.page_components.options import store_selected_component
-        store_selected_component(str(component_id))        
+        store_selected_component(str(component_id))
         ui_component_add.refresh()
         ui_component_select.refresh()
         ui_component_show.refresh()

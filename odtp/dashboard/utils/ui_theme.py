@@ -1,12 +1,8 @@
-import json
 from contextlib import contextmanager
 
 from nicegui import app, ui
 
 import odtp.dashboard.utils.helpers as helpers
-import odtp.dashboard.utils.storage as storage
-import odtp.helpers.utils as odtp_utils
-import odtp.mongodb.db as db
 
 PATH_ABOUT = "/"
 PATH_USERS = "/users"

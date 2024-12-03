@@ -1,5 +1,5 @@
 import pandas as pd
-from nicegui import app, ui
+from nicegui import ui
 
 import odtp.dashboard.utils.helpers as helpers
 

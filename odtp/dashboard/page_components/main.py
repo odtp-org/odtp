@@ -17,7 +17,7 @@ def content() -> None:
 
 
 @ui.refreshable
-def ui_tabs():    
+def ui_tabs():
     with ui.tabs() as tabs:
         list = ui.tab("Registered Components")
         select = ui.tab("Component options")
@@ -72,7 +72,7 @@ def ui_version_add():
     except Exception as e:
         log.exception(
             f"Component selection could not be loaded. An Exception occurred: {e}"
-        )        
+        )
 
 
 @ui.refreshable

@@ -49,8 +49,8 @@ def components():
 app.add_static_files("/static", "static")
 
 ui.run(
-    title="ODTP", 
-    storage_secret="private key to secure the browser session cookie", 
+    title="ODTP",
+    storage_secret="private key to secure the browser session cookie",
     port=ODTP_DASHBOARD_PORT,
     reload=ODTP_DASHBOARD_RELOAD,
 )

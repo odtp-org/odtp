@@ -1,7 +1,7 @@
 import json
 import logging
 
-from nicegui import app, ui
+from nicegui import app
 
 
 CURRENT_USER = "user"
