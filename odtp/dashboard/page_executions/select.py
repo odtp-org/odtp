@@ -39,7 +39,7 @@ def ui_select_form(execution_options, current_execution):
         on_click=lambda: cancel_execution_selection(),
         icon="cancel",
     )
-    
+
 
 def store_selected_execution(value):
     if not ui_theme.new_value_selected_in_ui_select(value):
@@ -66,10 +66,10 @@ def cancel_execution_selection():
     except Exception as e:
         log.exception(
             f"Execution selection could not be canceled. An Exception occurred: {e}"
-        ) 
-    else:       
+        )
+    else:
         ui.notify("The execution selection was canceled")
-        from odtp.dashboard.page_executions.main import ui_execution_details, ui_workarea, ui_execution_select    
+        from odtp.dashboard.page_executions.main import ui_execution_details, ui_workarea, ui_execution_select
         ui_execution_details.refresh()
         ui_workarea.refresh()
         ui_execution_select.refresh()

@@ -54,7 +54,7 @@ def ui_workarea(current_user, current_digital_twin, current_execution, workdir):
             current_user=current_user,
             current_digital_twin=current_digital_twin,
             current_execution=current_execution,
-            workdir=workdir,        
+            workdir=workdir,
         )
     except Exception as e:
         log.exception(f"Workarea could not be loaded: an Exception {e} occurred")
@@ -65,7 +65,7 @@ def ui_stepper(
     dialog, result, current_run, workdir
 ):
     try:
-        current_run = storage.get_active_object_from_storage(storage.EXECUTION_RUN) 
+        current_run = storage.get_active_object_from_storage(storage.EXECUTION_RUN)
         stepper = current_run.get("stepper")
         execution = current_run["execution"]
         project_path = current_run.get("project_path")

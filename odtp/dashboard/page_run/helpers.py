@@ -86,7 +86,7 @@ def ui_next_back(current_run, ready_for_next=False):
                     on_click=lambda: run_form_step_back(
                         current_run=current_run,
                     ),
-                ).props("flat")    
+                ).props("flat")
 
 
 def run_form_step_back(current_run):
@@ -101,8 +101,8 @@ def run_form_step_back(current_run):
         log.exception(
             f"Step back failed. An Exception occurred: {e}",
         )
-    else:    
-        from odtp.dashboard.page_run.main import ui_stepper    
+    else:
+        from odtp.dashboard.page_run.main import ui_stepper
         ui_stepper.refresh()
 
 
@@ -118,8 +118,8 @@ def next_step(current_run):
         log.exception(
             f"Step back failed. An Exception occurred: {e}",
         )
-    else:    
-        from odtp.dashboard.page_run.main import ui_stepper           
+    else:
+        from odtp.dashboard.page_run.main import ui_stepper
         ui_stepper.refresh()
 
 def get_folder_status(execution_id, project_path):
@@ -186,7 +186,7 @@ def build_cli_command(cmd, project_path, execution_id=None, secret_files=None, s
     if step_nr:
         cli_parameters.append(
             f"--step-nr {step_nr}",
-        )             
+        )
     if secret_files and [secret_file for secret_file in secret_files]:
         secret_files_for_run = ",".join(secret_files)
         if secret_files_for_run:

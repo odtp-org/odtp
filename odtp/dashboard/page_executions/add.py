@@ -288,8 +288,8 @@ def store_new_execution_init(name_input, digital_twin, current_execution_to_add)
         current_execution_to_add["stepper"] = STEPPERS[STEPPER_WORKFLOW_INDEX]
         app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     except Exception as e:
-        log.exception(f"Execution could not be initialized. An Exception occurred: {e}")   
-    else:    
+        log.exception(f"Execution could not be initialized. An Exception occurred: {e}")
+    else:
         from odtp.dashboard.page_executions.main import ui_add_execution
         ui_add_execution.refresh()
 
@@ -311,8 +311,8 @@ def store_new_execution_workflow(current_execution_to_add, workflow):
         current_execution_to_add["stepper"] = STEPPERS[STEPPER_CONFIRM_INDEX]
         app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     except Exception as e:
-        log.exception(f"Execution workflow could not be added. An Exception occurred: {e}")    
-    else:           
+        log.exception(f"Execution workflow could not be added. An Exception occurred: {e}")
+    else:
         from odtp.dashboard.page_executions.main import ui_add_execution
         ui_add_execution.refresh()
 
@@ -322,8 +322,8 @@ def cancel_execution_entry():
         storage.reset_storage_delete([storage.NEW_EXECUTION])
         ui.notify("The execution entry was canceled")
     except Exception as e:
-        log.exception(f"Execution entry could not be canceled. An Exception occurred: {e}")    
-    else:          
+        log.exception(f"Execution entry could not be canceled. An Exception occurred: {e}")
+    else:
         from odtp.dashboard.page_executions.main import ui_add_execution
         ui_add_execution.refresh()
 
@@ -350,8 +350,8 @@ def confirm_new_execution_workflow(current_execution_to_add):
         ]
         app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     except Exception as e:
-        log.exception(f"Execution workflow confirmation failed. An Exception occurred: {e}")     
-    else:         
+        log.exception(f"Execution workflow confirmation failed. An Exception occurred: {e}")
+    else:
         from odtp.dashboard.page_executions.main import ui_add_execution
         ui_add_execution.refresh()
 
@@ -362,8 +362,8 @@ def add_parameters_configuration_to_workflow(current_execution_to_add, parameter
         current_execution_to_add["stepper"] = STEPPERS[STEPPER_CONFIGURATION_PORTS_INDEX]
         app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     except Exception as e:
-        log.exception(f"Execution parameters could not be added. An Exception occurred: {e}")     
-    else:        
+        log.exception(f"Execution parameters could not be added. An Exception occurred: {e}")
+    else:
         from odtp.dashboard.page_executions.main import ui_add_execution
         ui_add_execution.refresh()
 
@@ -379,8 +379,8 @@ def add_ports_configuration_to_workflow(current_execution_to_add, all_ports_inpu
         current_execution_to_add["stepper"] = STEPPERS[STEPPER_SAVE_INDEX]
         app.storage.user[storage.NEW_EXECUTION] = json.dumps(current_execution_to_add)
     except Exception as e:
-        log.exception(f"Execution ports could not be added. An Exception occurred: {e}")    
-    else:           
+        log.exception(f"Execution ports could not be added. An Exception occurred: {e}")
+    else:
         from odtp.dashboard.page_executions.main import ui_add_execution
         ui_add_execution.refresh()
 

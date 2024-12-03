@@ -1,9 +1,8 @@
 import logging
 
-from nicegui import app, ui
+from nicegui import ui
 
 import odtp.dashboard.utils.storage as storage
-import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.page_digital_twins.table as table
 import odtp.dashboard.page_digital_twins.select as select
 import odtp.dashboard.page_digital_twins.add as add
@@ -51,7 +50,7 @@ def ui_digital_twins_table(current_user):
         )
         table.ui_table_layout(
             digital_twins=digital_twins
-        )   
+        )
     except Exception as e:
         log.exception(
             f"Digital Twin table could not be loaded. An Exception occurred: {e}"
@@ -70,7 +69,7 @@ def ui_digital_twin_select(current_user) -> None:
             sub_collection=db.collection_digital_twins,
             item_id=user_id,
             ref_name=db.collection_digital_twins,
-        )        
+        )
         select.digital_twin_select_form(
             current_user=current_user,
             current_digital_twin=current_digital_twin,
@@ -95,7 +94,7 @@ def ui_add_digital_twin(current_user):
 @ui.refreshable
 def ui_workarea(current_user):
     try:
-        user_workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)    
+        user_workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)
         current_digital_twin = storage.get_active_object_from_storage(
             storage.CURRENT_DIGITAL_TWIN
         )
@@ -105,4 +104,4 @@ def ui_workarea(current_user):
             user_workdir=user_workdir
         )
     except Exception as e:
-        log.exception(f"Work area could not be loaded. An Exception happened: {e}")    
+        log.exception(f"Work area could not be loaded. An Exception happened: {e}")

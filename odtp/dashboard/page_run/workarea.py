@@ -1,4 +1,4 @@
-from nicegui import app, ui
+from nicegui import ui
 
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme

@@ -7,7 +7,6 @@ import sys
 from nicegui import ui
 import odtp.helpers.settings as config
 import odtp.dashboard.page_run.helpers as rh
-import odtp.dashboard.page_run.folder as folder
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -21,10 +20,10 @@ def ui_prepare_execution(dialog, result, current_run, folder_status):
     with ui.row().classes("w-full"):
         ui.markdown(
             f"""
-            ###### Prepare the Execution: 
+            ###### Prepare the Execution:
 
             - clone github repo
-            - build Docker images 
+            - build Docker images
             - create folder structure
             """
         )
@@ -38,7 +37,7 @@ def ui_prepare_execution(dialog, result, current_run, folder_status):
                 cmd="prepare",
                 execution_id=execution["execution_id"],
                 project_path=project_path,
-            )        
+            )
             with ui.grid(columns=1):
                 with ui.row().classes("w-full"):
                     ui.label(cli_prepare_command).classes("font-mono w-full")
@@ -58,10 +57,10 @@ def ui_run_execution(dialog, result, current_run, folder_status):
     with ui.row().classes("w-full"):
         ui.markdown(
             f"""
-            ###### Run the Execution: 
+            ###### Run the Execution:
 
             - Run docker images as containers
-            - write output 
+            - write output
             """
         )
     execution = current_run["execution"]
@@ -93,11 +92,11 @@ def ui_run_execution(dialog, result, current_run, folder_status):
             ui.icon("warning").classes("text-lg text-yellow")
             ui.label(
                 """The logs for a step only become available once it is running.
-                So if they are not available right away, they may be so when you 
+                So if they are not available right away, they may be so when you
                 click the button again.
                 """
-            )            
-        for i, cli_log_command in enumerate(cli_log_commands):    
+            )
+        for i, cli_log_command in enumerate(cli_log_commands):
             with ui.row().classes("w-full"):
                 ui.button(
                     f"show logs for step {i}",
@@ -148,7 +147,7 @@ async def run_command(command: str, dialog, result) -> None:
             result.content = f"```\n{output}\n```"
     except Exception as e:
         log.exception(f"run command failed with Exception {e}")
-    else:        
-        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper    
+    else:
+        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper
         ui_workarea.refresh()
         ui_stepper.refresh()

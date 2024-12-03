@@ -12,14 +12,14 @@ def ui_workarea_form(current_user, user_workdir, current_digital_twin):
         """
         # Manage Digital Twins
         """
-    )    
+    )
     if not current_user:
         ui_theme.ui_add_first(
             item_name="a user",
             page_link=ui_theme.PATH_USERS,
             action="select",
         )
-        return        
+        return
     if not user_workdir:
         user_workdir_display = "-"
     else:

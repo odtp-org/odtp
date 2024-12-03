@@ -32,7 +32,7 @@ def content() -> None:
             return
         ui_tabs(current_digital_twin=current_digital_twin, workdir=workdir)
     except Exception as e:
-        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")  
+        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
 
 
 @ui.refreshable
@@ -51,7 +51,7 @@ def ui_tabs(current_digital_twin, workdir):
             with ui.tab_panel(table):
                 ui_executions_table(current_digital_twin)
     except Exception as e:
-        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")   
+        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
 
 
 @ui.refreshable
@@ -74,7 +74,7 @@ def ui_execution_select(current_digital_twin) -> None:
         )
         current_execution = storage.get_active_object_from_storage(
             storage.CURRENT_EXECUTION
-        )        
+        )
         select.ui_select_form(
             execution_options=execution_options,
             current_execution=current_execution,
@@ -135,7 +135,7 @@ def ui_workarea(current_digital_twin, current_user, workdir, components):
             workdir=workdir,
             components=components,
             current_execution=current_execution
-        )    
+        )
     except Exception as e:
         log.exception(
             f"Workarea could not be loaded. An Exception occurred: {e}"
