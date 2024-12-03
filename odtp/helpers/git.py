@@ -1,5 +1,8 @@
 import json
 import logging
+import requests
+import yaml
+import base64
 from urllib.parse import urlparse
 
 import requests
@@ -7,6 +10,7 @@ import requests
 from odtp.helpers.settings import GITHUB_TOKEN
 
 GITHUB_API_REPOS_URL = "https://api.github.com/repos"
+ODTP_YML_FILE_PATH = "odtp.yml"
 
 
 log = logging.getLogger(__name__)
@@ -62,6 +66,7 @@ def get_github_repo_info(repo_url):
         tagged_versions = get_git_tagged_versions(github_api_tag_url)
         repo_info = {
             "html_url": content.get("html_url"),
+            "contents_url": content.get("contents_url"),
             "description": content.get("description"),
             "visibility": content.get("visibility"),
             "license": content.get("license", {}).get("name"),
@@ -80,7 +85,7 @@ def check_commit_for_repo(repo_url, commit_hash=None):
         if response.status_code == 200:
             return commit_hash
         else:
-            log.exception(f"Github repo {repo_url} has no commit {commit_hash}.")            
+            log.exception(f"Github repo {repo_url} has no commit {commit_hash}.")
             raise OdtpGithubException(f"Github repo {repo_url} has no commit {commit_hash}.")
     github_api_commits_url = f"{get_github_repo_url(repo_url)}/commits"
     response = make_github_api_call(github_api_commits_url)
@@ -109,3 +114,35 @@ def test_token():
     github_api_user_url = "https://api.github.com/user"
     response = make_github_api_call(github_api_user_url)
     return response
+
+
+def parse_file_from_github(repo_info, file_path, component_version):
+    """
+    Parse a YAML file from a specific commit in a GitHub repository.
+    """
+    contents_url = repo_info.get("contents")
+    commit_hash = component_version["commitHash"]
+    if not file_path:
+        raise OdtpGithubException(f"file_path must be provided to parse content from github repo.")
+    github_content_url = f"{contents_url}/{file_path}?ref={commit_hash}"
+    response = make_github_api_call(github_content_url)
+    if response.status_code == 200:content = response.json()
+    base64_content = content["content"]
+    decoded_content = base64.b64decode(base64_content).decode("utf-8")
+    parsed_yaml = yaml.safe_load(decoded_content)
+    return parsed_yaml
+
+
+def extract_parameters_with_defaults(data):
+    """
+    Extracts parameters and their default values from parsed YAML data.
+    """
+    parameters = data.get("parameters", [])
+    result = {param["name"]: param["default-value"] for param in parameters}
+    return result
+
+
+def get_default_parameters(repo_info, component_version):
+    parsed_data = parse_file_from_github(repo_info, ODTP_YML_FILE_PATH)
+    parameters_with_defaults = extract_parameters_with_defaults(parsed_data)
+    return parameters_with_defaults
