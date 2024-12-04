@@ -46,6 +46,9 @@ def odtp_component_entry(
     ports: Annotated[str, typer.Option(
         help="Specify ports seperated by a comma i.e. 8501,8201"
     )] = None,
+    image_link: Annotated[str, typer.Option(
+        help="Specify the DockerHub image link"
+    )] = None,
 ):
     try:
         ports = odtp_parse.parse_component_ports(ports)
@@ -55,6 +58,7 @@ def odtp_component_entry(
                 component_name=name,
                 repo_info=repo_info,
                 component_version=component_version,
+                image_link=image_link,
                 type=type,
                 ports=ports,
             )
