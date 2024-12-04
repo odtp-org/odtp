@@ -205,6 +205,7 @@ class DockerManager:
 
         docker_run_command = ["docker", "run", "--rm", "-it", "--name", container_name,
                               "--network", "odtp_odtp-network",
+                              "--gpus", "all",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
                               "--volume", f"{os.path.abspath(self.log_volume)}:/odtp/odtp-logs",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
