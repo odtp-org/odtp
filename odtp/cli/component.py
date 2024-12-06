@@ -51,9 +51,9 @@ def run(
     image_name: str = typer.Option(
         ..., "--image_name", help="Specify the name of the component image"
     ),
-    instance_name: str = typer.Option(
-        ..., "--instance_name", help="Specify the name of the instance"
-    ),    
+    container_name: str = typer.Option(
+        ..., "--container_name", help="Specify the name of the container"
+    ),   
     repository: str = typer.Option(
         ..., "--repository", help="Specify the git repository url"
     ),
@@ -62,6 +62,9 @@ def run(
     )] = None,
     parameter_file: Annotated[str, typer.Option(
         help="Specify the path to the environment file"
+    )] = None,
+    secrets_file: Annotated[str, typer.Option(
+        help="Specify the path to the secrets file"
     )] = None,     
     ports: Annotated[str, typer.Option(
         help="Specify port mappings separated by a plus sign i.e. 8501:8501+8201:8201"
@@ -76,10 +79,12 @@ def run(
         )
         ports = odtp_parse.parse_port_mappings_for_one_component(ports) 
         parameters = odtp_parse.parse_parameters_for_one_file(parameter_file)
+        secrets = odtp_parse.parse_parameters_for_one_file(secrets_file)
         componentManager.run_component(
-            parameters=parameters, 
+            parameters=parameters,
+            secrets=secrets, 
             ports=ports, 
-            instance_name=instance_name
+            container_name=container_name
         )
     except Exception as e:
         log.error(f"ERROR: Run of component failed: {e}") 
