@@ -42,7 +42,7 @@ def ui_select_form(current_component, components):
             ).classes("w-1/2")
 
 
-def ui_form_version_add(current_component):   
+def ui_form_version_add(current_component):
     repo_info = current_component["repo_info"]
     versions_in_db = db.get_sub_collection_items(
         collection=db.collection_components,
@@ -63,7 +63,7 @@ def ui_form_version_add(current_component):
         ##### Add Version
         add any tagged version from github that is not on ODTP yet
         """
-    )     
+    )
     if not version_selector:
         ui.markdown(
             """
@@ -169,7 +169,7 @@ def register_new_version(
     else:
         from odtp.dashboard.page_components.main import (
             ui_component_add, ui_component_select, ui_component_show, ui_version_add, ui_components_list
-        )        
+        )
         ui_components_list.refresh()
         ui_component_show.refresh()
         ui_component_select.refresh()

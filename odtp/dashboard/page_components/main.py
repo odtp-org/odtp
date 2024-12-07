@@ -6,6 +6,7 @@ import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.page_components.options as options
 import odtp.dashboard.page_components.info as info
 import odtp.dashboard.page_components.add as add
+import odtp.dashboard.page_components.version_table as table
 import odtp.mongodb.db as db
 
 log = logging.getLogger(__name__)
@@ -17,9 +18,9 @@ def content() -> None:
 
 
 @ui.refreshable
-def ui_tabs():    
+def ui_tabs():
     with ui.tabs() as tabs:
-        list = ui.tab("Registered Components")
+        list = ui.tab("Manage Component")
         select = ui.tab("Component options")
         add_component = ui.tab("Add Component")
     with ui.tab_panels(tabs, value=select).classes("w-full"):
@@ -38,7 +39,7 @@ def ui_components_list() -> None:
         versions = db.get_collection(
             collection=db.collection_versions,
         )
-        info.ui_component_table(versions)
+        table.VersionTable(versions)
     except Exception as e:
         log.exception(
             f"Components table could not be loaded. An Exception occurred: {e}"
@@ -72,7 +73,7 @@ def ui_version_add():
     except Exception as e:
         log.exception(
             f"Component selection could not be loaded. An Exception occurred: {e}"
-        )        
+        )
 
 
 @ui.refreshable
