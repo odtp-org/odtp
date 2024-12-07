@@ -132,7 +132,6 @@ def delete_document_by_id(document_id, collection):
 
 
 def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort_by=None):
-    print("in get subcollection items")
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         collection_item = db[collection].find_one({"_id": ObjectId(item_id)})
@@ -459,6 +458,7 @@ def delete_execution(execution_id, debug=True):
 def delete_component_version_safe(version_ids):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
+        msg = []
         dependent_collection = db[collection_executions]
         for version_id in version_ids:
             query = {
@@ -475,6 +475,7 @@ def delete_component_version_safe(version_ids):
                     }
                 }
                 db[collection_versions].update_one(select_query, update_query)
+        return
 
 
 def get_dependencies_for_component_version():

@@ -21,9 +21,9 @@ def content() -> None:
 def ui_tabs():
     with ui.tabs() as tabs:
         list = ui.tab("Manage Component")
-        select = ui.tab("Component options")
         add_component = ui.tab("Add Component")
-    with ui.tab_panels(tabs, value=select).classes("w-full"):
+        select = ui.tab("Component options")
+    with ui.tab_panels(tabs, value=list).classes("w-full"):
         with ui.tab_panel(select):
             ui_component_select()
             ui_component_show()
@@ -39,6 +39,9 @@ def ui_components_list() -> None:
         versions = db.get_collection(
             collection=db.collection_versions,
         )
+        if not versions:
+            ui.label("No components yet").classes("text-red-500")
+            return
         table.VersionTable(versions)
     except Exception as e:
         log.exception(
