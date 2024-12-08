@@ -14,6 +14,7 @@ class VersionTable:
             if not version.get("deprecated", False)
         ]
         self.component_id = None
+        self.component_name = None
         self.show_deprecated = False
         self.build_table()
 
@@ -29,11 +30,12 @@ class VersionTable:
 
     def build_table(self):
         with ui.column().classes("w-full"):
-            self.add_component_selector()
+            self.table_selectors()
             self.add_header()
             self.add_rows()
 
-    def add_component_selector(self):
+    @ui.refreshable
+    def table_selectors(self):
         components = db.get_collection(db.collection_components)
         components_options = {
             str(component["_id"]): f"{component.get('componentName')}"
@@ -83,7 +85,7 @@ class VersionTable:
         self.version_rows.clear()
         for version in self.filtered_versions:
             with ui.row().classes("w-full p-2 border grid grid-cols-10 gap-4 items-center"):
-                checkbox = ui.checkbox(
+                ui.checkbox(
                     on_change=lambda e, version_id=version["version_id"]: self.toggle_selection(e.value, version_id)
                 )
                 ui.label(version['component']['componentName']).classes("truncate")
@@ -94,7 +96,6 @@ class VersionTable:
                 ui.label(version['created_at'].strftime('%Y-%m-%d')).classes("text-center truncate")
                 ui.label(version['odtp_version']).classes("text-center truncate")
                 ui.label(version["deprecated_display"]).classes("truncate")
-                #self.version_rows.append(checkbox)
 
     def toggle_selection(self, selected, version_id):
         print(f"Toggle called: {selected} for version_id: {version_id}")
@@ -109,11 +110,18 @@ class VersionTable:
 
     def filter_reset(self):
         self.component_id = None
+        self.component_name = None
         self.show_deprecated = False
         self.rebuild_rows()
+        self.table_selectors.refresh()
 
     def filter_deprecated(self, show_deprecated):
         self.show_deprecated = show_deprecated
+        self.rebuild_rows()
+
+    def toggle_details(self, show_details):
+        self.show_details = show_details
+        print(f"show details change {show_details}")
         self.rebuild_rows()
 
     def rebuild_rows(self):

@@ -7,7 +7,8 @@ import odtp.dashboard.page_components.options as options
 import odtp.dashboard.page_components.info as info
 import odtp.dashboard.page_components.add as add
 import odtp.dashboard.page_components.version_table as table
-import odtp.dashboard.page_components.add_form as add_form
+import odtp.dashboard.page_components.add_component_version as add_component_version
+import odtp.dashboard.page_components.version_detail as version_detail
 import odtp.mongodb.db as db
 
 log = logging.getLogger(__name__)
@@ -21,17 +22,16 @@ def content() -> None:
 @ui.refreshable
 def ui_tabs():
     with ui.tabs() as tabs:
-        list = ui.tab("Manage Component")
-        add_component = ui.tab("Add Component")
-        select = ui.tab("Component options")
+        list = ui.tab("Manage Components")
+        show_version = ui.tab("Version Detail")
+        add_component_version = ui.tab("Add Component Version")
     with ui.tab_panels(tabs, value=list).classes("w-full"):
-        with ui.tab_panel(select):
-            ui_component_select()
-            ui_component_show()
-        with ui.tab_panel(add_component):
-            ui_component_version_add()
         with ui.tab_panel(list):
             ui_components_list()
+        with ui.tab_panel(show_version):
+            ui_version_detail()
+        with ui.tab_panel(add_component_version):
+            ui_add_component_version()
 
 
 @ui.refreshable
@@ -81,18 +81,21 @@ def ui_version_add():
 
 
 @ui.refreshable
-def ui_component_version_add():
+def ui_add_component_version():
     with ui.column().classes("w-full"):
-        add_form.ComponentVersionForm()
-        """
-        new_component_to_add = storage.get_active_object_from_storage(
-            storage.NEW_COMPONENT
-        )
-        if not new_component_to_add:
-            add.ui_form_component_add_step1()
-        else:
-            add.ui_form_component_add_step2(new_component_to_add)
-        """
+        add_component_version.ComponentForm()
+
+
+@ui.refreshable
+def ui_version_add():
+    with ui.column().classes("w-full"):
+        add_version.VersionForm()
+
+
+@ui.refreshable
+def ui_version_detail():
+    with ui.column().classes("w-full"):
+        version_detail.VersionDisplay()
 
 
 @ui.refreshable

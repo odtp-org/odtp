@@ -5,10 +5,13 @@ import odtp.helpers.git as git_helpers
 
 from nicegui import ui
 
-class ComponentVersionForm:
+class ComponentForm:
     def __init__(self):
         self.repo_info = None
         self.repo_url = None
+        self.add_new_component = None
+        self.component = None
+        self.component_id = None
         self.version_options = []
         self.component_version = None
         self.commit_hash = None
@@ -16,17 +19,46 @@ class ComponentVersionForm:
         self.build_form()
 
     def build_form(self):
-        self.ui_component_url_input()
+        self.ui_component_or_version()
+        self.ui_component_form()
         self.ui_version_select()
         self.ui_tool_info()
         self.ui_add_component_version_button()
 
-    def ui_component_url_input(self):
-        ui.input(
-            label="Enter Repository URL",
-            placeholder="repo url",
-            on_change=lambda e: self.get_version_options(e.value),
-        ).classes("w-1/2")
+    @ui.refreshable
+    def ui_component_or_version(self):
+        with ui.row().classes("w-full items-center"):
+            ui.label("Add new version of existing component")
+            ui.switch(
+                "Add new Component",
+                on_change=lambda e: self.set_add_new_component(e.value)
+            )
+
+    def set_add_new_component(self, value):
+        print(f"set add new component {value}")
+        self.add_new_component = value
+        self.ui_component_form.refresh()
+
+    @ui.refreshable
+    def ui_component_form(self):
+        if self.add_new_component:
+            ui.input(
+                label="Enter Repository URL",
+                placeholder="repo url",
+                on_change=lambda e: self.get_version_options(repository=e.value),
+            ).classes("w-1/2")
+        else:
+            components = db.get_collection(db.collection_components)
+            self.component_options = {
+                str(component["_id"]): f"{component.get('componentName')}"
+                for component in components
+            }
+            ui.select(
+                self.component_options,
+                on_change=lambda e: self.get_version_options(component_id=e.value),
+                label="component",
+                with_input=True,
+            ).classes("w-1/2")
 
     def ui_reset_form(self):
         self.version_options = None
@@ -40,14 +72,37 @@ class ComponentVersionForm:
         self.ui_version_select.refresh()
         self.ui_tool_info.refresh()
 
-    def get_version_options(self, repository):
+    def get_version_options(self, repository=None, component_id=None):
         self.ui_reset_form()
+        if component_id:
+            self.compoment_id = component_id
+            self.component = db.get_document_by_id(
+                document_id=component_id, collection=db.collection_components
+            )
+            repository = self.component["repoLink"]
+            self.exiting_versions = db.get_sub_collection_items(
+                collection=db.collection_components,
+                sub_collection=db.collection_versions,
+                item_id=self.component_id,
+                ref_name=db.collection_versions,
+            )
+            existing_version_names = [
+                self.existing_version["component_version"] for version in self.exiting_versions
+            ]
         self.repo_info = git_helpers.get_github_repo_info(repository)
         self.repo_url = self.repo_info["html_url"]
         self.version_options = {
             (item["name"], item["commit"]): item["name"]
             for item in self.repo_info.get("tagged_versions")
+            if item["name"] not in existing_version_names
         }
+        if self.component_id:
+            self.exiting_versions = db.get_sub_collection_items(
+                collection=db.collection_components,
+                sub_collection=db.collection_versions,
+                item_id=self.component_id,
+                ref_name=db.collection_versions,
+            )
         self.ui_version_select.refresh()
 
     @ui.refreshable
