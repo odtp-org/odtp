@@ -5,7 +5,14 @@ import odtp.mongodb.db as db
 from nicegui import ui
 
 class VersionTable:
-    def __init__(self, versions):
+    def __init__(self):
+        """intialize the form"""
+        versions = db.get_collection(
+            collection=db.collection_versions,
+        )
+        if not versions:
+            ui.label("No components yet").classes("text-red-500")
+            return
         self.versions = [self.clean_version(version) for version in versions]
         self.version_rows = []
         self.selected_version_ids = set()
@@ -19,6 +26,7 @@ class VersionTable:
         self.build_table()
 
     def clean_version(self, version):
+        """clean up versions for older version schemas"""
         version["version_id"] = str(version["_id"])
         if version.get("deprecated") == None:
             version["deprecated"] = False
@@ -29,6 +37,7 @@ class VersionTable:
         return version
 
     def build_table(self):
+        """build the table"""
         with ui.column().classes("w-full"):
             self.table_selectors()
             self.add_header()
@@ -36,6 +45,7 @@ class VersionTable:
 
     @ui.refreshable
     def table_selectors(self):
+        """set the table selectors"""
         components = db.get_collection(db.collection_components)
         components_options = {
             str(component["_id"]): f"{component.get('componentName')}"
@@ -82,6 +92,7 @@ class VersionTable:
 
     @ui.refreshable
     def add_rows(self):
+        """set the table rows"""
         self.version_rows.clear()
         for version in self.filtered_versions:
             with ui.row().classes("w-full p-2 border grid grid-cols-10 gap-4 items-center"):
@@ -98,6 +109,7 @@ class VersionTable:
                 ui.label(version["deprecated_display"]).classes("truncate")
 
     def toggle_selection(self, selected, version_id):
+        """toggle select for delete of versions"""
         print(f"Toggle called: {selected} for version_id: {version_id}")
         if selected:
             self.selected_version_ids.add(version_id)
@@ -105,10 +117,12 @@ class VersionTable:
             self.selected_version_ids.remove(version_id)
 
     def filter_components(self, component_id):
+        """filter by component"""
         self.component_id = component_id
         self.rebuild_rows()
 
     def filter_reset(self):
+        """rebuild rows in original state"""
         self.component_id = None
         self.component_name = None
         self.show_deprecated = False
@@ -116,15 +130,12 @@ class VersionTable:
         self.table_selectors.refresh()
 
     def filter_deprecated(self, show_deprecated):
+        """filter out deprecated"""
         self.show_deprecated = show_deprecated
         self.rebuild_rows()
 
-    def toggle_details(self, show_details):
-        self.show_details = show_details
-        print(f"show details change {show_details}")
-        self.rebuild_rows()
-
     def rebuild_rows(self):
+        """rebuild rows with filters"""
         self.filtered_versions = self.versions
         if self.component_id:
             self.filtered_versions = [
@@ -139,6 +150,7 @@ class VersionTable:
         self.add_rows.refresh()
 
     def delete_selected(self):
+        """delete selected versions"""
         db.delete_component_version_safe(self.selected_version_ids)
         ui.notify(
             f"The selected {len(self.selected_version_ids)} component versions have been deprecated/deleted.",

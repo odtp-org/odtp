@@ -3,7 +3,12 @@ from pydantic import ValidationError
 
 
 class OdtpYmlException(Exception):
-    pass
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return self.message
 
 
 def validate_odtp_yml_file(yaml_data):

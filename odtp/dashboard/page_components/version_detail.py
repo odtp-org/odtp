@@ -1,14 +1,12 @@
 from nicegui import ui
 import odtp.mongodb.db as db
-import odtp.helpers.git as git_helpers
-import odtp.dashboard.page_components.version_info as version_info
-from pprint import pprint
 
 
 from nicegui import ui
 
 class VersionDisplay:
     def __init__(self):
+        """init form"""
         self.component = None
         self.version = None
         self.component_id = None
@@ -19,18 +17,22 @@ class VersionDisplay:
         self.build_form()
 
     def get_component_options(self):
+        """get component options for the filtering"""
         components = db.get_collection(db.collection_components)
         self.component_options = {
             str(component["_id"]): f"{component.get('componentName')}"
             for component in components
         }
 
+    @ui.refreshable
     def build_form(self):
+        """render form elements"""
         self.ui_component_select()
         self.ui_version_select()
         self.show_version_info()
 
     def reset_version_form(self):
+        """reset version form"""
         self.version = None
         self.version_id = None
         self.version_options = None
@@ -39,6 +41,7 @@ class VersionDisplay:
 
     @ui.refreshable
     def ui_component_select(self):
+        """ui element for component select"""
         ui.select(
             self.component_options,
             value=self.component_id,
@@ -48,6 +51,7 @@ class VersionDisplay:
         ).classes("w-1/2")
 
     def set_component(self, component_id):
+        """called when a new component has been selected"""
         self.reset_version_form()
         self.compoment_id = component_id
         self.component = db.get_document_by_id(
@@ -67,6 +71,7 @@ class VersionDisplay:
 
     @ui.refreshable
     def ui_version_select(self):
+        """ui element version select: rendered when there are version options"""
         if not self.version_options:
             return
         ui.select(
@@ -78,6 +83,7 @@ class VersionDisplay:
         ).classes("w-1/2")
 
     def set_version(self, version_id):
+        """called from version selection"""
         self.version_id = version_id
         self.version = db.get_document_by_id(
             document_id=version_id, collection=db.collection_versions
@@ -86,6 +92,7 @@ class VersionDisplay:
 
     @ui.refreshable
     def show_version_info(self):
+        """ui element for version info as it comes from github"""
         if not self.version:
             return
         print(self.version)
@@ -101,6 +108,7 @@ class VersionDisplay:
         self.display_dict_list("Tool Info", "tools")
 
     def display_dict_list(self, label, dict_list_name):
+        """display a list of dicts"""
         ui.label(label)
         with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
             for dict_item in self.version.get(dict_list_name):

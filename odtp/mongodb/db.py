@@ -478,22 +478,6 @@ def delete_component_version_safe(version_ids):
         return
 
 
-def get_dependencies_for_component_version():
-    with MongoClient(ODTP_MONGO_SERVER) as client:
-        db = client[ODTP_MONGO_DB]
-        collection_item = db[collection_executions].find_one({"_id": ObjectId(item_id)})
-        if not collection_item:
-            return []
-        sub_collection_ids = collection_item.get(ref_name)
-        if not sub_collection_ids:
-            return []
-        cursor = db[sub_collection].find({"_id": {"$in": sub_collection_ids}})
-        if sort_by:
-            cursor.sort(sort_by)
-        documents = mongodb_utils.get_list_from_cursor(cursor)
-        return documents
-
-
 def delete_component_version(component_id, version_id):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
