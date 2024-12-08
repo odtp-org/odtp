@@ -37,6 +37,7 @@ def get_github_repo_url(repo_url):
 
 def make_github_api_call(url):
     log.info(f"make github api call: {url}")
+    print(url)
     headers = {"Authorization": "token " + GITHUB_TOKEN}
     response = requests.get(url, headers=headers)
     return response
@@ -131,6 +132,7 @@ def parse_file_from_github(repo_info, file_path, commit_hash):
     decoded_content = base64.b64decode(base64_content).decode("utf-8")
     sanitized_content = re.sub(r'\t', '    ', decoded_content)
     parsed_yaml = yaml.safe_load(sanitized_content)
+    print(parsed_yaml)
     validate_odtp_yml_file(parsed_yaml)
     return parsed_yaml
 

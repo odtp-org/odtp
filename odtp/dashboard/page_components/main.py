@@ -7,6 +7,7 @@ import odtp.dashboard.page_components.options as options
 import odtp.dashboard.page_components.info as info
 import odtp.dashboard.page_components.add as add
 import odtp.dashboard.page_components.version_table as table
+import odtp.dashboard.page_components.add_form as add_form
 import odtp.mongodb.db as db
 
 log = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ def ui_tabs():
             ui_component_select()
             ui_component_show()
         with ui.tab_panel(add_component):
-            ui_component_add()
+            ui_component_version_add()
         with ui.tab_panel(list):
             ui_components_list()
 
@@ -80,8 +81,10 @@ def ui_version_add():
 
 
 @ui.refreshable
-def ui_component_add():
+def ui_component_version_add():
     with ui.column().classes("w-full"):
+        add_form.ComponentVersionForm()
+        """
         new_component_to_add = storage.get_active_object_from_storage(
             storage.NEW_COMPONENT
         )
@@ -89,6 +92,7 @@ def ui_component_add():
             add.ui_form_component_add_step1()
         else:
             add.ui_form_component_add_step2(new_component_to_add)
+        """
 
 
 @ui.refreshable
