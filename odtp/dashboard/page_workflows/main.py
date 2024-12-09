@@ -37,7 +37,7 @@ def ui_workflow_list():
 @ui.refreshable
 def ui_workflow_detail():
     with ui.column().classes("w-full"):
-        #detail.WorkflowDisplay()
+        detail.WorkflowDisplay()
         pass
 
 

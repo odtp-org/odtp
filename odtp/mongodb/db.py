@@ -137,6 +137,7 @@ def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort
         db = client[ODTP_MONGO_DB]
         collection_item = db[collection].find_one({"_id": ObjectId(item_id)})
         if not collection_item:
+            print(collection_item)
             return []
         sub_collection_ids = collection_item.get(ref_name)
         if not sub_collection_ids:
