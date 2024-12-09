@@ -232,7 +232,6 @@ def add_component_version(
                 "tags": metadata.get("tags"),
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc),
-                "versions": [],
             }
             component_id = (
                 db[collection_components].insert_one(component_data)
