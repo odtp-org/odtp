@@ -8,6 +8,7 @@ from odtp.dashboard.page_digital_twins.main import content as digital_twins_page
 from odtp.dashboard.page_executions.main import content as executions_page
 from odtp.dashboard.page_run.main import content as run_page
 from odtp.dashboard.page_users.main import content as user_page
+from odtp.dashboard.page_workflows.main import content as workflows_page
 
 
 @ui.page("/")
@@ -28,10 +29,16 @@ def components():
         components_page()
 
 
+@ui.page("/workflows")
+def components():
+    with ui_theme.frame("Workflows"):
+        workflows_page()
+
+
 @ui.page("/run")
 def components():
     with ui_theme.frame("Run"):
-        run_page()
+        workflows_page()
 
 
 @ui.page("/digital-twins")

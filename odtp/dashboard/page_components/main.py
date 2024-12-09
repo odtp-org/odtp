@@ -2,9 +2,9 @@ import logging
 
 from nicegui import app, ui
 
-import odtp.dashboard.page_components.version_table as table
-import odtp.dashboard.page_components.add_component_version as add_component_version
-import odtp.dashboard.page_components.version_detail as version_detail
+import odtp.dashboard.page_components.table as table
+import odtp.dashboard.page_components.add as add
+import odtp.dashboard.page_components.detail as detail
 
 log = logging.getLogger(__name__)
 
@@ -37,13 +37,14 @@ def ui_components_list():
 @ui.refreshable
 def ui_add_component_version():
     with ui.column().classes("w-full"):
-        add_component_version.ComponentVersionForm()
+        add.ComponentVersionForm()
 
 
 @ui.refreshable
 def ui_version_detail():
     with ui.column().classes("w-full"):
-        version_detail.VersionDisplay()
+        #detail.VersionDisplay()
+        pass
 
 
 @ui.refreshable

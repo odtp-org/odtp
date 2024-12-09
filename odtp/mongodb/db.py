@@ -22,6 +22,7 @@ collection_steps = "steps"
 collection_results = "results"
 collection_logs = "logs"
 collection_outputs = "outputs"
+collection_workflows = "workflows"
 
 
 log = logging.getLogger(__name__)
@@ -201,6 +202,23 @@ def add_user(name, github, email):
         )
     log.info("User added with ID {}".format(user_id))
     return user_id
+
+
+def add_workflow(name, workflow):
+    """add new user and return id"""
+    workflow_data = {
+        "name": name,
+        "versions": workflow,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+        "deprecated": False,
+    }
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        workflow_id = (
+            client[ODTP_MONGO_DB][collection_workflows].insert_one(workflow_data).inserted_id
+        )
+    log.info("Workflow added with ID {}".format(workflow_id))
+    return workflow_id
 
 
 def add_component_version(

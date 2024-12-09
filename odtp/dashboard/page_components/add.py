@@ -1,4 +1,3 @@
-import json
 from nicegui import ui
 import odtp.mongodb.db as db
 import odtp.helpers.git as git_helpers
