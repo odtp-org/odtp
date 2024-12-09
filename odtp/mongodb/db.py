@@ -154,7 +154,7 @@ def get_document_id_by_field_value(field_path, field_value, collection):
             return str(document["_id"])
         else:
             return None
-        
+
 def get_component_version(component_name, version_tag):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
@@ -252,11 +252,7 @@ def add_component_version(
         else:
             version_data = {
                 "componentId": component_id,
-                "component": {
-                    "componentId": component_id,
-                    "componentName": component.get("componentName"),
-                    "repoLink": component.get("repoLink"),
-                },
+                "version_name": f"{metadata['component-name']}_{component_version}",
                 "odtp_version": odtp_utils.get_odtp_version(),
                 "deprecated": False,
                 "component_version": component_version,
