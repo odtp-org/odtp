@@ -31,13 +31,12 @@ def get_github_repo_url(repo_url):
         path = repo_url.replace("git@github.com:", "").replace(".git", "")
         return f"{GITHUB_API_REPOS_URL}/{path}"
     else:
-        log.exception(f"{repo_url} is not a github repo")
+        log.error(f"{repo_url} is not a github repo")
         raise OdtpGithubException(f"{repo_url} is not a github repo")
 
 
 def make_github_api_call(url):
     log.info(f"make github api call: {url}")
-    print(url)
     headers = {"Authorization": "token " + GITHUB_TOKEN}
     response = requests.get(url, headers=headers)
     return response
@@ -88,7 +87,7 @@ def check_commit_for_repo(repo_url, commit_hash=None):
         if response.status_code == 200:
             return commit_hash
         else:
-            log.exception(f"Github repo {repo_url} has no commit {commit_hash}.")
+            log.error(f"Github repo {repo_url} has no commit {commit_hash}.")
             raise OdtpGithubException(f"Github repo {repo_url} has no commit {commit_hash}.")
     github_api_commits_url = f"{get_github_repo_url(repo_url)}/commits"
     response = make_github_api_call(github_api_commits_url)
@@ -97,7 +96,7 @@ def check_commit_for_repo(repo_url, commit_hash=None):
         if not commit_hash:
             latest_commit_hash = content[0].get("sha")
             return latest_commit_hash
-    log.exception(f"Github repo {repo_url} has no commits, see {github_api_commits_url}.")
+    log.error(f"Github repo {repo_url} has no commits, see {github_api_commits_url}.")
     raise OdtpGithubException(f"Github repo {repo_url} has no commits, see {github_api_commits_url}.")
 
 
@@ -108,10 +107,10 @@ def get_commit_of_component_version(repo_info, component_version):
     version_commit = [version["commit"] for version in tagged_versions
                       if version["name"] == component_version]
     if not version_commit:
-        log.exception(f"Github repo {repo_info.get('html_url')} has no version {component_version}")
+        log.error(f"Github repo {repo_info.get('html_url')} has no version {component_version}")
         version_names = [version["name"] for version in tagged_versions]
         raise OdtpGithubException(f"""Github repo {repo_info.get('html_url')} has no version {component_version}
-Existing versions are {",".join(version_names)}""")
+Existing versions are {", ".join(version_names)}""")
     return version_commit[0]
 
 
@@ -132,7 +131,6 @@ def parse_file_from_github(repo_info, file_path, commit_hash):
     decoded_content = base64.b64decode(base64_content).decode("utf-8")
     sanitized_content = re.sub(r'\t', '    ', decoded_content)
     parsed_yaml = yaml.safe_load(sanitized_content)
-    print(parsed_yaml)
     validate_odtp_yml_file(parsed_yaml)
     return parsed_yaml
 

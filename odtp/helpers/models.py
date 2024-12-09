@@ -44,7 +44,7 @@ class Devices(BaseModel):
 
 
 class OdtpDotYamlSchema(BaseModel):
-    """model for odtp.yml parsing"""
+    """Model for odtp.yml parsing"""
     build_args: Optional[Union[dict, str]] = Field(alias="build-args", default=None)
     component_author: str = Field(alias="component-author")
     component_description: str = Field(alias="component-description")

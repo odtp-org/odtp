@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 
 class OdtpYmlException(Exception):
+    """For the GUI it is important that the error message can be rendered"""
     def __init__(self, message: str):
         super().__init__(message)
         self.message = message
@@ -12,6 +13,8 @@ class OdtpYmlException(Exception):
 
 
 def validate_odtp_yml_file(yaml_data):
+    """validates the odtp.yml file against the schema and provides
+    information on errors that occur"""
     try:
         validated_data = OdtpDotYamlSchema(**yaml_data)
         return validated_data
