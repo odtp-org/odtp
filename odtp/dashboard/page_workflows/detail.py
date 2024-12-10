@@ -1,5 +1,6 @@
 from nicegui import ui
 import odtp.mongodb.db as db
+import odtp.dashboard.utils.helpers as helpers
 from pprint import pprint
 
 class WorkflowDisplay:
@@ -13,7 +14,6 @@ class WorkflowDisplay:
     def get_workflow_options(self):
         """get workflow options for selection"""
         workflows = db.get_collection(db.collection_workflows)
-        print(workflows)
         self.workflow_options = {
             str(workflow["_id"]): f"{workflow.get('name')}"
             for workflow in workflows
@@ -23,6 +23,7 @@ class WorkflowDisplay:
     def build_form(self):
         """render form elements"""
         self.ui_workflow_select()
+        self.ui_workflow_diagram()
         self.ui_workflow_info()
 
     def reset_workflow_form(self):
@@ -54,6 +55,7 @@ class WorkflowDisplay:
         )
         self.versions_dict = {str(version["_id"]): version  for version in versions }
         self.ui_workflow_info.refresh()
+        self.ui_workflow_diagram.refresh()
 
     @ui.refreshable
     def ui_workflow_info(self):
@@ -62,21 +64,50 @@ class WorkflowDisplay:
             return
         for version_id in self.workflow.get("versions", []):
             version = self.versions_dict[version_id]
-            pprint(version)
             self.display_version(version)
 
+    @ui.refreshable
+    def ui_workflow_diagram(self, init="graph LR;"):
+        if not self.workflow:
+           return
+        version_names = []
+        for version_id in self.workflow.get("versions", []):
+            version = self.versions_dict[version_id]
+            version_names.append(self.get_version_display(version))
+        return ui.mermaid(
+            f"""
+            {helpers.get_workflow_mermaid(version_names, init='graph LR;')}"""
+        ).classes("w-full")
+
+    def get_version_display(self, version):
+        return f"{version['component']['componentName']}_{version['component_version']}"
 
     def display_version(self, version):
-        ui.label(f"{version["component"]["componentName"]} {version["component_version"]}")
+        version_name = self.get_version_display(version)
+        ui.mermaid(
+            f"""
+            {helpers.get_workflow_mermaid([version_name], init='graph LR;')}"""
+        ).classes("w-full")
         parameters = version.get("parameters", [])
         if parameters:
             self.display_dict_list(version, "Parameters", "parameters")
+        else:
+            self.display_not_set("Parameters")
         ports = version.get("ports", [])
         if ports:
             self.display_dict_list(version, "Ports", "ports")
+        else:
+            self.display_not_set("Ports")
         secrets = version.get("secrets", [])
         if secrets:
             self.display_dict_list(version, "Secrets", "secrets")
+        else:
+            self.display_not_set("Secrets")
+
+    def display_not_set(self, label):
+        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
+            ui.label(label)
+            ui.label("None")
 
     def display_dict_list(self, version, label, dict_list_name):
         """display a list of dicts"""

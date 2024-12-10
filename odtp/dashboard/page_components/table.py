@@ -7,13 +7,12 @@ from nicegui import ui
 class VersionTable:
     def __init__(self):
         """intialize the form"""
-        versions = db.get_collection(
+        self.versions = db.get_collection(
             collection=db.collection_versions,
         )
-        if not versions:
+        if not self.versions:
             ui.label("No components yet").classes("text-red-500")
             return
-        self.versions = [self.clean_version(version) for version in versions]
         self.version_rows = []
         self.selected_version_ids = set()
         self.filtered_versions = [
@@ -24,17 +23,6 @@ class VersionTable:
         self.component_name = None
         self.show_deprecated = False
         self.build_table()
-
-    def clean_version(self, version):
-        """clean up versions for older version schemas"""
-        version["version_id"] = str(version["_id"])
-        if version.get("deprecated") == None:
-            version["deprecated"] = False
-        if version["deprecated"]:
-            version["deprecated_display"] = "deprecated"
-        else:
-            version["deprecated_display"] = ""
-        return version
 
     def build_table(self):
         """build the table"""
@@ -90,6 +78,12 @@ class VersionTable:
             for header in headers:
                 ui.label(header).classes("font-bold text-center truncate")
 
+    def get_deprecated_display(self, deprecated):
+        if deprecated:
+            return "deprecated"
+        else:
+            return ""
+
     @ui.refreshable
     def add_rows(self):
         """set the table rows"""
@@ -97,7 +91,7 @@ class VersionTable:
         for version in self.filtered_versions:
             with ui.row().classes("w-full p-2 border grid grid-cols-10 gap-4 items-center"):
                 ui.checkbox(
-                    on_change=lambda e, version_id=version["version_id"]: self.toggle_selection(e.value, version_id)
+                    on_change=lambda e, version_id=version["_id"]: self.toggle_selection(e.value, version_id)
                 )
                 ui.label(version['component']['componentName']).classes("truncate")
                 ui.label(version['component_version']).classes("truncate")
@@ -106,7 +100,7 @@ class VersionTable:
                 ui.label(version['component'].get("type") or version.get("type")).classes("text-center truncate")
                 ui.label(version['created_at'].strftime('%Y-%m-%d')).classes("text-center truncate")
                 ui.label(version['odtp_version']).classes("text-center truncate")
-                ui.label(version["deprecated_display"]).classes("truncate")
+                ui.label(self.get_deprecated_display(version["deprecated"])).classes("truncate")
 
     def toggle_selection(self, selected, version_id):
         """toggle select for delete of versions"""

@@ -9,6 +9,7 @@ import odtp.mongodb.db as db
 import odtp.dashboard.page_executions.table as table
 import odtp.dashboard.page_executions.select as select
 import odtp.dashboard.page_executions.add as add
+import odtp.dashboard.page_executions.add2 as add2
 import odtp.dashboard.page_executions.workarea as workarea
 
 log = logging.getLogger("__name__")
@@ -32,7 +33,7 @@ def content() -> None:
             return
         ui_tabs(current_digital_twin=current_digital_twin, workdir=workdir)
     except Exception as e:
-        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")  
+        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
 
 
 @ui.refreshable
@@ -47,11 +48,12 @@ def ui_tabs(current_digital_twin, workdir):
                 ui_execution_select(current_digital_twin)
                 ui_execution_details()
             with ui.tab_panel(add):
-                ui_add_execution(current_digital_twin, workdir)
+                #ui_add_execution(current_digital_twin, workdir)
+                ui_add_execution2(current_digital_twin)
             with ui.tab_panel(table):
                 ui_executions_table(current_digital_twin)
     except Exception as e:
-        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")   
+        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
 
 
 @ui.refreshable
@@ -65,6 +67,10 @@ def ui_add_execution(current_digital_twin, workdir):
         log.exception(f"Execution add form could not be loaded. An Exception occurred: {e}")
 
 
+def ui_add_execution2(current_digital_twin):
+    add2.ExecutionForm(current_digital_twin)
+
+
 @ui.refreshable
 def ui_execution_select(current_digital_twin) -> None:
     try:
@@ -74,7 +80,7 @@ def ui_execution_select(current_digital_twin) -> None:
         )
         current_execution = storage.get_active_object_from_storage(
             storage.CURRENT_EXECUTION
-        )        
+        )
         select.ui_select_form(
             execution_options=execution_options,
             current_execution=current_execution,
@@ -135,7 +141,7 @@ def ui_workarea(current_digital_twin, current_user, workdir, components):
             workdir=workdir,
             components=components,
             current_execution=current_execution
-        )    
+        )
     except Exception as e:
         log.exception(
             f"Workarea could not be loaded. An Exception occurred: {e}"

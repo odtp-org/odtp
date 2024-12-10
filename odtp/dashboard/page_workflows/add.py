@@ -63,14 +63,12 @@ class WorkflowForm(object):
 
 
     def get_workflow_value(self, i):
-        print(f"in get_workflow for {i}: {self.workflow}")
         if i < len(self.workflow):
             return self.workflow[i]
         else:
             return None
 
     def update_workflow(self, step_index, version_tuple):
-        print(f"in update workflow with {step_index} {version_tuple}")
         if step_index < len(self.workflow):
             self.workflow[step_index] = version_tuple
         else:

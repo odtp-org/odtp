@@ -4,6 +4,7 @@ from nicegui import ui
 
 import odtp.dashboard.page_workflows.add as add
 import odtp.dashboard.page_workflows.detail as detail
+import odtp.dashboard.page_workflows.table as table
 
 log = logging.getLogger(__name__)
 
@@ -30,8 +31,7 @@ def ui_tabs():
 
 @ui.refreshable
 def ui_workflow_list():
-    #table.WorkflowTable()
-    pass
+    table.WorkflowTable()
 
 
 @ui.refreshable

@@ -43,7 +43,7 @@ def ui_add_component_version():
 @ui.refreshable
 def ui_version_detail():
     with ui.column().classes("w-full"):
-        #detail.VersionDisplay()
+        detail.VersionDisplay()
         pass
 
 
