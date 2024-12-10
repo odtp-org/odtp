@@ -229,7 +229,6 @@ def add_component_version(
                 "componentName": metadata["component-name"],
                 "odtp_version": odtp_utils.get_odtp_version(),
                 "repoLink": repo_url,
-                "status": "active",
                 "type": metadata["component-type"],
                 "description": metadata["component-description"],
                 "tags": metadata.get("tags"),
