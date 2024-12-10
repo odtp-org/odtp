@@ -223,8 +223,11 @@ def add_component_version(
             )
         else:
             component_data = {
+                "tools": metadata.get("tools"),
+                "license": metadata.get("component-license"),
                 "author": metadata.get("component-author"),
                 "componentName": metadata["component-name"],
+                "odtp_version": odtp_utils.get_odtp_version(),
                 "repoLink": repo_url,
                 "status": "active",
                 "type": metadata["component-type"],
