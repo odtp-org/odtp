@@ -121,7 +121,7 @@ def execution_entry(
         help="List the files containing the parameters by step separated by commas"
     )] = None,
     ports: Annotated[str, typer.Option(
-        help="""Specify ports mappings separated by plus within the same step and , between steps i.e. 
+        help="""Specify ports mappings separated by plus within the same step and , between steps i.e.
         9001:9001+8501:8501,8080:8001+6000:6000"""
     )] = None,
 ):
@@ -154,6 +154,11 @@ def execution_entry(
     except Exception as e:
         log.error(f"ERROR: {e}")
         traceback.print_exc()
-    print(f"""SUCCESS: execution has been added: see above for the details.
-          execution id: {execution_id}
-          step_ids: {step_ids}""")
+    else:
+        if execution_id:
+            success_message = (
+                f"SUCCESS: execution has been added::\n"
+                f" - execution id: {execution_id}\n"
+                f" - step_ids: {step_ids}\n"
+            )
+            typer.echo(f"✅ {success_message}")
