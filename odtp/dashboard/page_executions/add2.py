@@ -1,4 +1,5 @@
 from nicegui import ui
+from pprint import pprint
 import odtp.mongodb.db as db
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.validators as validators
@@ -12,6 +13,7 @@ class ExecutionForm(object):
     def __init__(self, digital_twin):
         self.execution = None
         self.parameters = None
+        self.step_count = None
         self.ports = None
         self.digital_twin = digital_twin
         self.workflow = None
@@ -24,10 +26,8 @@ class ExecutionForm(object):
     def build_form(self):
         self.ui_execution_title()
         self.ui_workflow_select()
-        self.ui_workflow_steps()
-        self.ui_workflow_info()
         self.ui_workflow_diagram()
-        #self.ui_steps()
+        self.ui_workflow_steps()
         #self.ui_buttons()
         #self.ui_add_workflow_button()
 
@@ -71,14 +71,14 @@ class ExecutionForm(object):
         )
         self.step_count = len(self.workflow.get("versions", []))
         self.ports = [[] for i in range(self.step_count)]
-        self.parameters = [[] for i in range(self.step_count)]
-        self.get_versions()
+        self.parameters = [{} for i in range(self.step_count)]
+        self.get_versions_dict()
+        self.set_workflow_steps()
         self.ui_workflow_steps.refresh()
         self.ui_workflow_diagram.refresh()
-        self.ui_parameters.refresh()
 
 
-    def get_versions(self):
+    def get_versions_dict(self):
         versions = db.get_document_by_ids_in_collection(
             document_ids=self.workflow.get("versions", []),
             collection=db.collection_versions
@@ -86,28 +86,33 @@ class ExecutionForm(object):
         self.versions_dict = {str(version["_id"]): version  for version in versions }
         print(self.versions_dict)
 
-    @ui.refreshable
-    def ui_workflow_steps(self):
+    def set_workflow_steps(self):
         if self.workflow:
             for i, version_id in enumerate(self.workflow.get("versions", [])):
-                self.parameters[i] = []
-                self.ports[i] = []
                 version = self.versions_dict[version_id]
-                self.display_version(version)
                 self.parameters[i] = self.get_default_parameters(version)
                 self.ports[i] = self.get_default_port_mappings(version)
-                with ui.grid(columns=2).classes("w-1/2"):
-                    for key, value in self.parameters[i].items():
-                        key = ui.input(label="key", value=key, placeholder="key")
-                        value = ui.input(label="value", value=value, placeholder="value")
-                with ui.grid(columns=2).classes("w-1/2"):
-                    for port in self.ports[i]:
-                        port = ui.input(label="port", value=port, placeholder="key")
-                        ui.label(port)
+            pprint(self.ports)
+            pprint(self.parameters)
+
+    @ui.refreshable
+    def ui_workflow_steps(self):
+        for i, version_id in enumerate(self.workflow.get("versions", [])):
+            version = self.versions_dict[version_id]
+            self.display_version(version)
+            with ui.grid(columns=2).classes("w-1/2"):
+                for key, value in self.parameters[i].items():
+                    key = ui.input(label="key", value=key, placeholder="key")
+                    value = ui.input(label="value", value=value, placeholder="value")
+            with ui.grid(columns=2).classes("w-1/8"):
+                for port in self.ports[i]:
+                    ui.input(label=f"port mapping for :{port}", value=port)
 
     def get_default_parameters(self, version):
+        if not version.get("parameters"):
+            return {}
         default_parameters = {}
-        for parameter in version.get("parameters", []):
+        for parameter in version["parameters"]:
             key = parameter.get('name')
             value = parameter.get('default-value')
             if key:
@@ -115,10 +120,10 @@ class ExecutionForm(object):
         return default_parameters
 
     def get_default_port_mappings(self, version):
-        print("---------ports ")
-        print(version.get("ports", []))
+        if not version.get("ports"):
+            return []
         default_ports = []
-        for port in version.get("ports", []):
+        for port in version["ports"]:
             port_value = port.get('port-value')
             if port_value:
                 default_ports.append(port_value)
