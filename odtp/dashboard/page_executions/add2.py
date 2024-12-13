@@ -20,6 +20,7 @@ class ExecutionForm(object):
         self.title = None
         self.workflow_id = None
         self.versions_dict = None
+
         self.get_select_options()
         self.build_form()
 
@@ -71,6 +72,9 @@ class ExecutionForm(object):
         self.step_count = len(self.workflow.get("versions", []))
         self.port_mappings = [{} for i in range(self.step_count)]
         self.parameters = [{} for i in range(self.step_count)]
+        self.parameter_containers = []
+        for i in range(self.step_count):
+            self.parameter_containers.append(ui.row().classes("w-full"))
         self.get_versions_dict()
         self.set_workflow_steps()
         self.ui_workflow_steps.refresh()
@@ -83,7 +87,6 @@ class ExecutionForm(object):
             collection=db.collection_versions
         )
         self.versions_dict = {str(version["_id"]): version  for version in versions }
-        print(self.versions_dict)
 
     def set_workflow_steps(self):
         if self.workflow:
@@ -103,11 +106,33 @@ class ExecutionForm(object):
             self.display_version(version)
             with ui.grid(columns=2).classes("w-1/2"):
                 for key, value in self.parameters[i].items():
-                    key = ui.input(label="key", value=key, placeholder="key")
-                    value = ui.input(label="value", value=value, placeholder="value")
+                    ui.input(
+                        label=key,
+                        value=value,
+                        placeholder="value",
+                        on_change=lambda e, i=i, key=key: self.update_parameter_value(
+                            e.value, key, i
+                        )
+                    )
             with ui.grid(columns=2).classes("w-1/8"):
-                for key, value in self.port_mappings[i].items():
-                    ui.input(label=f"port mapping for :{value}", value=key)
+                for port_host, port_component in self.port_mappings[i].items():
+                    ui.input(
+                        label=f"port mapping for :{port_component}",
+                        value=port_host,
+                        on_change=lambda e, i=i, port_component=port_component: self.update_port_mapping(
+                            e.value, port_component, i
+                        )
+                    )
+
+    def update_port_mapping(self, port_host, port_component, i):
+        print(self.port_mappings)
+        self.port_mappings[i][port_component] = port_host
+        print(self.port_mappings)
+
+    def update_parameter_value(self, value, key, i):
+        print(self.parameters)
+        self.parameters[i][key] = value
+        print(self.parameters)
 
     def get_default_parameters(self, version):
         if not version.get("parameters"):
@@ -175,7 +200,6 @@ class ExecutionForm(object):
         else:
             self.display_not_set("Secrets")
 
-
     def display_not_set(self, label):
         with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
             ui.label(label)
@@ -200,10 +224,24 @@ class ExecutionForm(object):
             on_click=lambda: self.db_add_execution(),
         )
 
+    def prepare_port_mappings_for_db(self):
+        port_mappings_db = []
+        for port_mappings in self.port_mappings:
+            if not port_mappings:
+                port_mappings_db.append([])
+            else:
+                port_mappings_db.append([
+                    f"{port_host}:{port_component}" for port_component, port_host in port_mappings.items()
+                ])
+        return port_mappings_db
+
+
     def db_add_execution(self):
         """add execution"""
         print("-------- before save")
+        port_mappings_db = self.prepare_port_mappings_for_db()
         pprint(self.port_mappings)
+        pprint(port_mappings_db)
         print(self.workflow_id)
         print(self.digital_twin_id)
         print(self.title)
@@ -214,7 +252,7 @@ class ExecutionForm(object):
             name=self.title,
             versions=self.workflow.get("versions"),
             parameters=self.parameters,
-            ports=self.ports,
+            ports=port_mappings_db,
         )
         ui.notify(
             f"Execution {execution_id} has been added",

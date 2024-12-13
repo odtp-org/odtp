@@ -4,6 +4,7 @@ Connect to the Mongo DB
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
+from pprint import pprint
 
 from bson import ObjectId
 from pymongo import MongoClient, ASCENDING, DESCENDING
@@ -351,6 +352,9 @@ def add_execution(
     """add and execution to the database"""
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
+        print("******* db")
+        pprint(ports)
+        pprint(parameters)
         try:
             mongodb_utils.check_parameters_for_execution(parameters)
             mongodb_utils.check_port_mappings_for_execution(ports)
