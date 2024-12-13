@@ -342,6 +342,7 @@ def set_document_timestamp(document_id, collection_name, timestamp_name):
 
 def add_execution(
     dt_id,
+    workflow_id,
     name,
     versions,
     parameters,
@@ -364,6 +365,7 @@ def add_execution(
                 "title": name,
                 "description": "Description for Execution",
                 "tags": ["tag1", "tag2"],
+                "workflow": workflow_id,
                 "workflowSchema": {
                     "workflowExecutor": "odtpwf",
                     "workflowExecutorVersion": "0.2.0",

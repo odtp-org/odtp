@@ -10,12 +10,12 @@ from odtp.dashboard.utils.file_picker import local_file_picker
 
 
 class ExecutionForm(object):
-    def __init__(self, digital_twin):
+    def __init__(self, digital_twin_id):
         self.execution = None
         self.parameters = None
         self.step_count = None
         self.ports = None
-        self.digital_twin = digital_twin
+        self.digital_twin_id = digital_twin_id
         self.workflow = None
         self.title = None
         self.workflow_id = None
@@ -28,8 +28,7 @@ class ExecutionForm(object):
         self.ui_workflow_select()
         self.ui_workflow_diagram()
         self.ui_workflow_steps()
-        #self.ui_buttons()
-        #self.ui_add_workflow_button()
+        self.ui_add_execution_button()
 
     def ui_execution_title(self):
         ui.input(
@@ -70,13 +69,13 @@ class ExecutionForm(object):
             collection=db.collection_workflows
         )
         self.step_count = len(self.workflow.get("versions", []))
-        self.ports = [[] for i in range(self.step_count)]
+        self.port_mappings = [{} for i in range(self.step_count)]
         self.parameters = [{} for i in range(self.step_count)]
         self.get_versions_dict()
         self.set_workflow_steps()
         self.ui_workflow_steps.refresh()
         self.ui_workflow_diagram.refresh()
-
+        self.ui_add_execution_button.refresh()
 
     def get_versions_dict(self):
         versions = db.get_document_by_ids_in_collection(
@@ -91,12 +90,14 @@ class ExecutionForm(object):
             for i, version_id in enumerate(self.workflow.get("versions", [])):
                 version = self.versions_dict[version_id]
                 self.parameters[i] = self.get_default_parameters(version)
-                self.ports[i] = self.get_default_port_mappings(version)
+                self.port_mappings[i] = self.get_default_port_mappings(version)
             pprint(self.ports)
             pprint(self.parameters)
 
     @ui.refreshable
     def ui_workflow_steps(self):
+        if not self.workflow_id:
+            return
         for i, version_id in enumerate(self.workflow.get("versions", [])):
             version = self.versions_dict[version_id]
             self.display_version(version)
@@ -105,8 +106,8 @@ class ExecutionForm(object):
                     key = ui.input(label="key", value=key, placeholder="key")
                     value = ui.input(label="value", value=value, placeholder="value")
             with ui.grid(columns=2).classes("w-1/8"):
-                for port in self.ports[i]:
-                    ui.input(label=f"port mapping for :{port}", value=port)
+                for key, value in self.port_mappings[i].items():
+                    ui.input(label=f"port mapping for :{value}", value=key)
 
     def get_default_parameters(self, version):
         if not version.get("parameters"):
@@ -121,12 +122,12 @@ class ExecutionForm(object):
 
     def get_default_port_mappings(self, version):
         if not version.get("ports"):
-            return []
-        default_ports = []
+            return {}
+        default_ports = {}
         for port in version["ports"]:
             port_value = port.get('port-value')
             if port_value:
-                default_ports.append(port_value)
+                default_ports[port_value] = port_value
         return default_ports
 
     def ui_parameters(self, version):
@@ -189,86 +190,35 @@ class ExecutionForm(object):
                         ui.label(key).classes('bg-gray-200 border p-1')
                         ui.label(value).classes('border p-1')
 
-    """
     @ui.refreshable
-    def ui_steps(self):
-        with ui.row().classes("w-full"):
-            for i in range(self.count_step_forms):
-                ui.select(
-                    self.select_options,
-                    on_change=lambda e, step_index=i: self.update_workflow(step_index, e.value),
-                    label="component versions",
-                    value=self.get_workflow_value(i),
-                ).classes("w-1/2")
-
-
-    def get_workflow_value(self, i):
-        if i < len(self.workflow):
-            return self.workflow[i]
-        else:
-            return None
-
-    def update_workflow(self, step_index, version_tuple):
-        if step_index < len(self.workflow):
-            self.workflow[step_index] = version_tuple
-        else:
-            self.workflow.append(version_tuple)
-        self.ui_add_workflow_button.refresh()
-
-    def add_step(self):
-        self.count_step_forms += 1
-        self.ui_steps.refresh()
-
-    def remove_step(self):
-        if self.count_step_forms > 1:
-            self.count_step_forms -= 1
-            self.workflow = self.workflow[:self.count_step_forms]
-            self.ui_steps.refresh()
-
-    def ui_buttons(self):
-        with ui.grid(columns=2):
-            ui.button(
-                "Add workflow step",
-                on_click=self.add_step,
-                icon="add",
-            ).props(
-                "flat"
-            ).classes("w-full")
-            ui.button(
-                "Remove workflow step",
-                on_click=self.remove_step,
-                icon="remove",
-            ).props("flat").classes("w-full")
-
-    def get_steps(self):
-        steps = []
-        for item in self.container:
-            if item and item.tag == "nicegui-select":
-                steps.append(item)
-        return steps
-
-    @ui.refreshable
-    def ui_add_workflow_button(self):
+    def ui_add_execution_button(self):
         if not self.workflow:
             return
         ui.button(
-            "add workflow",
+            "add execution",
             icon="add",
-            on_click=lambda: self.db_add_workflow(),
+            on_click=lambda: self.db_add_execution(),
         )
 
-    def db_add_workflow(self):
-        db_workflow = [
-            version_tuple[0] for version_tuple in self.workflow
-        ]
-        workflow_id = db.add_workflow(
-            name=self.name,
-            workflow=db_workflow,
+    def db_add_execution(self):
+        """add execution"""
+        print("-------- before save")
+        pprint(self.port_mappings)
+        print(self.workflow_id)
+        print(self.digital_twin_id)
+        print(self.title)
+        print(self.workflow.get("versions"))
+        execution_id = db.add_execution(
+            dt_id=self.digital_twin_id,
+            workflow_id=self.workflow_id,
+            name=self.title,
+            versions=self.workflow.get("versions"),
+            parameters=self.parameters,
+            ports=self.ports,
         )
         ui.notify(
-            f"Workflow {workflow_id} has been added",
+            f"Execution {execution_id} has been added",
             type="positive",
         )
-        from odtp.dashboard.page_components.main import ui_tabs
+        from odtp.dashboard.page_executions.main import ui_tabs
         ui_tabs.refresh()
-    """
