@@ -45,7 +45,7 @@ def ui_workarea_form(user, workdir):
                     on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
                     icon="link",
                 )
-                ui.button("Set Work directory", on_click=pick_workdir, icon="folder")
+                ui.button("Set Work directory", on_click=pick_workdir, icon="folder").props("flat")
                 ui.button(
                     "Set Work directory to default",
                     on_click=set_default_workdir,
@@ -67,7 +67,7 @@ def ui_workarea_form(user, workdir):
                         icon="add",
                     ).props("flat")
     except Exception as e:
-        log.exception(f"Workarea could not be loaded: an Exception occurred: {e}")                    
+        log.exception(f"Workarea could not be loaded: an Exception occurred: {e}")
 
 
 def create_workdir(folder_name_input):
@@ -107,11 +107,11 @@ async def pick_workdir() -> None:
 
 
 def set_default_workdir():
-    try: 
+    try:
         app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
-    except Exception as e:  
+    except Exception as e:
         log.exception(f"Default work directory could not be set: an Exception occurred: {e}")
     else:
-        ui.notify(f"User workdir has been set to {ODTP_PATH}", type="positive")     
+        ui.notify(f"User workdir has been set to {ODTP_PATH}", type="positive")
         from odtp.dashboard.page_users.main import ui_workarea
-        ui_workarea.refresh()        
+        ui_workarea.refresh()
