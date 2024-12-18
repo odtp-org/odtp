@@ -7,7 +7,7 @@ import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.mongodb.db as db
 import odtp.dashboard.page_executions.table as table
-import odtp.dashboard.page_executions.select as select
+import odtp.dashboard.page_executions.detail as detail
 import odtp.dashboard.page_executions.add as add
 import odtp.dashboard.page_executions.workarea as workarea
 
@@ -54,7 +54,6 @@ def ui_tabs(current_digital_twin, workdir):
         with ui.tab_panels(tabs, value=select).classes("w-full") as panels:
             with ui.tab_panel(select):
                 ui_execution_select(current_digital_twin)
-                ui_execution_details()
             with ui.tab_panel(add):
                 ui_add_execution(current_digital_twin)
             with ui.tab_panel(table):
@@ -63,67 +62,18 @@ def ui_tabs(current_digital_twin, workdir):
         log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
 
 
-def ui_add_execution2(current_digital_twin):
+def ui_add_execution(current_digital_twin):
     add.ExecutionForm(current_digital_twin["digital_twin_id"])
 
 
 @ui.refreshable
 def ui_execution_select(current_digital_twin) -> None:
-    try:
-        digital_twin_id = current_digital_twin["digital_twin_id"]
-        execution_options = helpers.get_execution_select_options(
-            digital_twin_id=digital_twin_id
-        )
-        current_execution = storage.get_active_object_from_storage(
-            storage.CURRENT_EXECUTION
-        )
-        select.ui_select_form(
-            execution_options=execution_options,
-            current_execution=current_execution,
-        )
-    except Exception as e:
-        log.exception(
-            f"Execution selection could not be loaded. An Exception occurred: {e}"
-        )
+    detail.ExecutionDisplay(digital_twin_id=current_digital_twin["digital_twin_id"])
 
 
 @ui.refreshable
 def ui_executions_table(current_digital_twin):
-    try:
-        executions = db.get_sub_collection_items(
-            collection=db.collection_digital_twins,
-            sub_collection=db.collection_executions,
-            item_id=current_digital_twin["digital_twin_id"],
-            ref_name=db.collection_executions,
-        )
-        table.ui_table_layout(executions)
-    except Exception as e:
-        log.exception(f"Execution table could not be loaded. An Exception occurred: {e}")
-
-
-@ui.refreshable
-def ui_execution_details():
-    try:
-        current_execution = storage.get_active_object_from_storage(
-            storage.CURRENT_EXECUTION
-        )
-        if not current_execution:
-            return
-        execution_title = current_execution.get("title")
-        version_tags = current_execution.get("version_tags")
-        current_ports = current_execution.get("ports")
-        current_parameters = current_execution.get("parameters")
-        ui_theme.ui_execution_display(
-            execution_title=execution_title,
-            version_tags=version_tags,
-            ports=current_ports,
-            parameters=current_parameters,
-        )
-    except Exception as e:
-        log.exception(
-            f"Execution details could not be loaded. An Exception occurred: {e}"
-        )
-
+    table.ExecutionTable(digital_twin_id=current_digital_twin["digital_twin_id"])
 
 @ui.refreshable
 def ui_workarea(current_digital_twin, current_user, workdir, components):
