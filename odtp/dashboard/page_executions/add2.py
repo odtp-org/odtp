@@ -1,4 +1,4 @@
-from nicegui import ui
+from nicegui import ui, events
 from pprint import pprint
 import odtp.mongodb.db as db
 import odtp.dashboard.utils.helpers as helpers
@@ -11,19 +11,22 @@ from odtp.dashboard.utils.file_picker import local_file_picker
 
 class ExecutionForm(object):
     def __init__(self, digital_twin_id):
+        self.digital_twin_id = digital_twin_id
+        self.get_select_options()
+        self.init_form()
+
+    def init_form(self):
         self.execution = None
         self.parameters = None
         self.step_count = None
-        self.ports = None
-        self.digital_twin_id = digital_twin_id
+        self.port_mappings = None
         self.workflow = None
         self.title = None
         self.workflow_id = None
         self.versions_dict = None
-
-        self.get_select_options()
         self.build_form()
 
+    @ui.refreshable
     def build_form(self):
         self.ui_execution_title()
         self.ui_workflow_select()
@@ -94,35 +97,67 @@ class ExecutionForm(object):
                 version = self.versions_dict[version_id]
                 self.parameters[i] = self.get_default_parameters(version)
                 self.port_mappings[i] = self.get_default_port_mappings(version)
-            pprint(self.ports)
+            print("1---------------------------------")
+            pprint(self.port_mappings)
             pprint(self.parameters)
+
+    def ui_parameters_from_file(self, version, i):
+        ui.upload(
+            on_upload=lambda e: self.handle_upload(e, version, i),
+            label=f"replace parameters by uploaded parameters"
+        ).props('accept=.parameters').classes('max-w-full')
+
+    def handle_upload(self, e: events.UploadEventArguments, version, i):
+        text = e.content.read().decode('utf-8')
+        print(version["component_version"])
+        print(i)
+        parameters = self.parse_key_value_pairs(text)
+        self.parameters[i] = parameters
+        print("Parsed Parameters:", parameters)
+        print("2---------------------------------")
+        pprint(self.port_mappings)
+        pprint(self.parameters)
+        self.ui_workflow_steps.refresh()
+
+    def parse_key_value_pairs(self, text: str) -> dict:
+        parameters = {}
+        for line in text.splitlines():
+            line = line.strip()
+            if line and "=" in line:
+                key, value = map(str.strip, line.split('=', 1))
+                parameters[key] = value
+        return parameters
 
     @ui.refreshable
     def ui_workflow_steps(self):
         if not self.workflow_id:
             return
         for i, version_id in enumerate(self.workflow.get("versions", [])):
-            version = self.versions_dict[version_id]
-            self.display_version(version)
-            with ui.grid(columns=2).classes("w-1/2"):
-                for key, value in self.parameters[i].items():
-                    ui.input(
-                        label=key,
-                        value=value,
-                        placeholder="value",
-                        on_change=lambda e, i=i, key=key: self.update_parameter_value(
-                            e.value, key, i
-                        )
-                    )
-            with ui.grid(columns=2).classes("w-1/8"):
-                for port_host, port_component in self.port_mappings[i].items():
-                    ui.input(
-                        label=f"port mapping for :{port_component}",
-                        value=port_host,
-                        on_change=lambda e, i=i, port_component=port_component: self.update_port_mapping(
-                            e.value, port_component, i
-                        )
-                    )
+            with ui.card().classes("w-full bg-violet-100"):
+                version = self.versions_dict[version_id]
+                self.display_version(version)
+                if self.parameters[i]:
+                    self.ui_parameters_from_file(version, i)
+                    with ui.grid(columns=2).classes("w-1/2"):
+                        for key, value in self.parameters[i].items():
+                            ui.input(
+                                label=key,
+                                value=value,
+                                placeholder="value",
+                                on_change=lambda e, i=i, key=key: self.update_parameter_value(
+                                    e.value, key, i
+                                )
+                            )
+                if self.port_mappings[i].items():
+                    with ui.grid(columns=2).classes("w-1/8"):
+                        for port_host, port_component in self.port_mappings[i].items():
+                            ui.input(
+                                label=f"port mapping for :{port_component}",
+                                value=port_host,
+                                on_change=lambda e, i=i, port_component=port_component: self.update_port_mapping(
+                                    e.value, port_component, i
+                                )
+                            )
 
     def update_port_mapping(self, port_host, port_component, i):
         print(self.port_mappings)
@@ -180,25 +215,16 @@ class ExecutionForm(object):
 
     def display_version(self, version):
         version_name = self.get_version_display(version)
-        ui.mermaid(
-            f"""
-            {helpers.get_workflow_mermaid([version_name], init='graph LR;')}"""
-        ).classes("w-full")
+        ui.label(version_name).classes("text-lg")
         parameters = version.get("parameters", [])
         if parameters:
             self.display_dict_list(version, "Parameters", "parameters")
-        else:
-            self.display_not_set("Parameters")
         ports = version.get("ports", [])
         if ports:
             self.display_dict_list(version, "Ports", "ports")
-        else:
-            self.display_not_set("Ports")
         secrets = version.get("secrets", [])
         if secrets:
             self.display_dict_list(version, "Secrets", "secrets")
-        else:
-            self.display_not_set("Secrets")
 
     def display_not_set(self, label):
         with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
@@ -207,11 +233,11 @@ class ExecutionForm(object):
 
     def display_dict_list(self, version, label, dict_list_name):
         """display a list of dicts"""
-        with ui.expansion(label).classes("w-1/2"):
+        with ui.expansion(label).classes("w-1/2 bg-gray-100"):
             with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
                 for dict_item in version.get(dict_list_name):
                     for key, value in dict_item.items():
-                        ui.label(key).classes('bg-gray-200 border p-1')
+                        ui.label(key).classes('border p-1')
                         ui.label(value).classes('border p-1')
 
     @ui.refreshable
@@ -223,6 +249,11 @@ class ExecutionForm(object):
             icon="add",
             on_click=lambda: self.db_add_execution(),
         )
+        ui.button(
+            "reset execution",
+            icon="clear",
+            on_click=lambda: self.reset_execution_form(),
+        ).props("flat")
 
     def prepare_port_mappings_for_db(self):
         port_mappings_db = []
@@ -235,6 +266,9 @@ class ExecutionForm(object):
                 ])
         return port_mappings_db
 
+    def reset_execution_form(self):
+        self.init_form()
+        self.build_form.refresh()
 
     def db_add_execution(self):
         """add execution"""

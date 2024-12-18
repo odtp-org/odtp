@@ -1,6 +1,6 @@
 import logging
 
-from nicegui import app, ui, events
+from nicegui import ui
 
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.storage as storage
@@ -32,33 +32,11 @@ def content() -> None:
         if not current_digital_twin or not current_user or not workdir or not components:
             return
         ui_tabs(current_digital_twin=current_digital_twin, workdir=workdir)
-
-
-        with ui.dialog().props('full-width') as dialog:
-            with ui.card():
-                content = ui.markdown()
-
-        def handle_upload(e: events.UploadEventArguments):
-            text = e.content.read().decode('utf-8')
-            content.set_content(text)
-            parameters = parse_key_value_pairs(text)
-            print("Parsed Parameters:", parameters)
-
-        ui.upload(on_upload=handle_upload).props('accept=.parameters').classes('max-w-full')
     except Exception as e:
         log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
 
 
 def parse_key_value_pairs(text: str) -> dict:
-    """
-    Parses a string with key-value pairs separated by '=' into a dictionary.
-
-    Args:
-        text (str): The string containing key-value pairs, one per line.
-
-    Returns:
-        dict: A dictionary of parsed key-value pairs.
-    """
     parameters = {}
     for line in text.splitlines():
         line = line.strip()  # Remove whitespace around the line
