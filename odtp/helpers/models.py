@@ -17,11 +17,17 @@ class DataOutput(BaseModel):
     type: str
 
 
+class Secret(BaseModel):
+    name: str
+    datatype: str
+    description: str
+
+
 class Parameter(BaseModel):
     name: str
     datatype: str
     description: str
-    default_value: Optional[str] = Field(alias="default-value")
+    default_value: Optional[Union[str, int, float, bool]] = Field(alias="default-value")
     options: Optional[List[str]] = None
     allow_custom_value: Optional[bool] = Field(alias="allow-custom-value", default=None)
 
@@ -60,7 +66,7 @@ class OdtpDotYamlSchema(BaseModel):
     ports: Optional[List[Port]] = None
     schema_input: Optional[Union[dict, str]] = Field(alias="schema-input", default=None)
     schema_output: Optional[Union[dict, str]] = Field(alias="schema-output", default=None)
-    secrets: Optional[List[Parameter]] = None
+    secrets: Optional[List[Secret]] = None
     tags: List[str]
     tools: Optional[List[Tool]] = None
 
