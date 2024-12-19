@@ -15,7 +15,7 @@ log.addHandler(config.get_command_log_handler())
 class WorkflowManager:
     def __init__(self, execution_data, working_path, secrets):
         # This workflow will have one execution ID associated
-        # This class should contain flags used to know the status of the workflow. 
+        # This class should contain flags used to know the status of the workflow.
         self.execution = execution_data
         self.schema = execution_data["workflowSchema"]
         self.working_path = working_path
@@ -39,7 +39,7 @@ class WorkflowManager:
                 component_name = version_doc["component"]["componentName"]
                 component_version = version_doc["component_version"]
                 repo_link = version_doc["component"]["repoLink"]
-                image_link = version_doc["imageLink"]
+                image_link = version_doc.get("imageLink")
                 commit_hash = version_doc["commitHash"]
 
                 step_name = odtp_utils.get_execution_step_name(
