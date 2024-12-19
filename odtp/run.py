@@ -28,8 +28,8 @@ class OdtpRunSetupException(Exception):
 class DockerManager:
     def __init__(self, repo_url="", commit_hash="", image_name="", project_folder="", image_link=None):
         log.debug(f"""Docker manager initialized with repo_url: {repo_url},
-                     commit_hash: {commit_hash}, 
-                     project_folder: {project_folder}, 
+                     commit_hash: {commit_hash},
+                     project_folder: {project_folder},
                      image_name: {image_name}""")
         self.repo_url = repo_url
         self.commit_hash = commit_hash
@@ -50,19 +50,19 @@ class DockerManager:
                 self._download_repo()
                 self._build_image()
             else:
-                self._pull_image()  
+                self._pull_image()
 
     def _create_project_folder_structure(self):
-        """Create all the folder structure in project_folder""" 
+        """Create all the folder structure in project_folder"""
         log.debug("PREPARE create project folder structure")
         os.makedirs(self.repository_path, exist_ok=True)
         os.makedirs(self.input_volume, exist_ok=True)
-        os.makedirs(self.output_volume, exist_ok=True)    
+        os.makedirs(self.output_volume, exist_ok=True)
         os.makedirs(self.log_volume, exist_ok=True)
 
-    def _check_project_folder_prepared(self):  
-        log.debug(f"VALIDATION: check project folder structure: {self.project_folder}")  
-        """check whether the project folder is prepared with the expected 
+    def _check_project_folder_prepared(self):
+        log.debug(f"VALIDATION: check project folder structure: {self.project_folder}")
+        """check whether the project folder is prepared with the expected
         structure of repository_path, input and output volume"""
         subdirs = []
         with os.scandir(self.project_folder) as entries:
@@ -71,15 +71,15 @@ class DockerManager:
                     subdirs.append(entry.name)
         if set(subdirs) != set(REPO_DIR, INPUT_DIR, OUTPUT_DIR, LOG_DIR):
             raise OdtpRunSetupException(
-                f"""project folder {self.project_folder} does not have 
+                f"""project folder {self.project_folder} does not have
                 expected directory structure with {REPO_DIR}, {INPUT_DIR}, {OUTPUT_DIR}"""
             )
-        
+
     def _checks_for_prepare(self):
-        log.debug(f"VALIDATION: check commit hash {self.commit_hash} for prepare") 
+        log.debug(f"VALIDATION: check commit hash {self.commit_hash} for prepare")
         env_helpers.check_project_folder_empty(self.project_folder)
         self.commit_hash = git_helpers.check_commit_for_repo(
-            repo_url=self.repo_url, 
+            repo_url=self.repo_url,
             commit_hash=self.commit_hash
         )
 
@@ -91,7 +91,7 @@ class DockerManager:
             json.dumps(parameters)
         except Exception as e:
             raise OdtpRunSetupException(f"parameters are not transformable to json: {parameters}")
-        
+
         db_utils.check_port_mappings_for_component_runs(ports)
         self._check_image_exists()
 
