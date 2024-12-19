@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 from nicegui import app, ui
 import odtp.helpers.environment as odtp_env
@@ -195,3 +196,7 @@ def build_cli_command(cmd, project_path, execution_id=None, secret_files=None, s
             )
     cli_command = f"odtp execution {cmd} {'  '.join(cli_parameters)}"
     return cli_command
+
+
+def get_logs(project_path):
+    print(os.path.ge)

@@ -112,6 +112,7 @@ class ExecutionRunForm:
         if self.folder_status != rh.FOLDER_HAS_OUTPUT:
             return
         with ui.row().classes("w-full"):
+            rh.get_logs(self.execution_path)
             cli_cat_command = f"cat {self.execution_path}/0_odtp-component-example_v0.1.7/odtp-logs/log.txt"
             ui.label(cli_cat_command)
             with ui.grid(columns=1):

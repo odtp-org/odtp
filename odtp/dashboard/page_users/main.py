@@ -20,28 +20,6 @@ TAB_ADD = "Add User"
 def content() -> None:
     ui_workarea()
     ui_tabs()
-    try:
-        def handle_upload(e: events.UploadEventArguments):
-            text = e.content.read().decode('utf-8')
-            #content.set_content(text)
-            parameters = parse_key_value_pairs(text)
-            print("Parsed Parameters:", parameters)
-
-        ui.upload(
-            on_upload=handle_upload, label="upload secrets"
-        ).props('accept=.parameters').classes('max-w-full')
-    except Exception as e:
-        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
-
-
-def parse_key_value_pairs(text: str) -> dict:
-    parameters = {}
-    for line in text.splitlines():
-        line = line.strip()  # Remove whitespace around the line
-        if line and "=" in line:  # Check if the line is non-empty and contains '='
-            key, value = map(str.strip, line.split('=', 1))  # Split and strip key-value
-            parameters[key] = value
-    return parameters
 
 
 @ui.refreshable
