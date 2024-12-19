@@ -106,6 +106,23 @@ class ExecutionRunForm:
                     ).props("flat")
 
     @ui.refreshable
+    def ui_show_logs(self):
+        if not self.execution_path:
+            return
+        if self.folder_status != rh.FOLDER_HAS_OUTPUT:
+            return
+        with ui.row().classes("w-full"):
+            cli_cat_command = f"cat {self.execution_path}/0_odtp-component-example_v0.1.7/odtp-logs/log.txt"
+            ui.label(cli_cat_command)
+            with ui.grid(columns=1):
+                with ui.row().classes("w-full"):
+                    ui.button(
+                        "Show logs",
+                        on_click=lambda: self.run_command(cli_cat_command),
+                        icon="folder",
+                    ).props("flat")
+
+    @ui.refreshable
     def ui_execution_info(self):
         if not self.execution_id:
             return
@@ -129,11 +146,13 @@ class ExecutionRunForm:
         self.ui_prepare_execution()
         self.ui_show_project_folder()
         self.ui_run_execution()
+        self.ui_show_logs()
 
+    @ui.refreshable
     def ui_prepare_execution(self):
         if not self.execution_path:
             return
-        if self.folder_status == rh.FOLDER_PREPARED:
+        if self.folder_status != rh.FOLDER_EMPTY:
             return
         with ui.row().classes("w-full"):
             cli_prepare_command = rh.build_cli_command(
@@ -150,7 +169,6 @@ class ExecutionRunForm:
                         on_click=lambda: self.run_command(cli_prepare_command),
                         icon="folder",
                     ).props("no-caps")
-
 
     def ui_run_execution(self):
         if not self.execution_path:
@@ -223,6 +241,4 @@ class ExecutionRunForm:
             print(f"run command failed with Exception {e}")
         else:
             self.check_folder_status()
-            self.ui_display_folder_status.refresh()
-            self.ui_execution_info.refresh()
             self.build_form.refresh()

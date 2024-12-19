@@ -53,15 +53,3 @@ def ui_workarea_form(current_digital_twin, current_user, workdir, components, cu
                 - **work directory**: {workdir}
                 """
             )
-        with ui.column():
-            if current_execution:
-                ui.markdown(
-                    f"""
-                    #### Actions
-                    """
-                )
-                ui.button(
-                    "Prepare and Run Executions",
-                    on_click=lambda: ui.open(ui_theme.PATH_RUN),
-                    icon="link",
-                )
