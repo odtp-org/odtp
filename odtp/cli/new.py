@@ -3,16 +3,14 @@ This scripts contains odtp subcommands for 'new'
 """
 import typer
 from typing_extensions import Annotated
-import logging 
-
+import logging
+import requests
 import odtp.mongodb.db as db
+import odtp.mongodb.utils as mongodb_utils
 import odtp.helpers.parse as odtp_parse
-import odtp.mongodb.utils as db_utils
-import odtp.helpers.git as odtp_git
-
-
-## Adding listing so we can have multiple flags
-from typing import List
+import odtp.helpers.git as git_helpers
+import odtp.helpers.validation as validation_helpers
+import traceback
 
 app = typer.Typer()
 
@@ -31,45 +29,63 @@ def user_entry(
 
 @app.command()
 def odtp_component_entry(
-    name: Annotated[str, typer.Option(
-        help="Specify the name"
-    )],
     repository: Annotated[str, typer.Option(
         help="Specify the repository"
     )],
     component_version: Annotated[str, typer.Option(
-        help="Specify the tagged component version. It needs to be available on the github repo"
+        help="Specify the tagged component version. It needs to be available on the GitHub repo"
     )],
-    type: Annotated[str, typer.Option(
-        help="""You may specify the type of the component as either 'ephemeral or persistent'"""
-    )] = db_utils.COMPONENT_TYPE_EPHERMAL,    
-    ports: Annotated[str, typer.Option(
-        help="Specify ports seperated by a comma i.e. 8501,8201"
-    )] = None,
-    image_link: Annotated[str, typer.Option(
-        help="Specify the DockerHub image link"
-    )] = None,
+    debug: bool = typer.Option(False, "--debug", help="Show full traceback for errors")
 ):
+    """
+    CLI command to add a component version from a repository.
+    """
     try:
-        ports = odtp_parse.parse_component_ports(ports)
-        repo_info = odtp_git.get_github_repo_info(repository)
-        component_id, version_id = \
-            db.add_component_version(
-                component_name=name,
-                repo_info=repo_info,
-                component_version=component_version,
-                image_link=image_link,
-                type=type,
-                ports=ports,
-            )
+        if not repository or not component_version:
+            raise ValueError("Both repository and component version must be provided.")
+
+        log.info(f"Starting process for repository: {repository}, version: {component_version}")
+
+        component_id, version_id = db.add_component_version(
+            repository=repository,
+            component_version=component_version,
+        )
+
+    except git_helpers.OdtpGithubException as e:
+        typer.echo(f"Error: An error occurred while fetching information from GitHub: {e}")
+        raise typer.Exit(code=2)
+
+    except mongodb_utils.OdtpDbMongoDBValidationException as e:
+        typer.echo(f"Error: Component version could not be added: {e}")
+        raise typer.Exit(code=3)
+
+    except validation_helpers.OdtpYmlException as e:
+        log.error(f"Validation error occurred when parsing odtp.yml")
+        typer.echo(f"Error: Validation of odtp.yml failed: {e}")
+        raise typer.Exit(code=4)
+
+    except requests.RequestException as e:
+        log.error(f"Network error: {e}")
+        typer.echo(f"Error: A network error occurred while communicating with GitHub.: {e}")
+        raise typer.Exit(code=5)
+
     except Exception as e:
-        log.error(f"ERROR: {e}")
-        if hasattr(e, "__notes__"):
-            log.error(f"{','.join(e.__notes__)}") 
-        raise typer.Abort()     
-    log.info(f"""SUCCESS: component version has been added: see above for the details.
-          component_id: {component_id}
-          version_id: {version_id}""")
+        error_message = f"Error: An unexpected error occurred: {e}"
+        if debug:
+            error_message += f"\n{traceback.format_exc()}"
+        typer.echo(error_message, err=True)
+        raise typer.Exit(code=99)
+
+    else:
+        if component_id and version_id:
+            typer.echo("✅ odtp.yml is valid!")
+            success_message = (
+                f"SUCCESS: Component added with details:\n"
+                f" - Component ID: {component_id}\n"
+                f" - Version ID: {version_id}\n"
+            )
+            log.info(success_message)
+            typer.echo(f"✅ {success_message}")
 
 
 @app.command()
@@ -89,60 +105,102 @@ def digital_twin_entry(
 
 
 @app.command()
-def execution_entry(
-    execution_name: str = typer.Option(..., "--name", help="Specify the name of the execution"),
-    dt_name: str = typer.Option(None, "--digital-twin-name", help="Specify the digital twin name"),
-    dt_id: str = typer.Option(
-        None, "--digital-twin-id", help="Specify the digital twin ID"
-    ),
+def workflow_entry(
+    workflow_name: str = typer.Option(..., "--name", help="Specify the name of the workflow"),
     component_tags: str = typer.Option(
         None, "--component-tags", help="Specify the components-tags (component-name:version) separated by commas"
     ),
     component_versions: str = typer.Option(
         None, "--component-versions", help="Specify the version_ids separated by commas"
+    )
+):
+    try:
+        if component_tags is None and component_versions is None:
+            raise typer.Exit("Please provide either --component-tags or --component-versions")
+        if component_tags:
+            component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
+        versions = odtp_parse.parse_versions(component_versions)
+        workflow_id = db.add_workflow(
+            name=workflow_name,
+            workflow=versions,
+        )
+    except Exception as e:
+        log.error(f"ERROR: {e}")
+        traceback.print_exc()
+    success_message = (
+        f"SUCCESS: Workflow has been added:\n"
+        f" - Workflow ID: {workflow_id}\n"
+    )
+    log.info(success_message)
+    typer.echo(f"✅ {success_message}")
+
+
+@app.command()
+def execution_entry(
+    execution_name: str = typer.Option(..., "--name", help="Specify the name of the execution"),
+    wf_id: str = typer.Option(
+        None, "--workflow-id", help="Specify the workflow ID"
     ),
+    component_tags: str = typer.Option(
+        None, "--component-tags", help="Specify the components-tags (component-name:version) separated by commas"
+    ),
+    dt_name: str = typer.Option(None, "--digital-twin-name", help="Specify the digital twin name"),
+    dt_id: str = typer.Option(
+        None, "--digital-twin-id", help="Specify the digital twin ID"),
     parameter_files: Annotated[str, typer.Option(
         help="List the files containing the parameters by step separated by commas"
-    )] = None,     
+    )] = None,
     ports: Annotated[str, typer.Option(
-        help="""Specify ports mappings separated by plus within the same step and , between steps i.e. 
+        help="""Specify ports mappings separated by plus within the same step and , between steps i.e.
         9001:9001+8501:8501,8080:8001+6000:6000"""
-    )] = None,    
-):  
+    )] = None,
+):
     try:
         if dt_name is None and dt_id is None:
             raise typer.Exit("Please provide either --digital-twin-name or --digital-twin-id")
 
-        if component_tags is None and component_versions is None:
-            raise typer.Exit("Please provide either --component-tags or --component-versions")
+        if wf_id is None and component_tags is None:
+            raise typer.Exit("Please provide either --workflow-id or --component-tags")
 
         if dt_name:
             dt_id = db.get_document_id_by_field_value("name", dt_name, "digitalTwins")
 
+        if wf_id:
+            workflow = db.get_document_by_id(wf_id, db.collection_workflows)
         if component_tags:
             component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
-        
-        versions = odtp_parse.parse_versions(component_versions)
-        step_count = len(versions)
-        ports = odtp_parse.parse_port_mappings_for_multiple_components(
-            ports=ports, step_count=step_count)
-        parameters = odtp_parse.parse_parameters_for_multiple_files(
-            parameter_files=parameter_files, step_count=step_count)
+            versions = odtp_parse.parse_versions(component_versions)
+            workflow = db.get_workflow_by_versions(versions)
+        step_count = len(workflow.get("versions"))
+        if parameter_files is None:
+            parameters = db.get_default_parameters_for_workflow(workflow["versions"])
+        else:
+            parameters = odtp_parse.parse_parameters_for_multiple_files(
+                parameter_files=parameter_files, step_count=step_count
+            )
+        if ports is None:
+            ports = db.get_default_port_mappings_for_workflow(workflow["versions"])
+        else:
+            ports = odtp_parse.parse_port_mappings_for_multiple_components(
+                ports=ports, step_count=step_count
+            )
         execution_id, step_ids = db.add_execution(
             dt_id=dt_id,
+            workflow_id=workflow["_id"],
             name=execution_name,
-            versions=versions,
             parameters=parameters,
             ports=ports,
         )
     except Exception as e:
         log.error(f"ERROR: {e}")
-        if hasattr(e, "__notes__"):
-            log.error(f"{','.join(e.__notes__)}") 
-            raise typer.Abort()     
-    log.info(f"""SUCCESS: execution has been added: see above for the details.
-          execution id: {execution_id}
-          step_ids: {step_ids}""")
+        traceback.print_exc()
+    success_message = (
+        f"SUCCESS: execution has been added: see above for the details.\n"
+        f" - execution id: {execution_id}\n"
+        f" - step_ids: {step_ids}\n"
+    )
+    log.info(success_message)
+    typer.echo(f"✅ {success_message}")
 
 
 if __name__ == "__main__":
