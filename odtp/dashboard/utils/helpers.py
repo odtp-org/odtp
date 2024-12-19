@@ -111,5 +111,6 @@ def build_execution_with_steps(execution_id):
         "parameters": parameters,
         "outputs": outputs,
         "inputs": inputs,
+        "execution_path": execution.get("execution_path")
     }
     return execution_with_steps

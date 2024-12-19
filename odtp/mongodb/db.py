@@ -341,6 +341,16 @@ def set_document_timestamp(document_id, collection_name, timestamp_name):
         )
 
 
+def set_execution_path(execution_id, execution_path):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        collection = db[collection_executions]
+        collection.update_one(
+            {"_id": ObjectId(execution_id)},
+            {"$set": {"execution_path": execution_path}},
+        )
+
+
 def add_execution(
     dt_id,
     workflow_id,

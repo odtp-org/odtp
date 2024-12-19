@@ -28,12 +28,12 @@ class WorkflowManager:
         self.secrets = secrets
 
         for step_index in self.schema["workflowExecutorSchema"]:
-            try: 
+            try:
                 step_index = int(step_index)
 
                 version_id = self.schema["component_versions"][step_index]
                 version_doc = db.get_document_by_id(
-                    document_id=version_id, 
+                    document_id=version_id,
                     collection=db.collection_versions
                 )
                 component_name = version_doc["component"]["componentName"]
@@ -43,17 +43,17 @@ class WorkflowManager:
                 commit_hash = version_doc["commitHash"]
 
                 step_name = odtp_utils.get_execution_step_name(
-                    component_name=component_name, 
-                    component_version=component_version, 
+                    component_name=component_name,
+                    component_version=component_version,
                     step_index=step_index
                 )
-                
+
                 # Create folder structure
                 step_folder_path = os.path.join(self.working_path, step_name)
                 self.steps_folder_paths.append(step_folder_path)
 
                 image_name = odtp_utils.get_execution_step_image_name(
-                    component_name=component_name, 
+                    component_name=component_name,
                     component_version=component_version
                 )
 
@@ -65,8 +65,7 @@ class WorkflowManager:
             except Exception as e:
                 raise OdtpRunSetupException(
                     f"Workflowmanager could not be intialized: Exception occured: {e}"
-                )    
-    
+                )
 
     def check_env_for_prepare_workflow(self):
         env_helpers.check_project_folder_empty(self.working_path)
@@ -75,8 +74,8 @@ class WorkflowManager:
     def prepare_workflow(self):
         """
         This method will download all needed files and components to run the workflow
-        It will Build the images needed too. 
-        """  
+        It will Build the images needed too.
+        """
         self.check_env_for_prepare_workflow()
         for step_index in self.schema["workflowExecutorSchema"]:
             step_index = int(step_index)
@@ -84,7 +83,7 @@ class WorkflowManager:
             # Create folder structure
             # step_folder_path = os.path.join(self.working_path, step_name)
             os.makedirs(
-                self.steps_folder_paths[step_index], 
+                self.steps_folder_paths[step_index],
                 exist_ok=True
             )
 
@@ -102,11 +101,11 @@ class WorkflowManager:
             log.info("COMPONENTS DOWNLOADED AND BUILT")
 
     def run_workflow(self):
-        # Implement the logic to send tasks following the DAG schema. 
-        # This can make use of barfi workflow execution function. Each 
+        # Implement the logic to send tasks following the DAG schema.
+        # This can make use of barfi workflow execution function. Each
         # call will make call of the run_task
 
-        # Temporally the parameters are taken from the environment files and not 
+        # Temporally the parameters are taken from the environment files and not
         # taken from the steps documents
 
         # Start execution timestamp
@@ -124,7 +123,7 @@ class WorkflowManager:
             secrets = self.secrets[step_index]
 
             step_doc = db.get_document_by_id(
-                document_id=step_id, 
+                document_id=step_id,
                 collection=db.collection_steps
             )
 
@@ -142,7 +141,7 @@ class WorkflowManager:
                 # Specify the path to the output.zip file and the actual_input_path
                 output_zip_path = os.path.join(previous_output_path, 'odtp-output.zip')
                 actual_input_path = os.path.join(self.steps_folder_paths[step_index], 'odtp-input')
-                
+
                 # Extract the contents of the output.zip file into the actual_input_path
                 if output_zip_path:
                     log.info(f"output found at {output_zip_path}")
@@ -160,11 +159,11 @@ class WorkflowManager:
             # image_name = "{}_{}_{}".format(step_index, component_doc["componentName"], version_doc["version"])
             # By now the image_name is just the name of the component and the version
             componentManager = DockerManager(
-                repo_url=self.repo_urls[step_index], 
+                repo_url=self.repo_urls[step_index],
                 image_name=self.docker_image_names[step_index],
                 project_folder=self.steps_folder_paths[step_index]
             )
-            
+
             # instance_name = "{}_{}".format(component_doc["componentName"], version_doc["version"])
             #log.info(env_files[step_index])
             log.info(f"run docker image {self.docker_image_names[step_index]} at path {self.steps_folder_paths[step_index]}")
@@ -175,7 +174,7 @@ class WorkflowManager:
                 container_name=self.container_names[step_index],
                 step_id=self.execution["steps"][step_index]
             )
-            
+
             # End step timestamp
             db.set_document_timestamp(step_id, db.collection_steps, "end_timestamp")
 

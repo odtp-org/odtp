@@ -49,6 +49,9 @@ def content() -> None:
         run2.ExecutionRunForm(
             digital_twin_id=current_digital_twin["digital_twin_id"],
             execution_id=current_execution["execution_id"],
+            workdir=workdir,
+            dialog=dialog,
+            result=result,
         )
     except Exception as e:
         log.exception(f"Page could not be loaded: an Exception {e} occurred")
