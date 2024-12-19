@@ -39,7 +39,7 @@ class WorkflowManager:
                 component_name = version_doc["component"]["componentName"]
                 component_version = version_doc["component_version"]
                 repo_link = version_doc["component"]["repoLink"]
-                image_link = version_doc["imageLink"]
+                image_link = version_doc.get("imageLink")
                 commit_hash = version_doc["commitHash"]
 
                 step_name = odtp_utils.get_execution_step_name(
