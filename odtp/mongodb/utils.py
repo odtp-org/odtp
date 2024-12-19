@@ -35,6 +35,7 @@ def check_port_mappings_for_component_runs(ports):
             f"some component ports '{ports}' are not a list"
         )
     for port in ports:
+        print(f"=========== {port} {type(port)}")
         if not re.match(PORT_MAPPING_PATTERN, port):
             raise OdtpDbMongoDBValidationException(
                 f"'{port}' is not a valid port mapping"

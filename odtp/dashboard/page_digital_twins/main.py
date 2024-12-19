@@ -1,6 +1,6 @@
 import logging
 
-from nicegui import app, ui
+from nicegui import app, ui, events
 
 import odtp.dashboard.utils.storage as storage
 import odtp.dashboard.utils.ui_theme as ui_theme
@@ -23,6 +23,15 @@ def content() -> None:
     if current_user:
         ui_tabs(current_user)
 
+
+def parse_key_value_pairs(text: str) -> dict:
+    parameters = {}
+    for line in text.splitlines():
+        line = line.strip()  # Remove whitespace around the line
+        if line and "=" in line:  # Check if the line is non-empty and contains '='
+            key, value = map(str.strip, line.split('=', 1))  # Split and strip key-value
+            parameters[key] = value
+    return parameters
 
 @ui.refreshable
 def ui_tabs(current_user):
@@ -51,7 +60,7 @@ def ui_digital_twins_table(current_user):
         )
         table.ui_table_layout(
             digital_twins=digital_twins
-        )   
+        )
     except Exception as e:
         log.exception(
             f"Digital Twin table could not be loaded. An Exception occurred: {e}"
@@ -70,7 +79,7 @@ def ui_digital_twin_select(current_user) -> None:
             sub_collection=db.collection_digital_twins,
             item_id=user_id,
             ref_name=db.collection_digital_twins,
-        )        
+        )
         select.digital_twin_select_form(
             current_user=current_user,
             current_digital_twin=current_digital_twin,
@@ -91,11 +100,15 @@ def ui_add_digital_twin(current_user):
             f"Digital Twin Selection could not be loaded. An Exception occurred: {e}"
         )
 
+def handle_upload(e: events.UploadEventArguments):
+    text = e.content.read().decode('utf-8')
+    parameters = parse_key_value_pairs(text)
+    print("Parsed Parameters:", parameters)
 
 @ui.refreshable
 def ui_workarea(current_user):
     try:
-        user_workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)    
+        user_workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)
         current_digital_twin = storage.get_active_object_from_storage(
             storage.CURRENT_DIGITAL_TWIN
         )
@@ -104,5 +117,10 @@ def ui_workarea(current_user):
             current_digital_twin=current_digital_twin,
             user_workdir=user_workdir
         )
+        ui.upload(
+            on_upload=handle_upload, label="upload secrets"
+        ).props('accept=.parameters').classes('max-w-full')
     except Exception as e:
-        log.exception(f"Work area could not be loaded. An Exception happened: {e}")    
+        log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
+    except Exception as e:
+        log.exception(f"Work area could not be loaded. An Exception happened: {e}")

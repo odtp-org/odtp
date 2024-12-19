@@ -6,7 +6,7 @@ import odtp.dashboard.page_about.checks as checks
 log = logging.getLogger(__name__)
 
 
-def ui_homepage():   
+def ui_homepage():
     with ui.row():
         ui.markdown(
             """
@@ -19,7 +19,7 @@ def ui_homepage():
                 """
                 ## Getting Started
                 """
-            )            
+            )
             ui.button(
                 "Check out the Documentation",
                 on_click=lambda: ui.open("https://odtp-org.github.io/odtp-manuals/"),
@@ -30,8 +30,8 @@ def ui_homepage():
                 """
                 ## Connection checks
                 """
-            )            
-            checks.ui_checks()   
+            )
+            checks.ui_checks()
     with ui.grid(columns=2).classes("w-full"):
         with ui.column().classes("w-full"):
             ui.markdown(
@@ -60,12 +60,12 @@ def ui_homepage():
                 graph TB;
                     CA0[Component A]
                     CB0[Component B]
-                    CC0[Component C]             
+                    CC0[Component C]
                     subgraph WT[Execution of a Digital Twin]
                         direction LR
                         CA0 --> CB0
                         CB0 --> CC0
-                    end          
+                    end
                 """
             ).classes("w-full")
         with ui.column().classes("w-full"):
@@ -85,6 +85,6 @@ def ui_homepage():
                 graph TB;
                     CA0[Component A]
                     CB0[Component B]
-                    CC0[Component C]             
+                    CC0[Component C]
                 """
             ).classes("w-full")

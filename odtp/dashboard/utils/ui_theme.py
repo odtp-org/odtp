@@ -1,17 +1,14 @@
-import json
 from contextlib import contextmanager
 
-from nicegui import app, ui
+from nicegui import ui
 
 import odtp.dashboard.utils.helpers as helpers
-import odtp.dashboard.utils.storage as storage
-import odtp.helpers.utils as odtp_utils
-import odtp.mongodb.db as db
 
 PATH_ABOUT = "/"
 PATH_USERS = "/users"
 PATH_DIGITAL_TWINS = "/digital-twins"
 PATH_COMPONENTS = "/components"
+PATH_WORKFLOWS = "/workflows"
 PATH_EXECUTIONS = "/executions"
 PATH_RUN = "/run"
 
@@ -25,6 +22,7 @@ def menu() -> None:
     ui.link("About", PATH_ABOUT).classes(replace="text-white")
     ui.link("Users", PATH_USERS).classes(replace="text-white")
     ui.link("Components", PATH_COMPONENTS).classes(replace="text-white")
+    ui.link("Workflows", PATH_WORKFLOWS).classes(replace="text-white")
     ui.link("Digital Twins", PATH_DIGITAL_TWINS).classes(replace="text-white")
     ui.link("Executions", PATH_EXECUTIONS).classes(replace="text-white")
 

@@ -1,0 +1,15 @@
+run.py run_component
+- docker run --rm -it --name 0_odtp-component-example_v0.1.7 
+--network odtp_odtp-network 
+--gpus all 
+--volume /Users/smaennel/WORK/ODTP/odtp/docker-compose/digital-twins/dt-example-3/0_odtp-component-example_v0.1.7/odtp-input:/odtp/odtp-input 
+--volume /Users/smaennel/WORK/ODTP/odtp/docker-compose/digital-twins/dt-example-3/0_odtp-component-example_v0.1.7/odtp-logs:/odtp/odtp-logs 
+--volume /Users/smaennel/WORK/ODTP/odtp/docker-compose/digital-twins/dt-example-3/0_odtp-component-example_v0.1.7/odtp-output:/odtp/odtp-output 
+-e "HF_DATASET=rotten_tomatoes" 
+-e "ODTP_STEP_ID=6763d85b8d7b5a663c8e0b35" 
+-e "ODTP_MONGO_SERVER=mongodb://x:x@mongodb-instance:27017/" 
+-e "ODTP_S3_SERVER=http://minio-instance:9000" 
+-e "ODTP_BUCKET_NAME=odtp" 
+-e "ODTP_ACCESS_KEY=x" 
+-e "ODTP_SECRET_KEY=x"   
+odtp-component-example:v0.1.7
