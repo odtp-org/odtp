@@ -223,7 +223,7 @@ class DockerManager:
 
         docker_run_command = ["docker", "run", "--rm", "-it", "--name", container_name,
                               "--network", "odtp_odtp-network",
-                              "--gpus", "all",
+                              #"--gpus", "all",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
                               "--volume", f"{os.path.abspath(self.log_volume)}:/odtp/odtp-logs",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
@@ -237,6 +237,8 @@ class DockerManager:
                 command_string_log_safe = command_string_log_safe.replace(value, "x")
 
         log.info(command_string_log_safe)
+        log.info("==========")
+        log.info(command_string)
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         output, error = process.communicate()
