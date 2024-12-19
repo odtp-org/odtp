@@ -39,7 +39,6 @@ def content() -> None:
             current_execution=current_execution,
             workdir=workdir,
         )
-        pprint(current_execution)
         #ui_stepper(
         #    dialog,
         #    result,

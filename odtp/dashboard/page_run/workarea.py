@@ -61,13 +61,8 @@ def ui_workarea_layout(current_user, workdir, current_execution, current_digital
                 - **user**: {current_user.get("display_name")}
                 - **digital twin**: {current_digital_twin.get("name")}
                 - **current execution**: {current_execution.get("title")}
-                - **secret files**: {secret_files}
-                - **work directory**: {workdir}
-                - **project directory**: {project_path_display}
                 """
             )
-            rh.ui_display_folder_status(folder_status)
-            rh.ui_display_secrets(secret_files)
         with ui.column():
             if current_execution:
                 ui.markdown(
@@ -79,4 +74,4 @@ def ui_workarea_layout(current_user, workdir, current_execution, current_digital
                     "Manage Executions",
                     on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
                     icon="link",
-                )
+                ).props("flat no caps")

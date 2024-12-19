@@ -257,14 +257,7 @@ class ExecutionForm(object):
 
     def db_add_execution(self):
         """add execution"""
-        print("-------- before save")
         port_mappings_db = self.prepare_port_mappings_for_db()
-        pprint(self.port_mappings)
-        pprint(port_mappings_db)
-        print(self.workflow_id)
-        print(self.digital_twin_id)
-        print(self.title)
-        print(self.workflow.get("versions"))
         execution_id = db.add_execution(
             dt_id=self.digital_twin_id,
             workflow_id=self.workflow_id,

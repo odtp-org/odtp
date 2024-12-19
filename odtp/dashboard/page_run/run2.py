@@ -28,12 +28,13 @@ class ExecutionRunForm:
         self.execution_path = None
         self.dialog = dialog
         self.result = result
+        self.folder_status = None
         self.get_execution()
+        self.check_folder_status()
         self.build_form()
 
     def get_execution(self):
         self.execution = helpers.build_execution_with_steps(self.execution_id)
-        pprint(self.execution)
         if self.execution.get("execution_path"):
             self.execution_path = self.execution.get("execution_path")
         self.ui_execution_info.refresh()
@@ -60,6 +61,9 @@ class ExecutionRunForm:
             icon="add",
         ).props("flat ")
 
+    def check_folder_status(self):
+        self.folder_status = rh.get_folder_status(self.execution_id, self.execution_path)
+
     def create_folder(self, folder_name_input):
         if self.execution_path:
             return
@@ -84,75 +88,115 @@ class ExecutionRunForm:
         self.ui_add_project_path.refresh()
 
     @ui.refreshable
-    def ui_prepare_execution(self):
-        if not self.execution:
+    def ui_show_project_folder(self):
+        if not self.execution_path:
             return
-        ui.button(
-            "Prepare and Run Executions",
-            on_click=lambda: ui.open(ui_theme.PATH_RUN),
-            icon="link",
-        )
-
-    @ui.refreshable
-    def ui_run_execution(self):
-        if not self.execution:
-            return
-        ui.button(
-            "Prepare and Run Executions",
-            on_click=lambda: ui.open(ui_theme.PATH_RUN),
-            icon="link",
-        )
-
-    @ui.refreshable
-    def ui_check_logs(self):
-        if not self.execution:
-            return
-        ui.button(
-            "Prepare and Run Executions",
-            on_click=lambda: ui.open(ui_theme.PATH_RUN),
-            icon="link",
-        )
+        with ui.row().classes("w-full"):
+            cli_tree_command = f"tree {self.execution_path}"
+            with ui.grid(columns=1):
+                #with ui.row().classes("w-full"):
+                #    ui.label(cli_tree_command).classes("font-mono w-full")
+                with ui.row().classes("w-full"):
+                    ui.button(
+                        "Show execution path",
+                        on_click=lambda: self.run_command(cli_tree_command),
+                        icon="folder",
+                    ).props("flat")
 
     @ui.refreshable
     def ui_execution_info(self):
         if not self.execution_id:
             return
-        ui.label(f"Run for execution {self.execution_id}")
-        ui.label(f"created: {self.execution['createdAt']}"),
-        ui.label(f"inputs: {self.execution['inputs']}"),
-        ui.label(f"outputs: {self.execution['outputs']}"),
-        ui.label(f"ports: {self.execution['ports']}"),
-        ui.label(f"steps: {self.execution['steps']}"),
-        ui.label(f"version_tags: {self.execution['version_tags']}"),
-        ui.label(f"versions: {self.execution['versions']}"),
-        ui.label(f"path: {self.execution.get('execution_path')}"),
+        with ui.expansion("execution info", icon="info"):
+            ui.label(f"Run for execution {self.execution_id}")
+            ui.label(f"created: {self.execution['createdAt']}")
+            ui.label(f"inputs: {self.execution['inputs']}")
+            ui.label(f"outputs: {self.execution['outputs']}")
+            ui.label(f"ports: {self.execution['ports']}")
+            ui.label(f"steps: {self.execution['steps']}")
+            ui.label(f"version_tags: {self.execution['version_tags']}")
+            ui.label(f"versions: {self.execution['versions']}")
+            ui.label(f"path: {self.execution.get('execution_path')}")
 
     @ui.refreshable
     def build_form(self):
         """render form elements"""
         self.ui_execution_info()
         self.ui_add_project_path()
+        self.ui_display_folder_status()
         self.ui_prepare_execution()
+        self.ui_show_project_folder()
         self.ui_run_execution()
 
     def ui_prepare_execution(self):
         if not self.execution_path:
             return
+        if self.folder_status == rh.FOLDER_PREPARED:
+            return
         with ui.row().classes("w-full"):
-                cli_prepare_command = rh.build_cli_command(
-                    cmd="prepare",
-                    execution_id=self.execution_id,
-                    project_path=self.execution_path,
-                )
-                with ui.grid(columns=1):
-                    with ui.row().classes("w-full"):
-                        ui.label(cli_prepare_command).classes("font-mono w-full")
-                    with ui.row().classes("w-full"):
-                        ui.button(
-                            "Prepare execution",
-                            on_click=lambda: self.run_command(cli_prepare_command),
-                            icon="folder",
-                        ).props("no-caps")
+            cli_prepare_command = rh.build_cli_command(
+                cmd="prepare",
+                execution_id=self.execution_id,
+                project_path=self.execution_path,
+            )
+            with ui.grid(columns=1):
+                #with ui.row().classes("w-full"):
+                #    ui.label(cli_prepare_command).classes("font-mono w-full")
+                with ui.row().classes("w-full"):
+                    ui.button(
+                        "Prepare execution",
+                        on_click=lambda: self.run_command(cli_prepare_command),
+                        icon="folder",
+                    ).props("no-caps")
+
+
+    def ui_run_execution(self):
+        if not self.execution_path:
+            return
+        if self.folder_status != rh.FOLDER_PREPARED:
+            return
+        with ui.row().classes("w-full"):
+            cli_run_command = rh.build_cli_command(
+                cmd="run",
+                execution_id=self.execution_id,
+                project_path=self.execution_path,
+            )
+            with ui.grid(columns=1):
+                with ui.row().classes("w-full"):
+                    ui.label(cli_run_command).classes("font-mono w-full")
+                with ui.row().classes("w-full"):
+                    ui.button(
+                        "Run execution",
+                        on_click=lambda: self.run_command(cli_run_command),
+                        icon="folder",
+                    ).props("no-caps")
+
+    @ui.refreshable
+    def ui_display_folder_status(self):
+        if not self.execution_path:
+            return
+        with ui.grid(columns='1fr 7fr'):
+            if self.folder_status == rh.FOLDER_EMPTY:
+                ui.icon("check").classes("text-teal text-lg")
+                ui.label("Project folder for the execution run has been selected").classes("text-teal")
+            elif self.folder_status == rh.FOLDER_NOT_SET:
+                ui.icon("clear").classes("text-red text-lg")
+                ui.label("Project folder missing: please select one").classes("text-red")
+            elif self.folder_status == rh.FOLDER_DOES_NOT_MATCH:
+                ui.icon("clear").classes("text-red text-lg")
+                ui.label("The project folder structure does not match the steps of the execution: choose an empty project folder or create a new project folder").classes("text-red")
+            elif self.folder_status == rh.FOLDER_PREPARED:
+                ui.icon("check").classes("text-teal text-lg")
+                ui.label("Project folder for the execution run has been selected").classes("text-teal")
+                ui.icon("check").classes("text-teal text-lg")
+                ui.label("The execution has been prepared").classes("text-teal")
+            elif self.folder_status == rh.FOLDER_HAS_OUTPUT:
+                ui.icon("check").classes("text-teal text-lg")
+                ui.label("Project folder for the execution run has been selected").classes("text-teal")
+                ui.icon("check").classes("text-teal text-lg")
+                ui.label("The execution has been prepared").classes("text-teal")
+                ui.icon("check").classes("text-teal text-lg")
+                ui.label("The execution has been run").classes("text-teal")
 
     async def run_command(self, command: str):
         try:
@@ -175,3 +219,6 @@ class ExecutionRunForm:
                 self.result.content = f"```\n{output}\n```"
         except Exception as e:
             print(f"run command failed with Exception {e}")
+        else:
+            self.check_folder_status()
+            self.ui_display_folder_status.refresh()

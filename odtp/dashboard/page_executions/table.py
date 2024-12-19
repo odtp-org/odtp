@@ -17,7 +17,6 @@ class ExecutionTable:
             item_id=digital_twin_id,
             ref_name=db.collection_executions,
         )
-        pprint(self.executions)
         if not self.executions:
             ui.label("No components yet").classes("text-red-500")
             return

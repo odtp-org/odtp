@@ -144,11 +144,13 @@ class WorkflowManager:
 
                 # Extract the contents of the output.zip file into the actual_input_path
                 if output_zip_path:
-                    log.info(f"output found at {output_zip_path}")
-                    with zipfile.ZipFile(output_zip_path, 'r') as zip_ref:
-                        zip_ref.extractall(actual_input_path)
-                else:
-                    log.info(f"no output found from step {step_index-1}. Did it run with success?")
+                    try:
+                        log.info(f"output found at {output_zip_path}")
+                        with zipfile.ZipFile(output_zip_path, 'r') as zip_ref:
+                            zip_ref.extractall(actual_input_path)
+                    except Exception as e:
+                        log.error(e)
+                        log.info(f"no output found from step {step_index-1}. Did it run with success?")
 
                 # List the contents of the actual_input_path directory
                 contents = os.listdir(actual_input_path)
