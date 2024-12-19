@@ -20,7 +20,7 @@ def ui_workarea_form(user, workdir):
         with ui.row().classes("w-full"):
             ui.markdown(
                 """
-                # Manage Users 
+                # Manage Users
                 """
             )
         if not user:
@@ -31,7 +31,7 @@ def ui_workarea_form(user, workdir):
                     f"""
                     #### Current Selection
                     - **user**: {user_name}
-                    - **work directory**: {workdir}              
+                    - **work directory**: {workdir}
                     """
                 )
             with ui.column():

@@ -23,9 +23,20 @@ class ExecutionDisplay:
         )
 
     @ui.refreshable
+    def ui_run_execution(self):
+        if not self.execution_id:
+            return
+        ui.button(
+            "Prepare and Run Executions",
+            on_click=lambda: ui.open(ui_theme.PATH_RUN),
+            icon="link",
+        )
+
+    @ui.refreshable
     def build_form(self):
         """render form elements"""
         self.ui_execution_select()
+        self.ui_run_execution()
         self.ui_execution_info()
 
     @ui.refreshable
@@ -46,6 +57,7 @@ class ExecutionDisplay:
             document_id=self.execution_id, collection=db.collection_executions
         )
         self.ui_execution_info.refresh()
+        self.ui_run_execution.refresh()
 
     @ui.refreshable
     def ui_execution_info(self):

@@ -51,7 +51,7 @@ class ExecutionTable:
             with ui.row().classes("w-full"):
                 ui.select(
                     workflow_options,
-                    on_change=lambda e: self.filter_components(str(e.value)),
+                    on_change=lambda e: self.filter_workflows(str(e.value)),
                     label="workflows",
                     with_input=True,
                 ).classes("w-1/2")
@@ -73,9 +73,11 @@ class ExecutionTable:
     def add_header(self):
         headers = [
             "Select",
+            "Title",
             "Id",
             "Created At",
-            "Executed at",
+            "Started at",
+            "Ended at",
             "deprecated",
         ]
         with ui.row().classes("w-full bg-gray-200 p-2 border-b grid grid-cols-10 gap-4"):
@@ -97,13 +99,17 @@ class ExecutionTable:
                 ui.checkbox(
                     on_change=lambda e, execution_id=execution["_id"]: self.toggle_selection(e.value, execution_id)
                 )
-                #ui.label(execution['component']['componentName']).classes("truncate")
-                #ui.label(execution['component_version']).classes("truncate")
-                #ui.link(execution['component']['repoLink'], execution['component']['repoLink']).classes("truncate")
-                #ui.label(execution['commitHash'][:8]).classes("text-center truncate")
-                #ui.label(execution['component'].get("type") or execution.get("type")).classes("text-center truncate")
+                ui.label(execution['title']).classes("text-center truncate")
                 ui.label(str(execution['_id'])).classes("text-center truncate")
                 ui.label(execution['createdAt'].strftime('%Y-%m-%d')).classes("text-center truncate")
+                if execution.get('start_timestamp'):
+                    ui.label(execution['start_timestamp'].strftime('%Y-%m-%d')).classes("text-center truncate")
+                else:
+                    ui.label("not run")
+                if execution.get('end_timestamp'):
+                    ui.label(execution['end_timestamp'].strftime('%Y-%m-%d')).classes("text-center truncate")
+                else:
+                    ui.label("not ended")
                 ui.label(self.get_deprecated_display(execution["deprecated"])).classes("truncate")
 
     def toggle_selection(self, selected, execution_id):
@@ -115,7 +121,7 @@ class ExecutionTable:
             self.selected_execution_ids.remove(execution_id)
 
     def filter_workflows(self, workflow_id):
-        """filter by component"""
+        """filter by workflow"""
         self.workflow_id = workflow_id
         self.rebuild_rows()
 
@@ -138,7 +144,7 @@ class ExecutionTable:
         if self.workflow_id:
             self.filtered_executions = [
                 execution for execution in self.executions
-                if str(execution["workflow_id"]) == self.execution_id
+                if str(execution["workflow"]) == self.workflow_id
             ]
         if not self.show_deprecated:
             self.filtered_executions = [

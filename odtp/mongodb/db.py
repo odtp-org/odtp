@@ -368,6 +368,7 @@ def add_execution(
             execution = {
                 "title": name,
                 "description": "Description for Execution",
+                "deprecated": False,
                 "tags": ["tag1", "tag2"],
                 "workflow": workflow_id,
                 "workflowSchema": {

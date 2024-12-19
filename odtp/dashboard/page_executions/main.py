@@ -48,15 +48,15 @@ def parse_key_value_pairs(text: str) -> dict:
 def ui_tabs(current_digital_twin, workdir):
     try:
         with ui.tabs() as tabs:
-            table = ui.tab("Manage execution")
+            manage = ui.tab("Manage execution")
             select = ui.tab("Execution Details")
             add = ui.tab("Add an execution")
-        with ui.tab_panels(tabs, value=select).classes("w-full") as panels:
+        with ui.tab_panels(tabs, value=manage).classes("w-full") as panels:
             with ui.tab_panel(select):
                 ui_execution_select(current_digital_twin)
             with ui.tab_panel(add):
                 ui_add_execution(current_digital_twin)
-            with ui.tab_panel(table):
+            with ui.tab_panel(manage):
                 ui_executions_table(current_digital_twin)
     except Exception as e:
         log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
