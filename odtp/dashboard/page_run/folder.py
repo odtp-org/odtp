@@ -66,7 +66,7 @@ async def pick_folder(workdir, current_run) -> None:
     except Exception as e:
         log.exception(f"An exception {e} occurred when picking a parameter file.")
     else:
-        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper    
+        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper
         ui_workarea.refresh()
         ui_stepper.refresh()
 
@@ -91,7 +91,7 @@ def create_folder(workdir, folder_name_input, current_run):
         ui.notify(
             f"project directory {project_path} has been created and set as project directory",
             type="positive",
-        )        
+        )
     except Exception as e:
         ui.notify(
             f"The project directory could not be created: {workdir} {folder_name} an exception occurred: {e}",
@@ -99,6 +99,6 @@ def create_folder(workdir, folder_name_input, current_run):
         )
         log.exception(f"The project directory could not be created: {workdir} {folder_name} an exception occurred: {e}")
     else:
-        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper    
+        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper
         ui_workarea.refresh()
         ui_stepper.refresh()

@@ -102,12 +102,12 @@ class DockerManager:
         logging.info(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
         client = docker.from_env()
         images = client.images.list(name=self.docker_image_name)
-        logging.info(f"Images found: {images}") 
+        logging.info(f"Images found: {images}")
 
         if len(images) > 0:
             return True
         else:
-            return False   
+            return False
 
     def _download_repo(self):
         """
@@ -120,16 +120,16 @@ class DockerManager:
         git_clone_command = [
             "git",
              "clone",
-             self.repo_url, 
+             self.repo_url,
              self.repository_path,
         ]
         log.info(" ".join(git_clone_command))
         subprocess.run(git_clone_command)
         git_checkout_command = [
             "git",
-             "-C", 
+             "-C",
              self.repository_path,
-             "checkout", 
+             "checkout",
              self.commit_hash,
         ]
         log.info(" ".join(git_checkout_command))
@@ -159,7 +159,7 @@ class DockerManager:
     def _pull_image(self):
         """
         Pull a Docker image from a Docker registry.
-    
+
         Args:
             image_name (str): The name of the Docker image to pull.
         """
@@ -175,7 +175,7 @@ class DockerManager:
         log.info(f"VALIDATION: Checking if Docker image exists: {self.docker_image_name}")
         image_exists = subprocess.run(['docker', 'image', 'inspect', self.docker_image_name])
         if not image_exists:
-            raise OdtpRunSetupException(f"docker image {self.docker_image_name} does not exist" )   
+            raise OdtpRunSetupException(f"docker image {self.docker_image_name} does not exist" )
 
     def _create_volume(self, volume_name):
         """
@@ -186,7 +186,7 @@ class DockerManager:
         """
         log.info(f"RUN: Creating Docker volume {volume_name}")
         subprocess.run(["docker", "volume", "create", volume_name])
-        
+
     def run_component(self, parameters, secrets, ports, container_name, step_id=None):
         """
         Run a Docker component with the specified parameters.
@@ -200,7 +200,7 @@ class DockerManager:
             str: The ID of the Docker run.
         """
         log.info(f"RUN: Running ODTP component. Repo: {self.repo_url}, Image name: {self.docker_image_name}, Container Name: {container_name}")
-        
+
         if step_id:
             parameters["ODTP_STEP_ID"] = step_id
         parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
@@ -240,7 +240,7 @@ class DockerManager:
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         output, error = process.communicate()
-        
+
         if process.returncode != 0:
             log.exception(f"Failed to run Docker component {container_name}: {error.decode()}")
             return None
@@ -290,7 +290,7 @@ class DockerManager:
             return None
         else:
             return f"Docker component {container_name} has been deleted."
-        
+
     def delete_image(self):
         """
         Delete a Docker image.

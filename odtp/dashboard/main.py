@@ -38,7 +38,7 @@ def components():
 @ui.page("/run")
 def components():
     with ui_theme.frame("Run"):
-        workflows_page()
+        run_page()
 
 
 @ui.page("/digital-twins")

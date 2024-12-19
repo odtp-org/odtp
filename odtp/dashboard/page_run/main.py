@@ -1,11 +1,13 @@
 import logging
 from nicegui import ui
+from pprint import pprint
 
 import odtp.dashboard.utils.storage as storage
 from odtp.helpers.settings import ODTP_DASHBOARD_JSON_EDITOR
 import odtp.dashboard.page_run.helpers as rh
 import odtp.dashboard.page_run.secrets as secrets
 import odtp.dashboard.page_run.run as run
+import odtp.dashboard.page_run.run2 as run2
 import odtp.dashboard.page_run.folder as folder
 import odtp.dashboard.page_run.workarea as workarea
 
@@ -37,11 +39,16 @@ def content() -> None:
             current_execution=current_execution,
             workdir=workdir,
         )
-        ui_stepper(
-            dialog,
-            result,
-            current_run=current_run,
-            workdir=workdir,
+        pprint(current_execution)
+        #ui_stepper(
+        #    dialog,
+        #    result,
+        #    current_run=current_run,
+        #    workdir=workdir,
+        #)
+        run2.ExecutionRunForm(
+            digital_twin_id=current_digital_twin["digital_twin_id"],
+            execution_id=current_execution["execution_id"],
         )
     except Exception as e:
         log.exception(f"Page could not be loaded: an Exception {e} occurred")
@@ -54,7 +61,7 @@ def ui_workarea(current_user, current_digital_twin, current_execution, workdir):
             current_user=current_user,
             current_digital_twin=current_digital_twin,
             current_execution=current_execution,
-            workdir=workdir,        
+            workdir=workdir,
         )
     except Exception as e:
         log.exception(f"Workarea could not be loaded: an Exception {e} occurred")

@@ -450,7 +450,7 @@ def get_all_outputs_s3_keys(execution_id):
 
 def delete_execution(execution_id, debug=True):
     # DB
-    # Delete execution, steps, output, logs, 
+    # Delete execution, steps, output, logs,
     # Update: remove id from results, remove execution from dt
     execution_doc = get_document_by_id(execution_id, collection_executions)
     digital_twin_id = execution_doc["digitalTwinRef"]

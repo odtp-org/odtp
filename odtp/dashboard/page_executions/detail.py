@@ -1,7 +1,9 @@
-from nicegui import ui
+import json
+from nicegui import ui, app
 import odtp.mongodb.db as db
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.ui_theme as ui_theme
+import odtp.dashboard.utils.storage as storage
 
 
 from nicegui import ui
@@ -33,10 +35,27 @@ class ExecutionDisplay:
         )
 
     @ui.refreshable
+    def ui_reset_execution(self):
+        if not self.execution_id:
+            return
+        ui.button(
+            "Reset execution selection",
+            on_click=lambda e: self.reset_execution(),
+            icon="link",
+        ).props("flat")
+
+    def reset_execution(self):
+        storage.reset_storage_delete([storage.CURRENT_EXECUTION])
+        self.execution_id = None
+        self.execution = None
+        self.build_form.refresh()
+
+    @ui.refreshable
     def build_form(self):
         """render form elements"""
         self.ui_execution_select()
         self.ui_run_execution()
+        self.ui_reset_execution()
         self.ui_execution_info()
 
     @ui.refreshable
@@ -56,6 +75,9 @@ class ExecutionDisplay:
         self.component = db.get_document_by_id(
             document_id=self.execution_id, collection=db.collection_executions
         )
+        execution = helpers.build_execution_with_steps(execution_id)
+        current_execution_as_json = json.dumps(execution)
+        app.storage.user[storage.CURRENT_EXECUTION] = current_execution_as_json
         self.ui_execution_info.refresh()
         self.ui_run_execution.refresh()
 
@@ -64,7 +86,6 @@ class ExecutionDisplay:
         """ui execution"""
         if not self.execution_id:
             return
-        ui.label(self.execution_id)
         execution = helpers.build_execution_with_steps(self.execution_id)
         execution_title = execution.get("title")
         version_tags = execution.get("version_tags")

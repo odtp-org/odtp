@@ -45,12 +45,12 @@ def ui_add_secrets_form(current_run, workdir):
                     - **file path**: {secret_file}
                     """
                     )
-    with ui.row().classes("w-full"):                
+    with ui.row().classes("w-full"):
         ui.button(
             f"Reset secrets files",
             on_click=lambda: remove_secrets_files(current_run),
             icon="clear",
-        ).props("flat")                    
+        ).props("flat")
     rh.ui_next_back(current_run, ready_for_next=True)
 
 
@@ -88,8 +88,8 @@ def remove_secrets_files(current_run) -> None:
         app.storage.user[storage.EXECUTION_RUN] = json.dumps(current_run)
         ui.notify("The secrets files have been removed", type="positive")
     except Exception as e:
-        log.exception(f"removing secret files failed with Exception {e}")        
+        log.exception(f"removing secret files failed with Exception {e}")
     else:
-        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper      
+        from odtp.dashboard.page_run.main import ui_workarea, ui_stepper
         ui_stepper.refresh()
         ui_workarea.refresh()

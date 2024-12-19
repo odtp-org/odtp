@@ -38,9 +38,9 @@ def content() -> None:
 def parse_key_value_pairs(text: str) -> dict:
     parameters = {}
     for line in text.splitlines():
-        line = line.strip()  # Remove whitespace around the line
-        if line and "=" in line:  # Check if the line is non-empty and contains '='
-            key, value = map(str.strip, line.split('=', 1))  # Split and strip key-value
+        line = line.strip()
+        if line and "=" in line:
+            key, value = map(str.strip, line.split('=', 1))
             parameters[key] = value
     return parameters
 

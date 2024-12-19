@@ -80,4 +80,3 @@ def ui_workarea_layout(current_user, workdir, current_execution, current_digital
                     on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
                     icon="link",
                 )
-  
