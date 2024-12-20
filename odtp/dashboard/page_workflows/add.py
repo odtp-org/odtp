@@ -42,13 +42,14 @@ class WorkflowForm(object):
         )
         select_options = {}
         for version in component_versions:
-            version_display_name = helpers.get_execution_step_display_name(
-                component_name=version["component"]["componentName"],
-                component_version=version["component_version"],
-            )
-            select_options[(str(version["_id"]), version_display_name)] = (
-                f"{version_display_name}"
-            )
+            if not version.get("deprecated", False):
+                version_display_name = helpers.get_execution_step_display_name(
+                    component_name=version["component"]["componentName"],
+                    component_version=version["component_version"],
+                )
+                select_options[(str(version["_id"]), version_display_name)] = (
+                    f"{version_display_name}"
+                )
         self.select_options = select_options
 
     @ui.refreshable
