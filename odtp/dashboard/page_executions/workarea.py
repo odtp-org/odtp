@@ -49,19 +49,6 @@ def ui_workarea_form(current_digital_twin, current_user, workdir, components, cu
                 #### Current Selection
                 - **user**: {current_user.get("display_name")}
                 - **digital twin**: {current_digital_twin.get("name")}
-                - **current execution**: {execution_title}
                 - **work directory**: {workdir}
                 """
             )
-        with ui.column():
-            if current_execution:
-                ui.markdown(
-                    f"""
-                    #### Actions
-                    """
-                )
-                ui.button(
-                    "Prepare and Run Executions",
-                    on_click=lambda: ui.open(ui_theme.PATH_RUN),
-                    icon="link",
-                )
