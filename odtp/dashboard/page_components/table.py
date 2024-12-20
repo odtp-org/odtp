@@ -47,6 +47,7 @@ class VersionTable:
                     label="component",
                     with_input=True,
                 ).classes("w-1/2")
+            with ui.row().classes("w-full"):
                 ui.checkbox(
                     "Show deprecated",
                     on_change=lambda e: self.filter_deprecated(e.value)
@@ -57,9 +58,14 @@ class VersionTable:
                     icon="clear",
                 ).props("flat").classes("w-1/8")
                 ui.button(
-                    "delete_selected",
-                    on_click=lambda: self.delete_selected(),
+                    "Deprecate selected",
+                    on_click=lambda: self.deprecate_selected(),
                     icon="clear",
+                ).props("flat").classes("w-1/8")
+                ui.button(
+                    "Activate selected",
+                    on_click=lambda: self.activate_selected(),
+                    icon="add",
                 ).props("flat").classes("w-1/8")
 
     def add_header(self):
@@ -72,7 +78,6 @@ class VersionTable:
             "Type",
             "Created At",
             "ODTP Version",
-            "deprecated",
         ]
         with ui.row().classes("w-full bg-gray-200 p-2 border-b grid grid-cols-10 gap-4"):
             for header in headers:
@@ -89,18 +94,21 @@ class VersionTable:
         """set the table rows"""
         self.version_rows.clear()
         for version in self.filtered_versions:
+            if version.get("deprecated"):
+                color = "text-gray-500"
+            else:
+                color = ""
             with ui.row().classes("w-full p-2 border grid grid-cols-10 gap-4 items-center"):
                 ui.checkbox(
                     on_change=lambda e, version_id=version["_id"]: self.toggle_selection(e.value, version_id)
                 )
-                ui.label(version['component']['componentName']).classes("truncate")
-                ui.label(version['component_version']).classes("truncate")
-                ui.link(version['component']['repoLink'], version['component']['repoLink']).classes("truncate")
-                ui.label(version['commitHash'][:8]).classes("text-center truncate")
-                ui.label(version['component'].get("type") or version.get("type")).classes("text-center truncate")
-                ui.label(version['created_at'].strftime('%Y-%m-%d')).classes("text-center truncate")
-                ui.label(version['odtp_version']).classes("text-center truncate")
-                ui.label(self.get_deprecated_display(version["deprecated"])).classes("truncate")
+                ui.label(version['component']['componentName']).classes(f"truncate {color}")
+                ui.label(version['component_version']).classes(f"truncate {color}")
+                ui.link(version['component']['repoLink'], version['component']['repoLink']).classes(f"truncate {color}")
+                ui.label(version['commitHash'][:8]).classes(f"text-center truncate {color}")
+                ui.label(version['component'].get("type") or version.get("type")).classes(f"text-center truncate {color}")
+                ui.label(version['created_at'].strftime('%Y-%m-%d')).classes(f"text-center truncate {color}")
+                ui.label(version['odtp_version']).classes(f"text-center truncate {color}")
 
     def toggle_selection(self, selected, version_id):
         """toggle select for delete of versions"""
@@ -143,11 +151,21 @@ class VersionTable:
             ]
         self.add_rows.refresh()
 
-    def delete_selected(self):
-        """delete selected versions"""
-        db.delete_component_version_safe(self.selected_version_ids)
+    def deprecate_selected(self):
+        """deprecate selected versions"""
+        db.deprecate_documents_by_ids_in_collection(self.selected_version_ids, db.collection_versions)
         ui.notify(
-            f"The selected {len(self.selected_version_ids)} component versions have been deprecated/deleted.",
+            f"The selected {len(self.selected_version_ids)} component versions have been deprecated.",
+            type="positive"
+        )
+        from odtp.dashboard.page_components.main import ui_components_list
+        ui_components_list.refresh()
+
+    def activate_selected(self):
+        """activate selected versions"""
+        db.activate_documents_by_ids_in_collection(self.selected_version_ids, db.collection_versions)
+        ui.notify(
+            f"The selected {len(self.selected_version_ids)} component versions have been activated.",
             type="positive"
         )
         from odtp.dashboard.page_components.main import ui_components_list
