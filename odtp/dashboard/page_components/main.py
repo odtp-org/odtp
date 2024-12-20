@@ -1,6 +1,6 @@
 import logging
 
-from nicegui import app, ui
+from nicegui import ui
 
 import odtp.dashboard.page_components.table as table
 import odtp.dashboard.page_components.add as add
