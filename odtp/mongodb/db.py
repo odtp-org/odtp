@@ -114,6 +114,16 @@ def deprecate_documents_by_ids_in_collection(document_ids, collection):
         return result.modified_count
 
 
+def activate_documents_by_ids_in_collection(document_ids, collection):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        result = db[collection].update_many(
+            {"_id": {"$in": [ObjectId(id) for id in document_ids]}},
+            {"$set": {"deprecated": False}}
+        )
+        return result.modified_count        
+
+
 def get_document_by_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]

@@ -1,194 +1,179 @@
-import json
-import logging
-
-from nicegui import app, ui
-
-import odtp.dashboard.utils.storage as storage
-import odtp.dashboard.utils.validators as validators
-
-
-import odtp.helpers.git as odtp_git
+from nicegui import ui
 import odtp.mongodb.db as db
-import odtp.mongodb.utils as db_utils
+import odtp.helpers.git as git_helpers
 
 
-log = logging.getLogger(__name__)
+from nicegui import ui
 
+class ComponentVersionForm:
+    def __init__(self):
+        self.add_new_component = False
+        self.init_component()
+        self.build_form()
 
-def ui_form_component_add_step1():
-    ui.markdown(
-        """
-        #### Add new Component
-        """
-    )
-    repo_link_input = (
+    def init_component(self):
+        self.repo_info = None
+        self.parse_error = None
+        self.repo_url = None
+        self.add_new_component = False
+        self.component_id = None
+        self.version_options = []
+        self.component_version = None
+        self.metadata = None
+
+    @ui.refreshable
+    def build_form(self):
+        """render form elements"""
+        self.ui_component_or_version_switch()
+        self.ui_component_select_form()
+        self.ui_new_component_form()
+        self.ui_version_select()
+        self.ui_metadata()
+        self.ui_parse_error()
+        self.ui_add_component_version_button()
+
+    @ui.refreshable
+    def ui_component_or_version_switch(self):
+        with ui.row().classes("w-full items-center"):
+            ui.label("Add new version of existing component")
+            ui.switch(
+                "Add new Component",
+                value=self.add_new_component,
+                on_change=lambda e: self.action_switch_form(e.value)
+            )
+
+    def action_switch_form(self, value):
+        self.init_component()
+        self.add_new_component = value
+        self.build_form.refresh()
+
+    @ui.refreshable
+    def ui_new_component_form(self):
+        if not self.add_new_component:
+            return
         ui.input(
             label="Enter Repository URL",
             placeholder="repo url",
-            validation=lambda value: validators.validate_github_repo(value),
-        )
-        .without_auto_validation()
-        .classes("w-1/2")
-    )
-    ui.button(
-        "Proceed to next step",
-        on_click=lambda: store_new_component(
-            repo_link_input=repo_link_input,
-        ),
-    )
+            on_change=lambda e: self.action_get_version_options_new_component(repository=e.value),
+        ).classes("w-1/2")
 
-
-def ui_form_component_add_step2(new_component_to_add):
-    with ui.row():
-        from odtp.dashboard.page_components.info import ui_git_info_show
-        ui_git_info_show(component=new_component_to_add)
-        with ui.column().classes("w-full"):
-            repo_info = new_component_to_add.get("repo_info")
-            ui.button(
-                "Cancel Component Entry",
-                on_click=lambda: cancel_component_entry(),
-            )
-            version_selector = {
-                (item["name"], item["commit"]): item["name"]
-                for item in new_component_to_add.get("repo_info").get("tagged_versions")
-            }
-            component_type_selector = {
-                db_utils.COMPONENT_TYPE_EPHERMAL: f"{db_utils.COMPONENT_TYPE_EPHERMAL}: components exits after run",
-                db_utils.COMPONENT_TYPE_PERSISTENT: f"{db_utils.COMPONENT_TYPE_PERSISTENT}: component keeps running",
-            }
-            component_name_input = ui.input(
-                value=repo_info.get("name"),
-                label="Component name",
-                placeholder="component name",
-                validation={
-                    f"A component name is required": lambda value: validators.validate_required_input(
-                        value
-                    )
-                },
-            ).classes("w-2/3")
-            component_type_input = ui.select(
-                label="component type",
-                options=component_type_selector,
-                validation={
-                    f"A component type nust be selected": lambda value: validators.validate_required_input(
-                        value
-                    )
-                },
-            ).classes("w-2/3")
-            component_version_input = ui.select(
-                label="component version",
-                options=version_selector,
-                validation={
-                    f"A version selection is required": lambda value: validators.validate_required_input(
-                        value
-                    )
-                },
-            ).classes("w-1/3")
-            with ui.row():
-                ports_inputs = []
-                for i in range(3):
-                    port_input = ui.input(
-                        label="Port",
-                        placeholder="8052",
-                        validation={
-                            f"This is not a valid port": lambda value: validators.validate_port_input(
-                                value
-                            )
-                        },
-                    ).classes("w-1/4")
-                    ports_inputs.append(port_input)
-            ui.button(
-                "Register component",
-                on_click=lambda: register_new_component(
-                    component_name_input=component_name_input,
-                    component_version_input=component_version_input,
-                    component_type_input=component_type_input,
-                    ports_inputs=ports_inputs,
-                    new_component=new_component_to_add,
-                ),
-            )
-
-
-def cancel_component_entry():
-    try:
-        storage.reset_storage_delete([storage.NEW_COMPONENT])
-    except Exception as e:
-        log.exception(f"Cancel of component entry failed {e}")
-    else:    
-        from odtp.dashboard.page_components.main import ui_component_add
-        ui_component_add.refresh()
-
-
-def store_new_component(repo_link_input):
-    if not repo_link_input.validate():
-        return
-    repo_link = repo_link_input.value
-    try:
-        latest_commit = odtp_git.check_commit_for_repo(repo_link)
-        repo_info = odtp_git.get_github_repo_info(repo_link)
-        add_component = {
-            "repo_link": repo_info.get("html_url"),
-            "latest_commit": latest_commit,
-            "repo_info": repo_info,
+    @ui.refreshable
+    def ui_component_select_form(self):
+        if self.add_new_component:
+            return
+        components = db.get_collection(db.collection_components)
+        self.component_options = {
+            str(component["_id"]): f"{component.get('componentName')}"
+            for component in components
         }
-        app.storage.user[storage.NEW_COMPONENT] = json.dumps(add_component)
-    except Exception as e:
-        log.exception(f"storage update for new component failed: {e}")
-    else:
-        from odtp.dashboard.page_components.main import ui_component_add
-        ui_component_add.refresh()
+        ui.select(
+            self.component_options,
+            on_change=lambda e: self.action_get_version_option_existing_component(component_id=e.value),
+            label="component",
+            with_input=True,
+        ).classes("w-1/2")
 
+    def action_get_version_options_new_component(self, repository):
+        self.init_component()
+        self.repo_info = git_helpers.get_github_repo_info(repository)
+        self.repo_url = self.repo_info["html_url"]
+        self.version_options = {
+            (item["name"], item["commit"]): item["name"]
+            for item in self.repo_info.get("tagged_versions")
+        }
+        self.ui_version_select.refresh()
+        self.ui_metadata.refresh()
+        self.ui_parse_error.refresh()
+        self.ui_add_component_version_button.refresh()
 
-def register_new_component(
-    component_name_input,
-    component_version_input,
-    component_type_input,
-    ports_inputs,
-    new_component,
-):
-    if (
-        not component_name_input.validate()
-        or not component_version_input.validate()
-        or not component_type_input.validate()
-    ):
-        ui.notify(
-            "Fill in the form correctly before you can add a new component",
-            type="negative",
+    def action_get_version_option_existing_component(self, component_id):
+        self.init_component()
+        if not component_id:
+            return
+        self.component_id = component_id
+        self.component = db.get_document_by_id(
+            document_id=component_id, collection=db.collection_components
         )
-        return
-    try:
-        ports = ports = [
-            port_input.value for port_input in ports_inputs if port_input.value
+        repository = self.component["repoLink"]
+        self.existing_versions = db.get_sub_collection_items(
+            collection=db.collection_components,
+            sub_collection=db.collection_versions,
+            item_id=self.component_id,
+            ref_name=db.collection_versions,
+        )
+        existing_component_versions = [
+            version["component_version"] for version in self.existing_versions
         ]
+        self.repo_info = git_helpers.get_github_repo_info(repository)
+        self.repo_url = self.repo_info["html_url"]
+        self.version_options = {
+            (item["name"], item["commit"]): item["name"]
+            for item in self.repo_info.get("tagged_versions")
+            if item["name"] not in existing_component_versions
+        }
+        self.ui_version_select.refresh()
+        self.ui_metadata.refresh()
+        self.ui_parse_error.refresh()
+        self.ui_add_component_version_button.refresh()
+
+    @ui.refreshable
+    def ui_version_select(self):
+        if not self.version_options:
+            return
+        ui.select(
+            label="component version",
+            options=self.version_options,
+            on_change=lambda e: self.action_parse_metadata(e.value),
+        ).classes("w-1/3")
+
+    def action_parse_metadata(self, version_tuple):
+        self.parse_error = None
+        self.component_version = version_tuple[0]
+        commit_hash = version_tuple[1]
+        try:
+             self.metadata = git_helpers.get_metadata_from_github(self.repo_info, commit_hash)
+        except Exception as e:
+            self.parse_error = e
+        self.ui_metadata.refresh()
+        self.ui_parse_error.refresh()
+
+    @ui.refreshable
+    def ui_parse_error(self):
+        if not self.parse_error:
+            return
+        with ui.row().classes("w-full"):
+            ui.icon("clear").classes("text-red text-lg")
+            ui.label("Metadata parsed from odtp.yml file:").classes("text-red")
+        ui.label(str(self.parse_error)).classes("text-red")
+
+    @ui.refreshable
+    def ui_metadata(self):
+        if not self.metadata:
+            return
+        with ui.row().classes("w-full"):
+            ui.icon("check").classes("text-teal text-lg")
+            ui.label("Metadata parsed from odtp.yml file").classes("text-teal")
+        self.ui_add_component_version_button.refresh()
+
+    @ui.refreshable
+    def ui_add_component_version_button(self):
+        if not self.component_version:
+            return
+        ui.button(
+            "add version",
+            icon="add",
+            on_click=lambda: self.action_db_save_component_version()
+        )
+
+    def action_db_save_component_version(self):
+        """add component version"""
         component_id, version_id = db.add_component_version(
-            component_name=component_name_input.value,
-            repo_info=new_component.get("repo_info"),
-            component_version=component_version_input.value[0],
-            type=component_type_input.value,
-            ports=ports,
+            repository=self.repo_url,
+            component_version=self.component_version
         )
         ui.notify(
             f"Component version {component_id} / {version_id} has been added",
             type="positive",
         )
-    except Exception as e:
-        ui.notify(
-            f"The component and version could not be added. An Exception occurred: {e}",
-            type="negative",
-        )
-        log.exception(
-            f"The component and version {component_name_input} {component_version_input} could not be added. An Exception occurred: {e}"
-        )
-    else:
-        storage.reset_storage_delete([storage.NEW_COMPONENT])
-        from odtp.dashboard.page_components.main import (
-            ui_component_add, ui_component_select, ui_component_show, ui_version_add, ui_components_list, ui_tabs
-        )
-        from odtp.dashboard.page_components.options import store_selected_component
-        store_selected_component(str(component_id))        
-        ui_component_add.refresh()
-        ui_component_select.refresh()
-        ui_component_show.refresh()
-        ui_version_add.refresh()
-        ui_components_list.refresh()
+        from odtp.dashboard.page_components.main import ui_tabs
         ui_tabs.refresh()
