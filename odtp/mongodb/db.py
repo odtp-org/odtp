@@ -3,7 +3,6 @@ Connect to the Mongo DB
 """
 import logging
 from datetime import datetime, timezone
-from pathlib import Path
 
 from bson import ObjectId
 from pymongo import MongoClient, ASCENDING, DESCENDING
@@ -155,7 +154,7 @@ def get_document_id_by_field_value(field_path, field_value, collection):
             return str(document["_id"])
         else:
             return None
-        
+
 def get_component_version(component_name, version_tag):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
@@ -205,31 +204,15 @@ def add_user(name, github, email):
 
 
 def add_component_version(
-    repo_info,
-    component_name,
+    repository,
     component_version,
-    type,
-    ports,
 ):
-    """add component and component version"""
-
-    # check first
-    try:
-        mongodb_utils.check_component_ports(ports)
-        mongodb_utils.check_component_type(type)
-        commit_hash = git_helpers.get_commit_of_component_version(
-            repo_info=repo_info,
-            component_version=component_version,
-        )
-        repo_url = repo_info.get("html_url")
-        tagged_versions = repo_info.get("tagged_versions")
-        version_commit = [version["commit"] for version in tagged_versions
-                          if version["name"] == component_version]
-        if not version_commit:
-            raise Exception("Version does not exist in repo")
-    except Exception as e:
-        e.add_note("-> Component Version not valid: was not stored in mongodb")
-        raise (e)
+    """Add a component version: if the component does not exist, it is added as well."""
+    repo_info = git_helpers.get_github_repo_info(repository)
+    version_commit = git_helpers.get_commit_of_component_version(
+        repo_info, component_version)
+    metadata = git_helpers.get_metadata_from_github(repo_info, version_commit)
+    repo_url = repo_info.get("html_url")
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         component = db[collection_components].find_one({"repoLink": repo_url})
@@ -240,17 +223,17 @@ def add_component_version(
             )
         else:
             component_data = {
-                "author": "Test",
-                "componentName": component_name,
+                "tools": metadata.get("tools"),
+                "license": metadata.get("component-license"),
+                "author": metadata.get("component-author"),
+                "componentName": metadata["component-name"],
+                "odtp_version": odtp_utils.get_odtp_version(),
                 "repoLink": repo_url,
-                "status": "active",
-                "title": "Title for ComponentX",
-                "type": type,
-                "description": "Description for ComponentX",
-                "tags": ["tag1", "tag2"],
+                "type": metadata["component-type"],
+                "description": metadata["component-description"],
+                "tags": metadata.get("tags"),
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc),
-                "versions": [],
             }
             component_id = (
                 db[collection_components].insert_one(component_data)
@@ -264,43 +247,35 @@ def add_component_version(
             }
         )
         if version:
-            log.info(
-                f"Version {component_version} already existed"
-            )
             raise mongodb_utils.OdtpDbMongoDBValidationException(
                 f"document for repository {repo_url} and version {component_version} already exists"
             )
         else:
             version_data = {
                 "componentId": component_id,
-                "component": {
-                    "componentId": component_id,
-                    "componentName": component.get("componentName"),
-                    "repoLink": component.get("repoLink"),
-                    "type": component.get("type"),
-                },
+                "version_name": f"{metadata['component-name']}_{component_version}",
                 "odtp_version": odtp_utils.get_odtp_version(),
+                "deprecated": False,
                 "component_version": component_version,
-                "commitHash": commit_hash,
+                "commitHash": version_commit,
                 "dockerHubLink": "",
-                "parameters": {},
-                "title": "Title for Version v1.0",
-                "description": "Description for Version v1.0",
-                "tags": ["tag1", "tag2"],
-                "ports": ports,
+                "parameters": metadata.get("parameters", {}),
+                "description": metadata.get("description"),
+                "type": metadata["component-type"],
+                "tags": metadata.get("tags", []),
+                "tools": metadata.get("tools"),
+                "license": metadata.get("component-license"),
+                "ports": metadata.get("ports", []),
+                "secrets": metadata.get("secrets", []),
+                "devices": metadata.get("devices", []),
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc),
+                "data-inputs": metadata.get("data-inputs"),
+                "data-outputs": metadata.get("data-outputs"),
+                "build-args": metadata.get("build-args"),
             }
-            # set optional properties
-            if component_version:
-                version_data["component_version"] = component_version
-            if ports:
-                version_data["ports"] = ports
             version_id = db[collection_versions].insert_one(version_data).inserted_id
             log.info("Version added with ID {}".format(version_id))
-            db[collection_components].update_one(
-                {"_id": ObjectId(component_id)}, {"$push": {"versions": version_id}}
-            )
     return component_id, version_id
 
 
