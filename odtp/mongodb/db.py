@@ -104,6 +104,16 @@ def get_default_port_mappings_for_workflow(version_ids):
     return default_port_mappings
 
 
+def deprecate_documents_by_ids_in_collection(document_ids, collection):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        result = db[collection].update_many(
+            {"_id": {"$in": [ObjectId(id) for id in document_ids]}},
+            {"$set": {"deprecated": True}}
+        )
+        return result.modified_count
+
+
 def get_document_by_ids_in_collection(document_ids, collection):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
