@@ -72,3 +72,23 @@ def check_component_ports(ports):
     for port in ports:
         if not re.match(PORT_PATTERN, port):
             raise OdtpDbMongoDBValidationException(f"'{port}' is not a valid port")
+
+
+def get_default_parameters(version):
+    default_parameters = {}
+    if version["parameters"]:
+        for parameter in version["parameters"]:
+            key = parameter.get('name')
+            value = parameter.get('default-value')
+            if key:
+                default_parameters[key] = value
+    return default_parameters
+
+def get_default_port_mappings(version):
+    default_port_mappings = []
+    if version["ports"]:
+        for port in version["ports"]:
+            port_value = port.get('port-value')
+            if port_value:
+                default_port_mappings.append(f"{port_value}:{port_value}")
+    return default_port_mappings
