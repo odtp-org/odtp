@@ -108,10 +108,25 @@ class VersionDisplay:
         self.display_dict_list("Tool Info", "tools")
 
     def display_dict_list(self, label, dict_list_name):
-        """display a list of dicts"""
+        """Display a list of dicts, merging nested structures into key-value pairs."""
         ui.label(label)
         with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
-            for dict_item in self.version.get(dict_list_name):
+            for dict_item in self.version.get(dict_list_name, []):
+                # Flatten nested dictionaries or lists
                 for key, value in dict_item.items():
+                    if isinstance(value, dict):  # Merge nested dicts
+                        merged_value = ", ".join(f"{k}: {v}" for k, v in value.items())
+                    elif isinstance(value, list):  # Merge list of dicts or other values
+                        if all(isinstance(i, dict) for i in value):  # List of dicts
+                            merged_value = "; ".join(
+                                ", ".join(f"{k}: {v}" for k, v in sub_item.items())
+                                for sub_item in value
+                            )
+                        else:  # Simple list
+                            merged_value = ", ".join(str(i) for i in value)
+                    else:  # Simple key-value pair
+                        merged_value = value
+
+                    # Display the key and merged value
                     ui.label(key).classes('bg-gray-200 border p-1')
-                    ui.label(value).classes('border p-1')
+                    ui.label(merged_value).classes('border p-1')
