@@ -193,15 +193,16 @@ def get_document_id_by_field_value(field_path, field_value, collection):
         else:
             return None
 
-def get_workflow_by_versions(versions):
+def get_workflow_or_create_by_versions(name, versions):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         document = db[collection_workflows].find_one(
             {"versions": versions})
         if document:
             return document
-        else:
-            return None
+        workflow_id = add_workflow(name, versions)
+        document = get_document_by_id(workflow_id, collection_workflows)
+        return document
 
 def get_component_version(component_name, version_tag):
     with MongoClient(ODTP_MONGO_SERVER) as client:

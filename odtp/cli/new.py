@@ -167,10 +167,11 @@ def execution_entry(
 
         if wf_id:
             workflow = db.get_document_by_id(wf_id, db.collection_workflows)
+
         if component_tags:
             component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
             versions = odtp_parse.parse_versions(component_versions)
-            workflow = db.get_workflow_by_versions(versions)
+            workflow = db.get_or_create_workflow_by_versions(execution_name, versions)
         step_count = len(workflow.get("versions"))
         if parameter_files is None:
             parameters = db.get_default_parameters_for_workflow(workflow["versions"])
