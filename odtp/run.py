@@ -223,11 +223,11 @@ class DockerManager:
 
         docker_run_command = ["docker", "run", "--rm", "-it", "--name", container_name,
                               "--network", "odtp_odtp-network",
-                              "--gpus", "all",
                               "--volume", f"{os.path.abspath(self.input_volume)}:/odtp/odtp-input",
                               "--volume", f"{os.path.abspath(self.log_volume)}:/odtp/odtp-logs",
                               "--volume", f"{os.path.abspath(self.output_volume)}:/odtp/odtp-output"] + env_args + ports_args + secrets_args + [self.docker_image_name]
-
+        if config.ALLOW_DOCKER_GPUS:
+            docker_run_command.append("--gpus", "all")
         command_string = ' '.join(docker_run_command)
         command_string_log_safe = command_string
         for value in [parameters["ODTP_SECRET_KEY"], parameters["ODTP_ACCESS_KEY"], parameters["ODTP_MONGO_SERVER"]]:
