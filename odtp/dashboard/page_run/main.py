@@ -1,5 +1,6 @@
 import logging
 from nicegui import ui
+from pprint import pprint
 
 import odtp.dashboard.utils.storage as storage
 from odtp.helpers.settings import ODTP_DASHBOARD_JSON_EDITOR
@@ -37,11 +38,12 @@ def content() -> None:
             current_execution=current_execution,
             workdir=workdir,
         )
-        ui_stepper(
-            dialog,
-            result,
-            current_run=current_run,
+        run.ExecutionRunForm(
+            digital_twin_id=current_digital_twin["digital_twin_id"],
+            execution_id=current_execution["execution_id"],
             workdir=workdir,
+            dialog=dialog,
+            result=result,
         )
     except Exception as e:
         log.exception(f"Page could not be loaded: an Exception {e} occurred")
@@ -54,66 +56,7 @@ def ui_workarea(current_user, current_digital_twin, current_execution, workdir):
             current_user=current_user,
             current_digital_twin=current_digital_twin,
             current_execution=current_execution,
-            workdir=workdir,        
+            workdir=workdir,
         )
     except Exception as e:
         log.exception(f"Workarea could not be loaded: an Exception {e} occurred")
-
-
-@ui.refreshable
-def ui_stepper(
-    dialog, result, current_run, workdir
-):
-    try:
-        current_run = storage.get_active_object_from_storage(storage.EXECUTION_RUN) 
-        stepper = current_run.get("stepper")
-        execution = current_run["execution"]
-        project_path = current_run.get("project_path")
-        folder_status = rh.get_folder_status(
-            execution_id=execution["execution_id"],
-            project_path=project_path,
-        )
-        if ODTP_DASHBOARD_JSON_EDITOR:
-            with ui.expansion("Current Execution Run as JSON"):
-                ui.json_editor(
-                    {
-                        "content": {"json": current_run},
-                        "readOnly": True,
-                    }
-                )
-        with ui.stepper(value=stepper).props("vertical").classes("w-full") as stepper:
-            with ui.step(rh.STEPPERS[rh.STEPPER_DISPLAY_EXECUTION]):
-                rh.ui_execution_details(current_run)
-            with ui.step(rh.STEPPERS[rh.STEPPER_SELECT_FOLDER]):
-                with ui.stepper_navigation():
-                    with ui.row():
-                        folder.ui_prepare_folder(
-                            current_run=current_run,
-                            workdir=workdir,
-                            project_path=project_path,
-                            folder_status=folder_status,
-                        )
-            with ui.step(rh.STEPPERS[rh.STEPPER_ADD_SECRETS]):
-                with ui.stepper_navigation():
-                    with ui.row():
-                        secrets.ui_add_secrets_form(
-                            current_run=current_run,
-                            workdir=workdir,
-                        )
-            with ui.step(rh.STEPPERS[rh.STEPPER_PREPARE_EXECUTION]):
-                with ui.stepper_navigation():
-                    run.ui_prepare_execution(
-                        dialog=dialog,
-                        result=result,
-                        current_run=current_run,
-                        folder_status=folder_status,
-                    )
-            with ui.step(rh.STEPPERS[rh.STEPPER_RUN_EXECUTION]):
-                run.ui_run_execution(
-                    dialog=dialog,
-                    result=result,
-                    current_run=current_run,
-                    folder_status=folder_status,
-                )
-    except Exception as e:
-        log.exception(f"Stepper could not be loaded: an Exception {e} occurred")
