@@ -128,8 +128,6 @@ class ExecutionDisplay:
         if not self.steps:
             return
         for step in self.steps:
-            print("--------- ui step")
-            pprint(step)
             self.display_step(step)
 
     def display_step(self, step):
