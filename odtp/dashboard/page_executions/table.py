@@ -52,21 +52,26 @@ class ExecutionTable:
                     label="workflows",
                     with_input=True,
                 ).classes("w-1/2")
-        with ui.row().classes("w-full"):        
-            ui.checkbox(
-                "Show deprecated",
-                on_change=lambda e: self.filter_deprecated(e.value)
-            ).classes("w-1/8")
-            ui.button(
-                "Reset selection",
-                on_click=lambda e: self.filter_reset(),
-                icon="clear",
-            ).props("flat").classes("w-1/8")
-            ui.button(
-                "delete_selected",
-                on_click=lambda: self.delete_selected(),
-                icon="clear",
-            ).props("flat").classes("w-1/8")
+            with ui.row().classes("w-full"):
+                ui.checkbox(
+                    "Show deprecated",
+                    on_change=lambda e: self.filter_deprecated(e.value)
+                ).classes("w-1/8")
+                ui.button(
+                    "Reset selection",
+                    on_click=lambda e: self.filter_reset(),
+                    icon="clear",
+                ).props("flat").classes("w-1/8")
+                ui.button(
+                    "Deprecate selected",
+                    on_click=lambda: self.deprecate_selected(),
+                    icon="clear",
+                ).props("flat").classes("w-1/8")
+                ui.button(
+                    "Activate selected",
+                    on_click=lambda: self.activate_selected(),
+                    icon="add",
+                ).props("flat").classes("w-1/8")
 
     def add_header(self):
         headers = [
@@ -92,21 +97,25 @@ class ExecutionTable:
         """set the table rows"""
         self.execution_rows.clear()
         for execution in self.filtered_executions:
+            if execution.get("deprecated"):
+                color = "text-gray-500"
+            else:
+                color = ""
             with ui.row().classes("w-full p-2 border grid grid-cols-10 gap-4 items-center"):
                 ui.checkbox(
                     on_change=lambda e, execution_id=execution["_id"]: self.toggle_selection(e.value, execution_id)
                 )
-                ui.label(execution['title']).classes("text-center truncate")
-                ui.label(str(execution['_id'])).classes("text-center truncate")
-                ui.label(execution['createdAt'].strftime('%Y-%m-%d')).classes("text-center truncate")
+                ui.label(execution['title']).classes(f"text-center truncate {color}")
+                ui.label(str(execution['_id'])).classes(f"text-center truncate {color}")
+                ui.label(execution['createdAt'].strftime(f'%Y-%m-%d')).classes("text-center truncate {color}")
                 if execution.get('start_timestamp'):
-                    ui.label(execution['start_timestamp'].strftime('%Y-%m-%d')).classes("text-center truncate")
+                    ui.label(execution['start_timestamp'].strftime(f'%Y-%m-%d')).classes("text-center truncate {color}")
                 else:
-                    ui.label("not run")
+                    ui.label("not run").classes(f"{color}")
                 if execution.get('end_timestamp'):
-                    ui.label(execution['end_timestamp'].strftime('%Y-%m-%d')).classes("text-center truncate")
+                    ui.label(execution['end_timestamp'].strftime('%Y-%m-%d')).classes(f"text-center truncate {color}")
                 else:
-                    ui.label("not ended")
+                    ui.label("not ended").classes(f"{color}")
 
     def toggle_selection(self, selected, execution_id):
         """toggle select for delete of executions"""
@@ -148,6 +157,22 @@ class ExecutionTable:
             ]
         self.add_rows.refresh()
 
-    def delete_selected(self):
-        """delete selected executions"""
-        pass
+    def deprecate_selected(self):
+        """deprecate selected executions"""
+        db.deprecate_documents_by_ids_in_collection(self.selected_execution_ids, db.collection_executions)
+        ui.notify(
+            f"The selected {len(self.selected_execution_ids)} component versions have been deprecated.",
+            type="positive"
+        )
+        from odtp.dashboard.page_executions.main import ui_executions_table
+        ui_executions_table.refresh()
+
+    def activate_selected(self):
+        """activate selected executions"""
+        db.activate_documents_by_ids_in_collection(self.selected_execution_ids, db.collection_executions)
+        ui.notify(
+            f"The selected {len(self.selected_execution_ids)} component versions have been activated.",
+            type="positive"
+        )
+        from odtp.dashboard.page_executions.main import ui_executions_table
+        ui_executions_table.refresh()
