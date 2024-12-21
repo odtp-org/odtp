@@ -138,15 +138,14 @@ class ExecutionDisplay:
         step_name = self.get_version_display(version)
         ui.label(step_name).classes("text-lg font-bold mb-2")
 
-        # Display Parameters
+        ui.label("Parameters")
         self.display_dict_list(step, "Parameters", "parameters")
 
-        # Display Ports
+        ui.label("Ports")
         self.display_dict_list(step, "Ports", "ports")
 
-        # Display Additional Metadata
         with ui.grid(columns='1fr 2fr').classes('w-full gap-0 mt-4'):
-            for key in ["start_timestamp", "end_timestamp", "type", "deprecated"]:
+            for key in ["start_timestamp", "end_timestamp"]:
                 if step.get(key) is not None:
                     ui.label(key.replace("_", " ").capitalize()).classes('bg-gray-200 border p-1')
                     ui.label(str(step[key])).classes('border p-1')
@@ -155,16 +154,16 @@ class ExecutionDisplay:
         """Display a list of dictionaries or key-value pairs."""
         data = step.get(dict_list_name, {})
 
-        if isinstance(data, dict):  # Handle dictionaries like "parameters"
+        if isinstance(data, dict) and data != {}:
             with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
                 for key, value in data.items():
                     ui.label(key).classes('bg-gray-200 border p-1')
                     ui.label(str(value)).classes('border p-1')
 
-        elif isinstance(data, list) and data:  # Handle lists like "ports"
+        elif isinstance(data, list) and data:
             with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
                 for index, item in enumerate(data):
                     ui.label(f"{label} {index + 1}").classes('bg-gray-200 border p-1')
                     ui.label(str(item)).classes('border p-1')
-        else:  # Handle empty or unexpected data
+        else:
             ui.label(f"No {label.lower()} available").classes("italic text-gray-500")
