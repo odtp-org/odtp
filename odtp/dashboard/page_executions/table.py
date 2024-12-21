@@ -14,6 +14,12 @@ class ExecutionTable:
             item_id=digital_twin_id,
             ref_name=db.collection_executions,
         )
+        workflows = db.get_collection(db.collection_workflows)
+        self.workflow_options = {
+            str(workflow["_id"]): f"{workflow.get('name')}"
+            for workflow in workflows
+            if not workflow.get("deprecated", False)
+        }
         if not self.executions:
             ui.label("No components yet").classes("text-red-500")
             return
@@ -38,33 +44,29 @@ class ExecutionTable:
     @ui.refreshable
     def table_selectors(self):
         """set the table selectors"""
-        workflows = db.get_collection(db.collection_workflows)
-        workflow_options = {
-            str(workflow["_id"]): f"{workflow.get('name')}"
-            for workflow in workflows
-        }
-        if workflows:
+        if self.workflow_options:
             with ui.row().classes("w-full"):
                 ui.select(
-                    workflow_options,
+                    self.workflow_options,
                     on_change=lambda e: self.filter_workflows(str(e.value)),
                     label="workflows",
                     with_input=True,
                 ).classes("w-1/2")
-                ui.checkbox(
-                    "Show deprecated",
-                    on_change=lambda e: self.filter_deprecated(e.value)
-                ).classes("w-1/8")
-                ui.button(
-                    "Reset selection",
-                    on_click=lambda e: self.filter_reset(),
-                    icon="clear",
-                ).props("flat").classes("w-1/8")
-                ui.button(
-                    "delete_selected",
-                    on_click=lambda: self.delete_selected(),
-                    icon="clear",
-                ).props("flat").classes("w-1/8")
+        with ui.row().classes("w-full"):        
+            ui.checkbox(
+                "Show deprecated",
+                on_change=lambda e: self.filter_deprecated(e.value)
+            ).classes("w-1/8")
+            ui.button(
+                "Reset selection",
+                on_click=lambda e: self.filter_reset(),
+                icon="clear",
+            ).props("flat").classes("w-1/8")
+            ui.button(
+                "delete_selected",
+                on_click=lambda: self.delete_selected(),
+                icon="clear",
+            ).props("flat").classes("w-1/8")
 
     def add_header(self):
         headers = [
@@ -74,7 +76,6 @@ class ExecutionTable:
             "Created At",
             "Started at",
             "Ended at",
-            "deprecated",
         ]
         with ui.row().classes("w-full bg-gray-200 p-2 border-b grid grid-cols-10 gap-4"):
             for header in headers:
@@ -106,7 +107,6 @@ class ExecutionTable:
                     ui.label(execution['end_timestamp'].strftime('%Y-%m-%d')).classes("text-center truncate")
                 else:
                     ui.label("not ended")
-                ui.label(self.get_deprecated_display(execution["deprecated"])).classes("truncate")
 
     def toggle_selection(self, selected, execution_id):
         """toggle select for delete of executions"""

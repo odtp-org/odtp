@@ -224,7 +224,6 @@ class ExecutionForm(object):
                         ui.label(key).classes('border p-1')
                         ui.label(value).classes('border p-1')
 
-
     @ui.refreshable
     def ui_add_execution_button(self):
         if not self.workflow:
