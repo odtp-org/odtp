@@ -130,38 +130,54 @@ class ExecutionDisplay:
         for step in self.steps:
             self.display_step(step)
 
+    def get_version_display(self, version):
+        return f"{version['component']['componentName']}_{version['component_version']}"
+
     def display_step(self, step):
         """Display information for a single step."""
         version = self.versions_dict.get(step["component_version"])
-        step_name = self.get_version_display(version)
-        ui.label(step_name).classes("text-lg font-bold mb-2")
+        version_name = self.get_version_display(version)
+        ui.mermaid(
+            f"""
+            {helpers.get_workflow_mermaid([version_name], init='graph LR;')}"""
+        ).classes("w-full")
+        if  step.get("parameters"):
+            self.display_dict_list(step.get("parameters"), "Parameters")
+        else:
+            self.display_not_set("Parameters")
+        if step.get("ports"):
+            print(step.get("ports"))
+            port_mappings = {}
+            for pm in step.get("ports"):
+                ports_split = pm.split(":")
+                print(ports_split)
+                port_mappings[ports_split[0]] = ports_split[1]
+            self.display_dict_list(port_mappings, "Port Mappings")
+        else:
+            self.display_not_set("Port Mappings")
 
-        ui.label("Parameters")
-        self.display_dict_list(step, "Parameters", "parameters")
-
-        ui.label("Ports")
-        self.display_dict_list(step, "Ports", "ports")
-
-        with ui.grid(columns='1fr 2fr').classes('w-full gap-0 mt-4'):
+        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
             for key in ["start_timestamp", "end_timestamp"]:
                 if step.get(key) is not None:
                     ui.label(key.replace("_", " ").capitalize()).classes('bg-gray-200 border p-1')
                     ui.label(str(step[key])).classes('border p-1')
 
-    def display_dict_list(self, step, label, dict_list_name):
-        """Display a list of dictionaries or key-value pairs."""
-        data = step.get(dict_list_name, {})
+    def display_not_set(self, label):
+        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
+            ui.label(label)
+            ui.label("None")
 
+    def display_dict_list(self, data, label):
+        """Display a list of dictionaries or key-value pairs."""
+        ui.label(label)
         if isinstance(data, dict) and data != {}:
-            with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
+            with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
                 for key, value in data.items():
                     ui.label(key).classes('bg-gray-200 border p-1')
                     ui.label(str(value)).classes('border p-1')
 
         elif isinstance(data, list) and data:
-            with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
+            with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
                 for index, item in enumerate(data):
                     ui.label(f"{label} {index + 1}").classes('bg-gray-200 border p-1')
                     ui.label(str(item)).classes('border p-1')
-        else:
-            ui.label(f"No {label.lower()} available").classes("italic text-gray-500")
