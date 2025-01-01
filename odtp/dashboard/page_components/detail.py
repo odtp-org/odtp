@@ -95,7 +95,6 @@ class VersionDisplay:
         """ui element for version info as it comes from github"""
         if not self.version:
             return
-        print(self.version)
         parameters = self.version.get("parameters", [])
         if parameters:
             self.display_dict_list("Parameters", "parameters")
