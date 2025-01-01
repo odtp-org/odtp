@@ -37,7 +37,7 @@ def store_selected_user(value):
     try:
         if not ui_theme.new_value_selected_in_ui_select(value):
             return
-        user_id = value        
+        user_id = value
         user = db.get_document_by_id(
             document_id=user_id, collection=db.collection_users
         )
@@ -46,7 +46,7 @@ def store_selected_user(value):
         )
         app.storage.user[storage.CURRENT_USER] = current_user
         storage.reset_storage_keep([storage.CURRENT_USER])
-        app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH        
+        app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
     except Exception as e:
         log.exception(f"Selected user could not be stored. An Exception happened: {e}")
     else:
