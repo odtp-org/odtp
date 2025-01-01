@@ -26,6 +26,9 @@ def get_execution_step_name(component_name, component_version, step_index=None):
         return f"{component_name}_{component_version}"
     return f"{step_index}_{component_name}_{component_version}"
 
+def get_execution_step_image_name(component_name, component_version):
+    return f"{component_name}:{component_version}"
+
 
 def get_version_name_dict_for_version_ids(version_ids, naming_function=get_execution_step_name):
     versions = db.get_document_by_ids_in_collection(

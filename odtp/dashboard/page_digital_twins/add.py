@@ -1,8 +1,6 @@
 
 from nicegui import app, ui
-
 import odtp.mongodb.db as db
-
 
 
 def add_digital_twin_form(current_user):
@@ -31,7 +29,6 @@ def add_digital_twin_form(current_user):
         )
 
 
-
 def add_digital_twin(name_input, user_id):
     if not name_input.validate():
         ui.notify(
@@ -54,7 +51,7 @@ def add_digital_twin(name_input, user_id):
             type="negative",
         )
     else:
-        from odtp.dashboard.page_digital_twins.main import (ui_tabs, ui_digital_twin_select, 
+        from odtp.dashboard.page_digital_twins.main import (ui_tabs, ui_digital_twin_select,
             ui_digital_twins_table, ui_add_digital_twin
         )
         ui_digital_twin_select.refresh()
