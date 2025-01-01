@@ -70,18 +70,20 @@ class VersionTable:
 
     def add_header(self):
         headers = [
-            "Select",
-            "Component",
-            "Version",
-            "Repository",
-            "Commit",
-            "Type",
-            "Created At",
-            "ODTP Version",
+            {"text": "Select", "col_span": 1},
+            {"text": "Component", "col_span": 2},
+            {"text": "Version", "col_span": 1},
+            {"text": "Repository", "col_span": 3},
+            {"text": "Commit", "col_span": 1},
+            {"text": "Type", "col_span": 1},
+            {"text": "Created At", "col_span": 1},
+            {"text": "ODTP Version", "col_span": 1},
         ]
-        with ui.row().classes("w-full bg-gray-200 p-2 border-b grid grid-cols-10 gap-4"):
+        with ui.row().classes("w-full bg-gray-200 p-2 border-b grid grid-cols-11 gap-4 justify-items-start"):
             for header in headers:
-                ui.label(header).classes("font-bold text-center truncate")
+                ui.label(header["text"]).classes(
+                    f"font-bold text-center truncate col-span-{header['col_span']}"
+                )
 
     def get_deprecated_display(self, deprecated):
         if deprecated:
@@ -98,13 +100,13 @@ class VersionTable:
                 color = "text-gray-500"
             else:
                 color = ""
-            with ui.row().classes("w-full p-2 border grid grid-cols-10 gap-4 items-center"):
+            with ui.row().classes("w-full p-2 border grid grid-cols-11 gap-4 justify-items-start"):
                 ui.checkbox(
                     on_change=lambda e, version_id=version["_id"]: self.toggle_selection(e.value, version_id)
                 )
-                ui.label(version['component']['componentName']).classes(f"truncate {color}")
-                ui.label(version['component_version']).classes(f"truncate {color}")
-                ui.link(version['component']['repoLink'], version['component']['repoLink']).classes(f"truncate {color}")
+                ui.label(version['component']['componentName']).classes(f"truncate col-span-2 {color}")
+                ui.label(version['component_version']).classes(f"truncate col-span-1 {color}")
+                ui.link(version['component']['repoLink'], version['component']['repoLink']).classes(f"truncate col-span-3 {color}")
                 ui.label(version['commitHash'][:8]).classes(f"text-center truncate {color}")
                 ui.label(version['component'].get("type") or version.get("type")).classes(f"text-center truncate {color}")
                 ui.label(version['created_at'].strftime('%Y-%m-%d')).classes(f"text-center truncate {color}")

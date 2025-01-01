@@ -92,7 +92,7 @@ class WorkflowTable:
                 color = "text-gray-500"
             else:
                 color = ""
-            with ui.row().classes("w-full p-2 border-b grid grid-cols-10 gap-4 items-left"):
+            with ui.row().classes("w-full p-2 border-b grid grid-cols-10 gap-4 justify-items-start"):
                 ui.checkbox(
                     on_change=lambda e, workflow_id=workflow["_id"]: self.toggle_selection(e.value, workflow_id)
                 ).classes(f"items-center col-span-1 {color}")
