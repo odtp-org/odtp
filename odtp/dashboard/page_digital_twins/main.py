@@ -95,7 +95,7 @@ def ui_add_digital_twin(current_user):
 @ui.refreshable
 def ui_workarea(current_user):
     try:
-        user_workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)    
+        user_workdir = storage.get_value_from_storage_for_key(storage.CURRENT_USER_WORKDIR)
         current_digital_twin = storage.get_active_object_from_storage(
             storage.CURRENT_DIGITAL_TWIN
         )
@@ -105,4 +105,4 @@ def ui_workarea(current_user):
             user_workdir=user_workdir
         )
     except Exception as e:
-        log.exception(f"Work area could not be loaded. An Exception happened: {e}")    
+        log.exception(f"Work area could not be loaded. An Exception happened: {e}")

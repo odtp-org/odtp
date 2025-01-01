@@ -1,7 +1,6 @@
 import json
 import logging
 
-import pandas as pd
 from nicegui import app, ui
 
 import odtp.dashboard.utils.storage as storage
@@ -28,7 +27,6 @@ def digital_twin_select_form(current_user, current_digital_twin, digital_twins):
         on_change=lambda e: store_selected_digital_twin_id(str(e.value)),
         with_input=True,
     ).props("size=80")
-
 
 
 def store_selected_digital_twin_id(value):
