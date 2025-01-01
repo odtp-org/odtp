@@ -112,7 +112,6 @@ class VersionTable:
 
     def toggle_selection(self, selected, version_id):
         """toggle select for delete of versions"""
-        print(f"Toggle called: {selected} for version_id: {version_id}")
         if selected:
             self.selected_version_ids.add(version_id)
         else:
