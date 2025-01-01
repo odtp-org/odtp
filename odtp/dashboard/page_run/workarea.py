@@ -39,20 +39,6 @@ def ui_workarea_layout(current_user, workdir, current_execution, current_digital
             action="select",
         )
         return
-    current_run = storage.get_active_object_from_storage(storage.EXECUTION_RUN)
-    secret_files = current_run.get("secret_files")
-    project_path = current_run.get("project_path")
-    if not [file for file in secret_files if file]:
-        secret_files = ""
-    else:
-        ",".join(secret_files)
-    folder_status = rh.get_folder_status(
-        execution_id=current_execution["execution_id"],
-        project_path=project_path,
-    )
-    project_path_display = project_path
-    if not project_path:
-        project_path_display = ui_theme.MISSING_VALUE
     with ui.grid(columns=2):
         with ui.column():
             ui.markdown(

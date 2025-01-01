@@ -18,7 +18,7 @@ def content() -> None:
 def ui_tabs():
     with ui.tabs() as tabs:
         list = ui.tab("Manage Components")
-        show_version = ui.tab("Version Detail")
+        show_version = ui.tab("Component Version Detail")
         add_component_version = ui.tab("Add Component Version")
     with ui.tab_panels(tabs, value=list).classes("w-full"):
         with ui.tab_panel(list):

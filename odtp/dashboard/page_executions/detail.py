@@ -33,9 +33,13 @@ class ExecutionDisplay:
             return
         ui.button(
             "Prepare and Run Executions",
-            on_click=lambda: ui.open(ui_theme.PATH_RUN),
+            on_click=lambda: self.run_execution(),
             icon="link",
         )
+
+    def run_execution(self):
+        app.storage.user[storage.CURRENT_EXECUTION] = json.dumps(self.execution, default=str)
+        ui.open(ui_theme.PATH_RUN)
 
     @ui.refreshable
     def ui_reset_execution(self):
@@ -81,9 +85,12 @@ class ExecutionDisplay:
         self.execution = db.get_document_by_id(
             document_id=execution_id, collection=db.collection_executions
         )
+        self.execution["_id"] = str(self.execution["_id"])
+        self.execution["digitalTwinRef"] = str(self.execution["digitalTwinRef"])
         self.workflow = db.get_document_by_id(
             document_id=self.execution["workflow_id"], collection=db.collection_workflows
         )
+        self.workflow["_id"] = str(self.workflow["_id"])
         self.versions = db.get_document_by_ids_in_collection(
             document_ids=self.workflow.get("versions", []),
             collection=db.collection_versions
@@ -93,8 +100,9 @@ class ExecutionDisplay:
         self.steps = db.get_document_by_ids_in_collection(
             document_ids=step_ids, collection=db.collection_steps
         )
-        pprint("SET=======")
-        pprint(self.steps)
+        for step in self.steps:
+            step["_id"] = str(step["_id"])
+            step["executionRef"] = str(step["executionRef"])
         self.ui_workflow_diagram.refresh()
         self.ui_run_execution.refresh()
         self.ui_execution_run_info.refresh()
@@ -113,15 +121,10 @@ class ExecutionDisplay:
             {helpers.get_workflow_mermaid(version_names, init='graph LR;')}"""
         ).classes("w-full")
 
-    def get_version_display(self, version):
-        return f"{version['component']['componentName']}_{version['component_version']}"
-
     @ui.refreshable
     def ui_execution_run_info(self):
         if not self.execution:
             return
-        print("--------- ui execution")
-        pprint(self.execution)
 
     @ui.refreshable
     def ui_steps(self):
@@ -146,11 +149,9 @@ class ExecutionDisplay:
         else:
             self.display_not_set("Parameters")
         if step.get("ports"):
-            print(step.get("ports"))
             port_mappings = {}
             for pm in step.get("ports"):
                 ports_split = pm.split(":")
-                print(ports_split)
                 port_mappings[ports_split[0]] = ports_split[1]
             self.display_dict_list(port_mappings, "Port Mappings")
         else:

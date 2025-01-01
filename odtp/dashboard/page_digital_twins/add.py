@@ -54,7 +54,7 @@ def add_digital_twin(name_input, user_id):
             type="negative",
         )
     else:
-        from odtp.dashboard.page_digital_twins.main import (ui_tabs, ui_digital_twin_select, 
+        from odtp.dashboard.page_digital_twins.main import (ui_tabs, ui_digital_twin_select,
             ui_digital_twins_table, ui_add_digital_twin
         )
         ui_digital_twin_select.refresh()

@@ -1,5 +1,5 @@
 import logging
-from nicegui import ui
+from nicegui import ui, app
 from pprint import pprint
 
 import odtp.dashboard.utils.storage as storage
@@ -24,11 +24,10 @@ def content() -> None:
         current_execution = storage.get_active_object_from_storage(
             storage.CURRENT_EXECUTION
         )
+        print("___________ current execution")
+        pprint(current_execution)
         if not current_execution:
             return
-        current_run = rh.execution_run_init(
-            digital_twin=current_digital_twin, execution=current_execution
-        )
         with ui.dialog().props("full-width") as dialog, ui.card():
             result = ui.markdown()
             ui.button("Close", on_click=dialog.close)
@@ -40,7 +39,7 @@ def content() -> None:
         )
         run.ExecutionRunForm(
             digital_twin_id=current_digital_twin["digital_twin_id"],
-            execution_id=current_execution["execution_id"],
+            execution_id=current_execution["_id"],
             workdir=workdir,
             dialog=dialog,
             result=result,

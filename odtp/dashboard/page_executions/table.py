@@ -21,7 +21,7 @@ class ExecutionTable:
             if not workflow.get("deprecated", False)
         }
         if not self.executions:
-            ui.label("No components yet").classes("text-red-500")
+            ui.label("No executions yet").classes("text-red-500")
             return
         self.execution_rows = []
         self.selected_execution_ids = set()
