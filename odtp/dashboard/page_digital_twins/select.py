@@ -9,10 +9,10 @@ import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.mongodb.db as db
 
 
-def digital_twin_select_form(current_user, current_digital_twin, digital_twins):  
+def digital_twin_select_form(current_user, current_digital_twin, digital_twins):
     if not digital_twins:
         ui_theme.ui_no_items_yet("Digital Twins")
-        return      
+        return
     if current_digital_twin:
         value = current_digital_twin["digital_twin_id"]
     else:
@@ -31,10 +31,10 @@ def digital_twin_select_form(current_user, current_digital_twin, digital_twins):
 
 
 
-def store_selected_digital_twin_id(value):  
+def store_selected_digital_twin_id(value):
     try:
         if not ui_theme.new_value_selected_in_ui_select(value):
-            return  
+            return
         digital_twin_id = value
         digital_twin = db.get_document_by_id(
             document_id=digital_twin_id, collection=db.collection_digital_twins

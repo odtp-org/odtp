@@ -31,7 +31,7 @@ def reset_storage_delete(keys):
                 del app.storage.user[key]
     except Exception as e:
         logging.error(
-            f"""During reset storage delete with keys {keys} en execption {e} occured. 
+            f"""During reset storage delete with keys {keys} en exception {e} occured.
                   Current keys in storage {app.storage.user.keys()}"""
         )
 
@@ -47,7 +47,7 @@ def reset_storage_keep(keys):
                 del app.storage.user[key]
     except Exception as e:
         logging.error(
-            f"""During reset storage keep with keys {keys} en exception {e} occurred. 
+            f"""During reset storage keep with keys {keys} en exception {e} occurred.
                   Current keys in storage {app.storage.user.keys()}"""
         )
 

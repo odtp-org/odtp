@@ -68,9 +68,10 @@ def get_execution_select_options(digital_twin_id):
         return {}
     execution_options = {}
     for execution in executions:
-        execution_options[str(execution["_id"])] = (
-            f"{execution['createdAt'].strftime('%d/%m/%y')} {execution.get('title')}"
-        )
+        if not execution.get("deprecated", False):
+            execution_options[str(execution["_id"])] = (
+                f"{execution['createdAt'].strftime('%d/%m/%y')} {execution.get('title')}"
+            )
     return execution_options
 
 
