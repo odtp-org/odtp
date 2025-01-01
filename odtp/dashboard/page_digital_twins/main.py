@@ -51,7 +51,7 @@ def ui_digital_twins_table(current_user):
         )
         table.ui_table_layout(
             digital_twins=digital_twins
-        )   
+        )
     except Exception as e:
         log.exception(
             f"Digital Twin table could not be loaded. An Exception occurred: {e}"
@@ -70,7 +70,7 @@ def ui_digital_twin_select(current_user) -> None:
             sub_collection=db.collection_digital_twins,
             item_id=user_id,
             ref_name=db.collection_digital_twins,
-        )        
+        )
         select.digital_twin_select_form(
             current_user=current_user,
             current_digital_twin=current_digital_twin,
