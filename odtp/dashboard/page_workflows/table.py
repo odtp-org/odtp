@@ -163,8 +163,7 @@ class WorkflowTable:
             f"The selected {len(self.selected_workflow_ids)} workflows have been deprecated.",
             type="positive"
         )
-        from odtp.dashboard.page_workflows.main import ui_workflow_list
-        ui_workflow_list.refresh()
+        self.refresh()
 
     def activate_selected(self):
         """activate selected workflows"""
@@ -173,5 +172,12 @@ class WorkflowTable:
             f"The selected {len(self.selected_workflow_ids)} workflows have been activated.",
             type="positive"
         )
-        from odtp.dashboard.page_workflows.main import ui_workflow_list
+        self.refresh()
+
+    def refresh(self):
+        from odtp.dashboard.page_workflows.main import (
+            ui_workflow_list, ui_tabs, ui_workarea, ui_add_workflow
+        )
         ui_workflow_list.refresh()
+        ui_add_workflow.refresh()
+        ui_tabs.refresh()

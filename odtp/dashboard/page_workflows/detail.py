@@ -13,7 +13,7 @@ class WorkflowDisplay:
 
     def get_workflow_options(self):
         """get workflow options for selection"""
-        workflows = db.get_collection(db.collection_workflows)
+        workflows = db.get_collection(db.collection_workflows, include_deprecated=False)
         self.workflow_options = {
             str(workflow["_id"]): f"{workflow.get('name')}"
             for workflow in workflows

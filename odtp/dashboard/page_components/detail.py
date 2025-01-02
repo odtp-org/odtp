@@ -18,7 +18,7 @@ class VersionDisplay:
 
     def get_component_options(self):
         """get component options for the filtering"""
-        components = db.get_collection(db.collection_components)
+        components = db.get_collection(db.collection_components, include_deprecated=False)
         self.component_options = {
             str(component["_id"]): f"{component.get('componentName')}"
             for component in components
@@ -62,6 +62,7 @@ class VersionDisplay:
             sub_collection=db.collection_versions,
             item_id=component_id,
             ref_name=db.collection_versions,
+            include_deprecated=False,
         )
         self.version_options = {
             str(version["_id"]): f"{version.get('component_version')}"
