@@ -50,11 +50,12 @@ def get_collection_names():
         db.list_collection_names()
 
 
-def get_collection(collection):
+def get_collection(collection, include_deprecated=True):
     """Retrieve all documents from a collection"""
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
-        cursor = db[collection].find({})
+        query = query = {} if include_deprecated else {"deprecated": False}
+        cursor = db[collection].find(query)
         return mongodb_utils.get_list_from_cursor(cursor)
 
 
@@ -121,7 +122,7 @@ def activate_documents_by_ids_in_collection(document_ids, collection):
             {"_id": {"$in": [ObjectId(id) for id in document_ids]}},
             {"$set": {"deprecated": False}}
         )
-        return result.modified_count        
+        return result.modified_count
 
 
 def get_document_by_ids_in_collection(document_ids, collection):
@@ -178,7 +179,10 @@ def delete_document_by_id(document_id, collection):
         log.debug(f"Document with ID {document_id} was deleted")
 
 
-def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort_by=None):
+def get_sub_collection_items(
+    collection, sub_collection, item_id, ref_name,
+    sort_by=None, include_deprecated=True
+):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         collection_item = db[collection].find_one({"_id": ObjectId(item_id)})
@@ -187,7 +191,16 @@ def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort
         sub_collection_ids = collection_item.get(ref_name)
         if not sub_collection_ids:
             return []
-        cursor = db[sub_collection].find({"_id": {"$in": sub_collection_ids}})
+        if include_deprecated:
+            query = {"_id": {"$in": sub_collection_ids}}
+        else:
+            query = {
+                "$and": [
+                    {"_id": {"$in": sub_collection_ids}},
+                    {"deprecated": False}
+                ]
+            }
+        cursor = db[sub_collection].find(query)
         if sort_by:
             cursor.sort(sort_by)
         documents = mongodb_utils.get_list_from_cursor(cursor)

@@ -31,19 +31,32 @@ def ui_tabs():
 
 @ui.refreshable
 def ui_workflow_list():
-    table.WorkflowTable()
+    try:
+        table.WorkflowTable()
+    except Exception as e:
+        log.exception(
+            f"Workflow table could not be loaded. An Exception occurred: {e}"
+        )
 
 
 @ui.refreshable
 def ui_workflow_detail():
-    with ui.column().classes("w-full"):
+    try:
         detail.WorkflowDisplay()
+    except Exception as e:
+        log.exception(
+            f"Workflow Detail could not be loaded. An Exception occurred: {e}"
+        )
 
 
 @ui.refreshable
 def ui_add_workflow():
-    with ui.column().classes("w-full"):
+    try:
         add.WorkflowForm()
+    except Exception as e:
+        log.exception(
+            f"Workflow add form could not be loaded. An Exception occurred: {e}"
+        )
 
 
 @ui.refreshable

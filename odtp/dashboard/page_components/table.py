@@ -160,7 +160,7 @@ class VersionTable:
             type="positive"
         )
         from odtp.dashboard.page_components.main import ui_components_list
-        ui_components_list.refresh()
+        self.refresh()
 
     def activate_selected(self):
         """activate selected versions"""
@@ -169,5 +169,12 @@ class VersionTable:
             f"The selected {len(self.selected_version_ids)} component versions have been activated.",
             type="positive"
         )
-        from odtp.dashboard.page_components.main import ui_components_list
+        self.refresh()
+
+    def refresh(self):
+        from odtp.dashboard.page_components.main import (
+            ui_components_list, ui_version_detail, ui_add_component_version
+        )
         ui_components_list.refresh()
+        ui_version_detail.refresh()
+        ui_add_component_version.refresh()

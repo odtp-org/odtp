@@ -31,21 +31,32 @@ def ui_tabs():
 
 @ui.refreshable
 def ui_components_list():
-    table.VersionTable()
+    try:
+        table.VersionTable()
+    except Exception as e:
+        log.exception(
+            f"Component Version table could not be loaded. An Exception occurred: {e}"
+        )
 
 
 @ui.refreshable
 def ui_add_component_version():
-    with ui.column().classes("w-full"):
+    try:
         add.ComponentVersionForm()
+    except Exception as e:
+        log.exception(
+            f"Component Version Add Form could not be loaded. An Exception occurred: {e}"
+        )
 
 
 @ui.refreshable
 def ui_version_detail():
-    with ui.column().classes("w-full"):
+    try:
         detail.VersionDisplay()
-        pass
-
+    except Exception as e:
+        log.exception(
+            f"Component Version Detail could not be loaded. An Exception occurred: {e}"
+        )
 
 @ui.refreshable
 def ui_workarea():
