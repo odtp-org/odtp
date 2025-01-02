@@ -8,9 +8,7 @@ GITHUB_API_REPOS_URL = "https://api.github.com/users"
 def validate_github_user_name(github_user_name):
     headers = {"Authorization": "token " + GITHUB_TOKEN}
     git_api_user_url = f"{GITHUB_API_REPOS_URL}/{github_user_name}"
-    print(git_api_user_url)
     response = requests.get(git_api_user_url, headers=headers)
-    print(response.status_code)
     if not response.status_code == 200:
         return False
     return True

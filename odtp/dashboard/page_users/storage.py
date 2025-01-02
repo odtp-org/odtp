@@ -13,5 +13,4 @@ def storage_set_current_user(user_id, user_name, workdir):
 
 def storage_get_current_user():
     current_user = storage.get_active_object_from_storage((storage.CURRENT_USER))
-    print(current_user)
     return current_user

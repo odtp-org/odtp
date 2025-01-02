@@ -11,7 +11,6 @@ def workarea():
             """
         )
     current_user = storage.storage_get_current_user()
-    print(current_user)
     if not current_user:
         return
     with ui.row():
