@@ -1,11 +1,12 @@
 import logging
-from nicegui import app, ui
-import odtp.dashboard.utils.storage as storage
+from nicegui import ui
 import odtp.dashboard.utils.ui_theme as ui_theme
+import odtp.dashboard.page_digital_twins.storage as storage
+
 log = logging.getLogger("__name__")
 
 
-def ui_workarea_form(current_user, user_workdir, current_digital_twin):
+def ui_workarea_form(current_user):
     ui.markdown(
         """
         # Manage Digital Twins
@@ -18,33 +19,25 @@ def ui_workarea_form(current_user, user_workdir, current_digital_twin):
             action="select",
         )
         return
-    if not user_workdir:
-        user_workdir_display = "-"
-    else:
-        user_workdir_display = user_workdir
+    current_digital_twin = storage.storage_get_current_digital_twin()
+    dt_line = ""
+    if current_digital_twin:
+        dt_line = f"- **current digital twin**:  {current_digital_twin.get('digital_twin_name')}"
+    with ui.row():
+        ui.markdown(
+            f"""
+            #### Current Selection
+            - **user**: {current_user.get("user_name")}
+            - **work directory**: {current_user.get("workdir")}
+            {dt_line}
+            """
+        )
+    current_digital_twin = storage.storage_get_current_digital_twin()
     if not current_digital_twin:
-        digital_twin_display = ui_theme.MISSING_VALUE
-    else:
-        digital_twin_display = current_digital_twin.get("name")
-    with ui.grid(columns=2):
-        with ui.column():
-            ui.markdown(
-                f"""
-                #### Current Selection
-                - **user**: {current_user.get("display_name")}
-                - **digital twin**: {digital_twin_display}
-                - **work directory**: {user_workdir_display}
-                """
-            )
-        if current_digital_twin:
-            with ui.column():
-                ui.markdown(
-                    f"""
-                    #### Actions
-                    """
-                )
-                ui.button(
-                    "Manage Executions",
-                    on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
-                    icon="link",
-                )
+        return
+    with ui.row():
+        ui.button(
+            "Manage Executions",
+            on_click=lambda: ui.open(ui_theme.PATH_EXECUTIONS),
+            icon="link",
+        )
