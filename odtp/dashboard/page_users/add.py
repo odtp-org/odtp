@@ -12,7 +12,7 @@ class UserAddForm:
     def __init__(self):
         self.user_name = None
         self.user_id = None
-        self.user_path = None
+        self.workdir = None
         self.build_form()
 
     def build_form(self):
