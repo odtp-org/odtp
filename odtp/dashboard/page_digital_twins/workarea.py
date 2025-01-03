@@ -9,7 +9,7 @@ log = logging.getLogger("__name__")
 def ui_workarea_form(current_user):
     ui.markdown(
         """
-        # Manage Digital Twins
+        ## Manage Digital Twins
         """
     )
     if not current_user:
