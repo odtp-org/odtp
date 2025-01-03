@@ -49,14 +49,11 @@ class DigitalTwinAddForm:
             type="positive",
         )
         self.digital_twin_id = str(digital_twin_id)
-        self.storage_set_current_digital_twin()
-        self.refresh_page()
-
-    def storage_set_current_digital_twin(self):
-        storage.set_current_digital_twin(
-            digital_twin_id=self.digital_twin_id,
-            digital_twin_name=self.digital_twin_name,
+        digital_twin = db.get_document_by_id(
+            document_id=self.digital_twin_id, collection=db.collection_digital_twins
         )
+        storage.set_current_digital_twin(digital_twin)
+        self.refresh_page()
 
     def refresh_page(self):
         from odtp.dashboard.page_digital_twins.main import (

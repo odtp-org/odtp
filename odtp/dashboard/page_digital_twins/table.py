@@ -56,22 +56,19 @@ class DigitalTwinTable():
         ui_tabs.refresh()
 
     def storage_set_current_digital_twin(self, digital_twin):
-        storage.set_current_digital_twin(
-            digital_twin_id=str(digital_twin["_id"]),
-            digital_twin_name=digital_twin["name"],
-        )
+        storage.set_current_digital_twin(digital_twin)
         self.refresh_page()
 
     @ui.refreshable
     def add_rows(self):
         for digital_twin in self.digital_twins:
-            with ui.row().classes("w-full p-2 border-b grid grid-cols-6 gap-4 justify-items-start"):
+            with ui.row().classes("w-full p-2 border-b grid grid-cols-6 gap-4 flex items-center justify-items-start"):
                 ui.button(
                     digital_twin['name'],
                     on_click=lambda digital_twin=digital_twin: self.storage_set_current_digital_twin(
                         digital_twin
                     ),
-                ).classes(f"truncate col-span-1 align-top").props("flat no-caps")
+                ).classes(f"truncate col-span-1").props("flat no-caps")
                 ui.label(str(digital_twin["_id"])).classes(f"truncate col-span-2")
                 ui.label(self.display_date(digital_twin['created_at'])).classes(f"truncate col-span-1")
                 ui.label(self.display_date(digital_twin['updated_at'])).classes(f"truncate col-span-1")
