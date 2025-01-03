@@ -100,7 +100,7 @@ class VersionTable:
                 color = "text-gray-500"
             else:
                 color = ""
-            with ui.row().classes("w-full p-2 border grid grid-cols-11 gap-4 justify-items-start"):
+            with ui.row().classes("w-full p-2 border grid grid-cols-11 gap-4 flex items-center justify-items-start"):
                 ui.checkbox(
                     on_change=lambda e, version_id=version["_id"]: self.toggle_selection(e.value, version_id)
                 )

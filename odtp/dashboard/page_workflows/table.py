@@ -70,7 +70,7 @@ class WorkflowTable:
         headers = [
             {"text": "Select", "col_span": 1},
             {"text": "Workflow", "col_span": 1},
-            {"text": "Versions", "col_span": 6},
+            {"text": "Versions", "col_span": 5},
             {"text": "Created At", "col_span": 1},
             {"text": "Updated At", "col_span": 1},
         ]
@@ -83,6 +83,10 @@ class WorkflowTable:
     def display_date(self, datetime_field):
         return datetime_field.strftime("%Y-%m-%d")
 
+    def select_workflow(self, workflow_id):
+        from odtp.dashboard.page_workflows.main import ui_tabs
+        ui_tabs(workflow_id)
+
     @ui.refreshable
     def add_rows(self):
         """set the table rows"""
@@ -92,12 +96,17 @@ class WorkflowTable:
                 color = "text-gray-500"
             else:
                 color = ""
-            with ui.row().classes("w-full p-2 border-b grid grid-cols-10 gap-4 justify-items-start"):
+            with ui.row().classes("w-full p-2 border-b grid grid-cols-10 gap-4 justify-items-start flex items-center"):
                 ui.checkbox(
                     on_change=lambda e, workflow_id=workflow["_id"]: self.toggle_selection(e.value, workflow_id)
                 ).classes(f"items-center col-span-1 {color}")
+                if (workflow.get("deprecated")):
+                    ui.link(workflow['name'], f"{str(workflow['_id'])}"
+                    ).classes(f"truncate col-span-1").props("flat no-caps")
+                else:
+                    ui.label(workflow['name']).classes(f"truncate col-span-1 {color}")
                 ui.label(workflow['name']).classes(f"truncate col-span-1 {color}")
-                ui.label(self.get_workflow_display(workflow)).classes(f"truncate col-span-6 {color}")
+                ui.label(self.get_workflow_display(workflow)).classes(f"truncate col-span-5 {color}")
                 ui.label(self.display_date(workflow['created_at'])).classes(f"truncate col-span-1 {color}")
                 ui.label(self.display_date(workflow['updated_at'])).classes(f"truncate col-span-1 {color}")
 
@@ -163,7 +172,8 @@ class WorkflowTable:
             f"The selected {len(self.selected_workflow_ids)} workflows have been deprecated.",
             type="positive"
         )
-        self.refresh()
+        from odtp.dashboard.page_workflows.main import ui_workflow_list
+        ui_workflow_list.refresh()
 
     def activate_selected(self):
         """activate selected workflows"""
@@ -172,11 +182,12 @@ class WorkflowTable:
             f"The selected {len(self.selected_workflow_ids)} workflows have been activated.",
             type="positive"
         )
-        self.refresh()
+        from odtp.dashboard.page_workflows.main import ui_workflow_list
+        ui_workflow_list.refresh()
 
     def refresh(self):
         from odtp.dashboard.page_workflows.main import (
-            ui_workflow_list, ui_tabs, ui_workarea, ui_add_workflow
+            ui_workflow_list, ui_tabs, ui_add_workflow
         )
         ui_workflow_list.refresh()
         ui_add_workflow.refresh()

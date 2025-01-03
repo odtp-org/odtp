@@ -4,10 +4,9 @@ import odtp.dashboard.utils.helpers as helpers
 
 
 class WorkflowDisplay:
-    def __init__(self):
+    def __init__(self, workflow_id):
         """init form"""
-        self.workflow = None
-        self.workflow_id = None
+        self.set_workflow(workflow_id)
         self.get_workflow_options()
         self.build_form()
 
@@ -44,11 +43,20 @@ class WorkflowDisplay:
         ).classes("w-1/2")
 
     def set_workflow(self, workflow_id):
+        if workflow_id == "all":
+            self.workflow_id = ""
+            return
         """called when a new workflow has been selected"""
-        self.workflow_id = workflow_id
-        self.workflow = db.get_document_by_id(
+        workflow = db.get_document_by_id(
             document_id=workflow_id, collection=db.collection_workflows
         )
+        print("found in db")
+        print(workflow)
+        if not workflow:
+            self.workflow_id = ""
+            return
+        self.workflow = workflow
+        self.workflow_id = workflow_id
         versions = db.get_document_by_ids_in_collection(
             document_ids=self.workflow.get("versions", []),
             collection=db.collection_versions
@@ -60,6 +68,7 @@ class WorkflowDisplay:
     @ui.refreshable
     def ui_workflow_info(self):
         """ui element for workflow info"""
+        print(f"---ui_workflow_info:{self.workflow} ")
         if not self.workflow:
             return
         for version_id in self.workflow.get("versions", []):
@@ -68,6 +77,7 @@ class WorkflowDisplay:
 
     @ui.refreshable
     def ui_workflow_diagram(self, init="graph LR;"):
+        print(f"---ui_workflow_diagram:{self.workflow} ")
         if not self.workflow:
            return
         version_names = []
