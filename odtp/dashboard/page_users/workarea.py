@@ -7,7 +7,7 @@ def workarea():
     with ui.row().classes("w-full"):
         ui.markdown(
             """
-            # Manage Users
+            ## Manage Users
             """
         )
     current_user = storage.storage_get_current_user()

@@ -105,7 +105,6 @@ class WorkflowTable:
                     ).classes(f"truncate col-span-1").props("flat no-caps")
                 else:
                     ui.label(workflow['name']).classes(f"truncate col-span-1 {color}")
-                ui.label(workflow['name']).classes(f"truncate col-span-1 {color}")
                 ui.label(self.get_workflow_display(workflow)).classes(f"truncate col-span-5 {color}")
                 ui.label(self.display_date(workflow['created_at'])).classes(f"truncate col-span-1 {color}")
                 ui.label(self.display_date(workflow['updated_at'])).classes(f"truncate col-span-1 {color}")
