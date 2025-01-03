@@ -29,26 +29,26 @@ def components():
         components_page()
 
 
-@ui.page("/workflows")
-def components():
+@ui.page("/workflows/{workflow_id}")
+def workflows(workflow_id):
     with ui_theme.frame("Workflows"):
-        workflows_page()
+        workflows_page(workflow_id)
 
 
 @ui.page("/run")
-def components():
+def run():
     with ui_theme.frame("Run"):
         run_page()
 
 
 @ui.page("/digital-twins")
-def components():
+def digital_twins():
     with ui_theme.frame("Digital Twins"):
         digital_twins_page()
 
 
 @ui.page("/executions")
-def components():
+def executions():
     with ui_theme.frame("Executions"):
         executions_page()
 

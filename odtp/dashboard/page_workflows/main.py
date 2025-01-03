@@ -9,22 +9,23 @@ import odtp.dashboard.page_workflows.table as table
 log = logging.getLogger(__name__)
 
 
-def content() -> None:
+def content(workflow_id=1):
+    print("workflow_id")
     ui_workarea()
-    ui_tabs()
+    ui_tabs(workflow_id)
 
 
 @ui.refreshable
-def ui_tabs():
+def ui_tabs(workflow_id):
     with ui.tabs() as tabs:
         list = ui.tab("Manage Workflows")
         show_workflow = ui.tab("Workflow Details")
         add_workflow = ui.tab("Add Workflow")
-    with ui.tab_panels(tabs, value=list).classes("w-full"):
+    with ui.tab_panels(tabs, value=show_workflow).classes("w-full"):
         with ui.tab_panel(list):
             ui_workflow_list()
         with ui.tab_panel(show_workflow):
-            ui_workflow_detail()
+            ui_workflow_detail(workflow_id)
         with ui.tab_panel(add_workflow):
             ui_add_workflow()
 
@@ -40,9 +41,9 @@ def ui_workflow_list():
 
 
 @ui.refreshable
-def ui_workflow_detail():
+def ui_workflow_detail(workflow_id):
     try:
-        detail.WorkflowDisplay()
+        detail.WorkflowDisplay(workflow_id)
     except Exception as e:
         log.exception(
             f"Workflow Detail could not be loaded. An Exception occurred: {e}"

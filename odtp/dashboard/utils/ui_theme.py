@@ -12,7 +12,7 @@ PATH_ABOUT = "/"
 PATH_USERS = "/users"
 PATH_DIGITAL_TWINS = "/digital-twins"
 PATH_COMPONENTS = "/components"
-PATH_WORKFLOWS = "/workflows"
+PATH_WORKFLOWS = "/workflows/all"
 PATH_EXECUTIONS = "/executions"
 PATH_RUN = "/run"
 
