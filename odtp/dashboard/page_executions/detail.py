@@ -31,6 +31,37 @@ class ExecutionDisplay:
         self.get_execution_options()
         self.build_form()
 
+    @ui.refreshable
+    def build_form(self):
+        """render form elements"""
+        self.ui_execution_select()
+        self.ui_workflow_diagram()
+        with ui.expansion("Execution Details: Parameters and Ports").classes("w-1/2 bg-gray-100"):
+            self.ui_steps()
+        self.ui_execution_run_info()
+        self.ui_project_directory()
+        self.ui_prepare_execution()
+        self.ui_run_execution()
+
+    def ui_execution_run_info(self):
+        if not self.execution:
+            return
+        with ui.grid(columns=2):
+            ui.label("created")
+            ui.label(self.execution['createdAt'].strftime(f'%Y-%m-%d'))
+            if not self.execution:
+                return
+            ui.label("started")
+            if self.execution.get('start_timestamp'):
+                ui.label(self.execution['start_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S'))
+            else:
+                ui.label("not yet")
+            ui.label("ended")
+            if self.execution.get('end_timestamp'):
+                ui.label(self.execution['end_timestamp'].strftime('%Y-%m-%d %H:%M:%S'))
+            else:
+                ui.label("not yet")
+
     def get_execution_options(self):
         """get execution options"""
         executions = db.get_sub_collection_items(
@@ -121,17 +152,6 @@ class ExecutionDisplay:
         )
         self.execution_path = execution_path
         self.build_form.refresh()
-
-    @ui.refreshable
-    def build_form(self):
-        """render form elements"""
-        self.ui_execution_select()
-        self.ui_workflow_diagram()
-        with ui.expansion("Execution Details: Parameters and Ports").classes("w-1/2 bg-gray-100"):
-            self.ui_steps()
-        self.ui_project_directory()
-        self.ui_prepare_execution()
-        self.ui_run_execution()
 
     @ui.refreshable
     def ui_execution_select(self):
@@ -251,19 +271,9 @@ class ExecutionDisplay:
         output = ""
         while True:
             new = await process.stdout.read(100000)
-            print("-----------")
-            print(new)
-            print("-----------")
             if not new:
                 break
             output += new.decode()
             # NOTE the content of the markdown element is replaced every time we have new output
-            if "ERROR" in output:
-                result.content = f'```\n{output}\n```'
-        stdout, _ = await process.communicate()
-        exit_code = process.returncode  # Get the exit code after process completion
-
-        # Print the output and exit code
-        print(f"Output:\n{stdout.decode().strip()}")
-        print(f"Exit code: {exit_code}")
+            result.content = f'```\n{output}\n```'
         self.build_form.refresh()
