@@ -412,6 +412,15 @@ def set_document_timestamp(document_id, collection_name, timestamp_name):
         )
 
 
+def update_step(document_id, properties):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        db[collection_steps].update_one(
+            {"_id": ObjectId(document_id)},
+            {"$set": properties},
+        )
+
+
 def set_execution_path(execution_id, execution_path):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
@@ -479,7 +488,7 @@ def add_execution(
                     "component_version": versions[i],
                     "parameters": parameters[i] or {},
                     "ports": ports[i],
-                    "deprecated": False,
+                    "run_step": True,
                     "createdAt": datetime.now(timezone.utc),
                     "updatedAt": datetime.now(timezone.utc)
                 }
