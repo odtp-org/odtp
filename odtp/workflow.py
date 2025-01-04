@@ -178,6 +178,7 @@ class WorkflowManager:
 
             # End step timestamp
             db.set_document_timestamp(step_id, db.collection_steps, "end_timestamp")
+            db.update_step(step_id, {"run_step":False})
 
         # End execution timestamp
         db.set_document_timestamp(self.execution["_id"], db.collection_executions, "end_timestamp")

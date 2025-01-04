@@ -7,6 +7,7 @@ import odtp.helpers.settings as config
 import odtp.helpers.git as git_helpers
 import odtp.helpers.environment as env_helpers
 import odtp.mongodb.utils as db_utils
+import odtp.mongodb.db as db
 
 
 REPO_DIR = "repository"
@@ -205,6 +206,7 @@ class DockerManager:
         log.info(f"RUN: Running ODTP component. Repo: {self.repo_url}, Image name: {self.docker_image_name}, Container Name: {container_name}")
 
         if step_id:
+            db.update_step(step_id, {"error":False, "msg": None})
             parameters["ODTP_STEP_ID"] = step_id
         parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
         parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
@@ -246,6 +248,8 @@ class DockerManager:
 
         if process.returncode != 0:
             msg = f"Failed to run Docker component {container_name}: {error.decode()}"
+            if step_id:
+                db.update_step(step_id, {"error":True, "msg": msg})
             log.exception(msg)
             raise OdtpRunException(msg)
         else:
