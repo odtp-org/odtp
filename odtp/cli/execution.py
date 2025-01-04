@@ -9,7 +9,6 @@ import logging
 import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 from odtp.workflow import WorkflowManager
-from directory_tree import display_tree
 import odtp.helpers.environment as odtp_env
 from odtp.storage import s3Manager
 from nicegui import ui
@@ -19,14 +18,12 @@ app = typer.Typer()
 
 log = logging.getLogger(__name__)
 
-log = logging.getLogger(__name__)
-
 ## Adding listing so we can have multiple flags
 from typing import List
 
 
 @app.command()
-def prepare(    
+def prepare(
     execution_name: str = typer.Option(
         None, "--execution-name", help="Specify the name of the execution"
     ),
@@ -36,7 +33,7 @@ def prepare(
     project_path: str = typer.Option(
         ..., "--project-path", help="Specify the path for the execution"
     ),
-):  
+):
     try:
         if execution_id is None and execution_name is None:
             raise typer.Exit("Please provide either --execution-name or --execution-id")
@@ -45,7 +42,7 @@ def prepare(
             execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
 
         execution = db.get_document_by_id(
-            document_id=execution_id, 
+            document_id=execution_id,
             collection=db.collection_executions
         )
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
@@ -54,9 +51,9 @@ def prepare(
         flowManager.prepare_workflow()
     except Exception as e:
         msg = f"ERROR: Prepare execution failed: {e}"
-        log.exception(msg) 
+        log.exception(msg)
         print(msg)
-        raise typer.Abort()           
+        raise typer.Abort()
     else:
         msg = "SUCCESS: images for the execution have been build"
         log.info(msg)
@@ -76,8 +73,8 @@ def run(
     ),
     secrets_files: Annotated[str, typer.Option(
         help="List the files containing the secrets by step separated by commas"
-    )] = None, 
-): 
+    )] = None,
+):
     try:
         if execution_id is None and execution_name is None:
             raise typer.Exit("Please provide either --execution-name or --execution-id")
@@ -86,7 +83,7 @@ def run(
             execution_id = db.get_document_id_by_field_value("title", execution_name, "executions")
 
         execution = db.get_document_by_id(
-            document_id=execution_id, 
+            document_id=execution_id,
             collection=db.collection_executions
         )
         step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
@@ -97,7 +94,7 @@ def run(
     except Exception as e:
         msg = f"ERROR: Prepare execution failed: {e}"
         log.exception(msg)
-        print(msg)     
+        print(msg)
         raise typer.Abort()
     else:
         msg = "SUCCESS: containers for the execution have been run"
@@ -116,7 +113,7 @@ def streamlogs(
 ):
     try:
         log_file_path = f"{project_path}/{step_nr}_*/odtp-logs/*"
-        os.system(f"tail -f {log_file_path}")     
+        os.system(f"tail -f {log_file_path}")
     except KeyboardInterrupt:
         sys.exit()
 
@@ -150,16 +147,16 @@ def delete(
 
         # DB
         db.delete_execution(execution_id)
-        
+
         # Folders
         if project_path:
-            odtp_env.delete_folder(project_path, keep_project_path=keep_project_path) 
+            odtp_env.delete_folder(project_path, keep_project_path=keep_project_path)
 
     except Exception as e:
         msg = f"ERROR: Delete execution failed: {e}"
         log.exception(msg)
-        print(msg)       
-        raise typer.Abort()  
+        print(msg)
+        raise typer.Abort()
     else:
         msg = "SUCCESS: execution has been deleted"
         log.info(msg)
