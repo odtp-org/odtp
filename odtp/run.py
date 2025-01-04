@@ -24,6 +24,10 @@ class OdtpRunSetupException(Exception):
     pass
 
 
+class OdtpRunException(Exception):
+    pass
+
+
 class DockerManager:
     def __init__(self, repo_url="", commit_hash="", image_name="", project_folder="", image_link=None):
         log.debug(f"""Docker manager initialized with repo_url: {repo_url},
@@ -241,8 +245,9 @@ class DockerManager:
         output, error = process.communicate()
 
         if process.returncode != 0:
-            log.exception(f"Failed to run Docker component {container_name}: {error.decode()}")
-            return None
+            msg = f"Failed to run Docker component {container_name}: {error.decode()}"
+            log.exception(msg)
+            raise OdtpRunException(msg)
         else:
             docker_run_id = output.decode().strip()
             log.info(f"Docker run was started with success: {container_name}")
@@ -289,7 +294,7 @@ class DockerManager:
             return None
         else:
             return f"Docker component {container_name} has been deleted."
-        
+
     def delete_image(self):
         """
         Delete a Docker image.
