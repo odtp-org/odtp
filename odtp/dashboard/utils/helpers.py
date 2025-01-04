@@ -56,24 +56,6 @@ def get_value_from_parameters(current_component_parameters, index):
     return parameters_values_as_list[index]
 
 
-def get_execution_select_options(digital_twin_id):
-    executions = db.get_sub_collection_items(
-        collection=db.collection_digital_twins,
-        sub_collection=db.collection_executions,
-        item_id=digital_twin_id,
-        ref_name=db.collection_executions,
-        sort_by=[("createdAt", db.DESCENDING)],
-    )
-    if not executions:
-        return {}
-    execution_options = {}
-    for execution in executions:
-        execution_options[str(execution["_id"])] = (
-            f"{execution['createdAt'].strftime('%d/%m/%y')} {execution.get('title')}"
-        )
-    return execution_options
-
-
 def build_execution_with_steps(execution_id):
     execution = db.get_document_by_id(
         document_id=execution_id, collection=db.collection_executions
