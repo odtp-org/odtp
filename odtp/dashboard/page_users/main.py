@@ -45,6 +45,6 @@ def ui_add_user():
 @ui.refreshable
 def ui_workarea():
     try:
-        workarea.workarea()
+        workarea.Workarea()
     except Exception as e:
         log.exception(e)
