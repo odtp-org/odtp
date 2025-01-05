@@ -477,6 +477,7 @@ def add_execution(
             }
             steps = []
             for i, version in enumerate(versions):
+                version_document = get_document_by_id(version, collection_versions)
                 step = {
                     "timestamp": datetime.now(timezone.utc),
                     "start_timestamp": None,
@@ -488,6 +489,7 @@ def add_execution(
                     "component_version": versions[i],
                     "parameters": parameters[i] or {},
                     "ports": ports[i],
+                    "secrets": True if version_document.get("secrets") else False,
                     "run_step": True,
                     "createdAt": datetime.now(timezone.utc),
                     "updatedAt": datetime.now(timezone.utc)
