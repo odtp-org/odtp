@@ -167,8 +167,9 @@ class ExecutionTable:
             f"The selected {len(self.selected_execution_ids)} component versions have been deprecated.",
             type="positive"
         )
-        from odtp.dashboard.page_executions.main import ui_executions_table
+        from odtp.dashboard.page_executions.main import ui_executions_table, ui_execution_select
         ui_executions_table.refresh()
+        ui_execution_select.refresh()
 
     def activate_selected(self):
         """activate selected executions"""
@@ -177,5 +178,6 @@ class ExecutionTable:
             f"The selected {len(self.selected_execution_ids)} component versions have been activated.",
             type="positive"
         )
-        from odtp.dashboard.page_executions.main import ui_executions_table
+        from odtp.dashboard.page_executions.main import ui_executions_table, ui_execution_select
         ui_executions_table.refresh()
+        ui_execution_select.refresh()

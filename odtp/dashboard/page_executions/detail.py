@@ -6,8 +6,10 @@ from nicegui import ui
 import odtp.mongodb.db as db
 import odtp.helpers.utils as odtp_utils
 import odtp.dashboard.utils.helpers as helpers
+import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.page_executions.projectdir as projectdir
 import odtp.dashboard.page_executions.run as run
+from odtp.helpers.settings import ODTP_SECRETS_FILE, ODTP_LOG_PATH
 
 
 from nicegui import ui
@@ -89,7 +91,6 @@ class ExecutionDisplay:
     def ui_prepare_execution(self):
         if not self.execution_path:
             return
-        self.folder_status = run.get_folder_status(self.execution_id, self.execution_path)
         if self.folder_status >= run.FOLDER_PREPARED:
             with ui.row():
                 ui.icon("check").classes("text-teal text-lg")
@@ -106,13 +107,12 @@ class ExecutionDisplay:
             "Prepare Execution",
             on_click=lambda: self.action_run_command(command, self.dialog, self.result),
             icon="folder",
-        ).props("flat")
+        )
 
     @ui.refreshable
     def ui_run_execution(self):
         if not self.execution_path:
             return
-        self.folder_status = run.get_folder_status(self.execution_id, self.execution_path)
         if not self.folder_status >= run.FOLDER_PREPARED:
             return
         command = run.build_cli_command(
@@ -129,7 +129,7 @@ class ExecutionDisplay:
 
     @ui.refreshable
     def ui_open_logs(self, version_name):
-        log_file_path = f"{self.execution_path}/{version_name}/odtp-logs/log.txt"
+        log_file_path = f"{self.execution_path}/{version_name}/{ODTP_LOG_PATH}"
         if not os.path.exists(log_file_path):
             return
         command = f"cat {log_file_path}"
@@ -137,23 +137,24 @@ class ExecutionDisplay:
             "Show logs",
             on_click=lambda: self.action_run_command(command, self.dialog, self.result),
             icon="receipt_long",
-        ).props("flat")
+        )
 
     @ui.refreshable
     def ui_project_directory(self):
         if not self.execution:
             return
-        if self.execution_path:
+        if self.execution_path and self.folder_status >= run.FOLDER_EMPTY:
             with ui.row():
                 ui.icon("check").classes("text-teal text-lg")
                 ui.label("Project folder for the execution run has been created").classes("text-teal")
                 ui.label(self.execution_path)
             return
-        ui.button(
-            "Create execution directory",
-            on_click=lambda: self.action_create_folder(),
-            icon="add",
-        ).props("flat")
+        if self.folder_status < run.FOLDER_EMPTY:
+            ui.button(
+                "Create execution directory",
+                on_click=lambda: self.action_create_folder(),
+                icon="add",
+            )
 
     def action_create_folder(self):
         execution_path = projectdir.make_project_dir_for_execution(
@@ -210,6 +211,7 @@ class ExecutionDisplay:
             step["_id"] = str(step["_id"])
             step["executionRef"] = str(step["executionRef"])
         self.execution_path = self.execution.get("execution_path")
+        self.folder_status = run.get_folder_status(self.execution_id, self.execution_path)
 
     @ui.refreshable
     def ui_workflow_diagram(self, init="graph LR;"):
@@ -242,11 +244,25 @@ class ExecutionDisplay:
             with ui.grid(columns=3).classes("flex items-center"):
                 ui.label(version_name).classes("text-lg")
                 self.ui_open_logs(version_name)
-                ui.switch(
-                    'Re run step',
-                    value=step.get("run_step"),
-                    on_change=lambda e, step=step: self.action_update_step(step, e.value),
-                )
+                if self.execution["start_timestamp"]:
+                    ui.switch(
+                        'Re run step',
+                        value=step.get("run_step"),
+                        on_change=lambda e, step=step: self.action_update_step(step, e.value),
+                    )
+                if step.get("secrets"):
+                    ui.label("needs secrets")
+                    secrets_path = os.path.join(self.user["workdir"], ODTP_SECRETS_FILE)
+                    if os.path.exists(secrets_path):
+                        db.update_step(step["_id"], {"secrets": secrets_path})
+                        print(f"db updated for {step['_id']}")
+                        ui.label(secrets_path)
+                    else:
+                        ui.button(
+                            "Add secrets as file",
+                            on_click=lambda: ui.open(ui_theme.PATH_USERS),
+                            icon="link",
+                        ).props("flat")
             with ui.grid(columns="5px auto"):
                 if step.get('end_timestamp'):
                     ui.icon("check").classes("text-teal text-lg")
