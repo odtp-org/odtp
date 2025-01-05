@@ -23,7 +23,7 @@ class DigitalTwinAddForm:
                 placeholder="name",
                 validation={
                     "Should be unique and at least 6 characters long" \
-                    : lambda value: validation.validate_digital_twin_name_unique(value.strip())
+                    : lambda value: validation.validate_digital_twin_name_unique(value.strip(), self.user_id)
                 },
             ).classes("w-1/2")
 

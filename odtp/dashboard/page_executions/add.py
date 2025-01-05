@@ -36,7 +36,7 @@ class ExecutionForm(object):
             on_change=lambda e: self.set_title(e.value),
             validation={
                 "Should be unique and at least 6 characters long" \
-                : lambda value: validation.validate_execution_name_unique(value.strip())
+                : lambda value: validation.validate_execution_name_unique(value.strip(), self.digital_twin_id)
             },
         ).classes("w-1/2")
 
