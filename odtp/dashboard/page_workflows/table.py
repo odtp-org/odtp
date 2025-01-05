@@ -100,7 +100,7 @@ class WorkflowTable:
                 ui.checkbox(
                     on_change=lambda e, workflow_id=workflow["_id"]: self.toggle_selection(e.value, workflow_id)
                 ).classes(f"items-center col-span-1 {color}")
-                if (workflow.get("deprecated")):
+                if not workflow.get("deprecated"):
                     ui.link(workflow['name'], f"{str(workflow['_id'])}"
                     ).classes(f"truncate col-span-1").props("flat no-caps")
                 else:

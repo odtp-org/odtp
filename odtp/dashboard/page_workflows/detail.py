@@ -50,8 +50,6 @@ class WorkflowDisplay:
         workflow = db.get_document_by_id(
             document_id=workflow_id, collection=db.collection_workflows
         )
-        print("found in db")
-        print(workflow)
         if not workflow:
             self.workflow_id = ""
             return
@@ -62,8 +60,7 @@ class WorkflowDisplay:
             collection=db.collection_versions
         )
         self.versions_dict = {str(version["_id"]): version  for version in versions }
-        self.ui_workflow_info.refresh()
-        self.ui_workflow_diagram.refresh()
+        self.build_form.refresh()
 
     @ui.refreshable
     def ui_workflow_info(self):
@@ -93,36 +90,34 @@ class WorkflowDisplay:
         return f"{version['component']['componentName']}_{version['component_version']}"
 
     def display_version(self, version):
-        version_name = self.get_version_display(version)
-        ui.mermaid(
-            f"""
-            {helpers.get_workflow_mermaid([version_name], init='graph LR;')}"""
-        ).classes("w-full")
-        parameters = version.get("parameters", [])
-        if parameters:
-            self.display_dict_list(version, "Parameters", "parameters")
-        else:
-            self.display_not_set("Parameters")
-        ports = version.get("ports", [])
-        if ports:
-            self.display_dict_list(version, "Ports", "ports")
-        else:
-            self.display_not_set("Ports")
-        secrets = version.get("secrets", [])
-        if secrets:
-            self.display_dict_list(version, "Secrets", "secrets")
-        else:
-            self.display_not_set("Secrets")
+        with ui.card().classes("bg-gray-100 w-1/2"):
+            version_name = self.get_version_display(version)
+            ui.label(version_name).classes("text-lg")
+            parameters = version.get("parameters", [])
+            if parameters:
+                self.display_dict_list(version, "Parameters", "parameters")
+            else:
+                self.display_not_set("Parameters")
+            ports = version.get("ports", [])
+            if ports:
+                self.display_dict_list(version, "Ports", "ports")
+            else:
+                self.display_not_set("Ports")
+            secrets = version.get("secrets", [])
+            if secrets:
+                self.display_dict_list(version, "Secrets", "secrets")
+            else:
+                self.display_not_set("Secrets")
 
     def display_not_set(self, label):
-        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
+        with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
             ui.label(label)
             ui.label("None")
 
     def display_dict_list(self, version, label, dict_list_name):
         """display a list of dicts"""
         ui.label(label)
-        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
+        with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
             for dict_item in version.get(dict_list_name):
                 for key, value in dict_item.items():
                     ui.label(key).classes('bg-gray-200 border p-1')
