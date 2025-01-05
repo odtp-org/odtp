@@ -206,7 +206,7 @@ class DockerManager:
         log.info(f"RUN: Running ODTP component. Repo: {self.repo_url}, Image name: {self.docker_image_name}, Container Name: {container_name}")
 
         if step_id:
-            db.update_step(step_id, {"error":False, "msg": None})
+            db.update_step(step_id, {"error":False, "msg": None, "run_step": False})
             parameters["ODTP_STEP_ID"] = step_id
         parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
         parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
