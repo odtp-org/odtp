@@ -1,7 +1,6 @@
 from nicegui import ui
 import odtp.mongodb.db as db
 import odtp.dashboard.utils.helpers as helpers
-import odtp.dashboard.utils.validators as validators
 
 
 class WorkflowForm(object):

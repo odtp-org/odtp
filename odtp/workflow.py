@@ -118,15 +118,19 @@ class WorkflowManager:
 
             step_id = self.execution["steps"][step_index]
 
-            # Start step timestamp
-            db.set_document_timestamp(step_id, db.collection_steps, "start_timestamp")
-
             secrets = self.secrets[step_index]
 
             step_doc = db.get_document_by_id(
                 document_id=step_id,
                 collection=db.collection_steps
             )
+
+            if not step_doc.get("run_step"):
+                log.info(f"step {step_index} was excluded from run")
+                continue
+
+            # Start step timestamp
+            db.set_document_timestamp(step_id, db.collection_steps, "start_timestamp")
 
             ports = step_doc["ports"]
             log.info(f"set ports {ports}")

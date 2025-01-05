@@ -4,9 +4,6 @@ from contextlib import contextmanager
 from nicegui import app, ui
 
 import odtp.dashboard.utils.helpers as helpers
-import odtp.dashboard.utils.storage as storage
-import odtp.helpers.utils as odtp_utils
-import odtp.mongodb.db as db
 
 PATH_ABOUT = "/"
 PATH_USERS = "/users"
@@ -14,7 +11,6 @@ PATH_DIGITAL_TWINS = "/digital-twins"
 PATH_COMPONENTS = "/components"
 PATH_WORKFLOWS = "/workflows/all"
 PATH_EXECUTIONS = "/executions"
-PATH_RUN = "/run"
 
 NO_SELECTION_VALUE = "None"
 NO_SELECTION_INPUT = None
@@ -32,7 +28,7 @@ def menu() -> None:
 
 
 @contextmanager
-def frame(navtitle: str):
+def frame():
     """Custom page frame to share the same styling and behavior across all pages"""
     ui.colors(primary="black", secondary="black", accent="black", positive="teal")
     with ui.header().classes("justify-between text-white"):
