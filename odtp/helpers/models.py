@@ -50,6 +50,11 @@ class Port(BaseModel):
     description: str
     port_value: int = Field(alias="port-value")
 
+class Secret(BaseModel):
+    name: str
+    datatype: str
+    description: str
+
 class OdtpDotYamlSchema(BaseModel):
     schema_version: str = Field(alias="schema-version")
     component_name: str = Field(alias="component-name")
@@ -62,7 +67,7 @@ class OdtpDotYamlSchema(BaseModel):
     component_docker_image: Optional[str] = Field(alias="component-docker-image", default=None)
     tags: List[str]
     tools: Optional[List[Tool]] = None
-    secrets: Optional[dict] = None
+    secrets: Optional[List[Secret]] = None
     build_args: Optional[dict] = Field(alias="build-args", default=None)
     ports: Optional[List[Port]] = Field(default=None)
     parameters: Optional[List[Parameter]] = None
