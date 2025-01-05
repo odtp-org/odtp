@@ -50,11 +50,14 @@ def get_collection_names():
         db.list_collection_names()
 
 
-def get_collection(collection, include_deprecated=True):
+def get_collection(collection, include_deprecated=True, query=None):
     """Retrieve all documents from a collection"""
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
-        query = query = {} if include_deprecated else {"deprecated": False}
+        if not query:
+            query = {}
+        if not include_deprecated:
+            query["deprecated"] = False
         cursor = db[collection].find(query)
         return mongodb_utils.get_list_from_cursor(cursor)
 
