@@ -24,6 +24,8 @@ ODTP_SECRET_KEY = os.getenv("ODTP_SECRET_KEY")
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 ODTP_PASSWORD = os.getenv("ODTP_PASSWORD")
+ODTP_SECRETS_FILE = "odtp-secrets.txt"
+ODTP_LOG_PATH = "odtp-logs/log.txt"
 
 ODTP_DASHBOARD_PORT = int(os.getenv("ODTP_DASHBOARD_PORT"))
 ALLOW_DOCKER_GPUS = os.getenv("ALLOW_DOCKER_GPUS")

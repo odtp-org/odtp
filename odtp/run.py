@@ -220,7 +220,6 @@ class DockerManager:
             ports_args = [f"-p {port_pair}" for port_pair in ports]
         else:
             ports_args = [""]
-
         if secrets:
             secrets_args = [f"-e \"{key}={value}\"" for key, value in secrets.items()]
         else:
@@ -247,7 +246,7 @@ class DockerManager:
         output, error = process.communicate()
 
         if process.returncode != 0:
-            msg = f"Failed to run Docker component {container_name}: {error.decode()}"
+            msg = f"Failed to run Docker component\n{container_name}:\n{error.decode()}"
             if step_id:
                 db.update_step(step_id, {"error":True, "msg": msg})
             log.exception(msg)

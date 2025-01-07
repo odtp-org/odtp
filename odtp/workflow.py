@@ -1,6 +1,9 @@
 import os
+import json
 from odtp.run import DockerManager, OdtpRunSetupException
 import odtp.helpers.utils as odtp_utils
+import odtp.helpers.parse as odtp_parse
+import odtp.helpers.secrets as odtp_secrets
 import odtp.helpers.settings as config
 import odtp.helpers.environment as env_helpers
 import odtp.mongodb.db as db
@@ -13,7 +16,7 @@ log.addHandler(config.get_command_log_handler())
 
 
 class WorkflowManager:
-    def __init__(self, execution_data, working_path, secrets):
+    def __init__(self, execution_data, working_path, secrets=None):
         # This workflow will have one execution ID associated
         # This class should contain flags used to know the status of the workflow.
         self.execution = execution_data
@@ -25,7 +28,8 @@ class WorkflowManager:
         self.commits = []
         self.container_names = []
         self.steps_folder_paths = []
-        self.secrets = secrets
+        if secrets:
+            self.secrets = secrets
 
         for step_index in self.schema["workflowExecutorSchema"]:
             try:
@@ -118,12 +122,18 @@ class WorkflowManager:
 
             step_id = self.execution["steps"][step_index]
 
-            secrets = self.secrets[step_index]
-
             step_doc = db.get_document_by_id(
                 document_id=step_id,
                 collection=db.collection_steps
             )
+            secrets = self.secrets[step_index]
+            if not secrets and step_doc.get("secrets"):
+                secrets_file = step_doc["secrets"]
+                decrypted_content = odtp_secrets.decrypt_file_to_dict(
+                    secrets_file,
+                    config.ODTP_PASSWORD
+                )
+                secrets = decrypted_content
 
             if not step_doc.get("run_step"):
                 log.info(f"step {step_index} was excluded from run")

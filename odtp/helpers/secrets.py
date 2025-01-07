@@ -3,6 +3,8 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
+from io import StringIO
+from dotenv import dotenv_values
 
 # Constants
 SALT_SIZE = 16  # Salt size in bytes
@@ -36,8 +38,8 @@ def encrypt_text(text, password):
 
     return salt, iv, encrypted_data
 
-def decrypt_file(encrypted_file_path, password):
-    """Decrypt an encrypted file and return the decrypted content."""
+def decrypt_file_to_dict(encrypted_file_path, password):
+    """Decrypt an encrypted file and return its content as a dictionary."""
     with open(encrypted_file_path, "rb") as f:
         file_data = f.read()
 
@@ -65,5 +67,8 @@ def decrypt_file(encrypted_file_path, password):
     pad_length = decrypted_padded_data[-1]  # Last byte indicates padding length
     decrypted_data = decrypted_padded_data[:-pad_length]
 
-    # Return the decrypted content as a string
-    return decrypted_data.decode('utf-8')
+    # Parse the decrypted content as a dotenv dictionary
+    decrypted_str = decrypted_data.decode('utf-8')
+    secrets_dict = dotenv_values(stream=StringIO(decrypted_str))
+
+    return dict(secrets_dict)

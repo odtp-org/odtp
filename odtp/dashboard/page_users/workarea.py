@@ -3,7 +3,7 @@ from nicegui import ui, events
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.helpers.secrets as secrets
 import odtp.dashboard.page_users.storage as storage
-from odtp.helpers.settings import ODTP_PASSWORD
+from odtp.helpers.settings import ODTP_PASSWORD, ODTP_SECRETS_FILE
 
 
 class Workarea():
@@ -39,16 +39,11 @@ class Workarea():
                 on_upload=self.handle_upload,
                 label="upload secrets (store encrypted)"
             ).classes('max-w-full')
-            ui.button(
-                "get secrets",
-                on_click=self.decrypt_secrets,
-                icon="link",
-            )
 
     async def handle_upload(self, event):
         """Handle file upload and encrypt the file."""
         content = event.content.read().decode('utf-8')
-        file_path = os.path.join(self.current_user["workdir"], f"odtp-secrets.txt")
+        file_path = os.path.join(self.current_user["workdir"], ODTP_SECRETS_FILE)
 
         salt, iv, encrypted_data = secrets.encrypt_text(content, ODTP_PASSWORD)
         # Save the encrypted data to a file
