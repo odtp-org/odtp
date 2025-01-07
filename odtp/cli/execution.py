@@ -45,9 +45,7 @@ def prepare(
             document_id=execution_id,
             collection=db.collection_executions
         )
-        step_count = len(execution["workflowSchema"]["workflowExecutorSchema"])
-        secrets = [None for i in range(step_count)]
-        flowManager = WorkflowManager(execution, project_path, secrets)
+        flowManager = WorkflowManager(execution, project_path)
         flowManager.prepare_workflow()
     except Exception as e:
         msg = f"ERROR: Prepare execution failed: {e}"
