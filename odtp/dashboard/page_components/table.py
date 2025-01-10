@@ -71,8 +71,7 @@ class VersionTable:
     def add_header(self):
         headers = [
             {"text": "Select", "col_span": 1},
-            {"text": "Component", "col_span": 2},
-            {"text": "Version", "col_span": 1},
+            {"text": "Component Version", "col_span": 3},
             {"text": "Repository", "col_span": 3},
             {"text": "Commit", "col_span": 1},
             {"text": "Type", "col_span": 1},
@@ -104,9 +103,14 @@ class VersionTable:
                 ui.checkbox(
                     on_change=lambda e, version_id=version["_id"]: self.toggle_selection(e.value, version_id)
                 )
-                ui.label(version['component']['componentName']).classes(f"truncate col-span-2 {color}")
-                ui.label(version['component_version']).classes(f"truncate col-span-1 {color}")
-                ui.link(version['component']['repoLink'], version['component']['repoLink']).classes(f"truncate col-span-3 {color}")
+                ui.link(
+                    f"{version['component']['componentName']}_{version['component_version']}",
+                    str(version['_id']),
+                ).classes(f"truncate col-span-3 {color}")
+                ui.link(
+                    version['component']['repoLink'],
+                    version['component']['repoLink'],
+                ).classes(f"truncate col-span-3 {color}")
                 ui.label(version['commitHash'][:8]).classes(f"text-center truncate {color}")
                 ui.label(version['component'].get("type") or version.get("type")).classes(f"text-center truncate {color}")
                 ui.label(version['created_at'].strftime('%Y-%m-%d')).classes(f"text-center truncate {color}")

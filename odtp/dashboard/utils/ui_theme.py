@@ -8,12 +8,13 @@ import odtp.dashboard.utils.helpers as helpers
 PATH_ABOUT = "/"
 PATH_USERS = "/users"
 PATH_DIGITAL_TWINS = "/digital-twins"
-PATH_COMPONENTS = "/components"
+PATH_COMPONENTS = "/components/all"
 PATH_WORKFLOWS = "/workflows/all"
 PATH_EXECUTIONS = "/executions"
 
 NO_SELECTION_VALUE = "None"
 NO_SELECTION_INPUT = None
+NO_SELECTION_QUERY = "all"
 
 MISSING_VALUE = "<scan style=color:red>not set</span>"
 
