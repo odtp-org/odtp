@@ -1,7 +1,7 @@
 import logging
 
 from nicegui import ui
-
+import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.page_workflows.add as add
 import odtp.dashboard.page_workflows.detail as detail
 import odtp.dashboard.page_workflows.table as table
@@ -9,9 +9,10 @@ import odtp.dashboard.page_workflows.table as table
 log = logging.getLogger(__name__)
 
 
-def content(workflow_id=1):
-    print("workflow_id")
+def content(workflow_id):
     ui_workarea()
+    if workflow_id == ui_theme.NO_SELECTION_QUERY:
+       workflow_id = ui_theme.NO_SELECTION_INPUT
     ui_tabs(workflow_id)
 
 

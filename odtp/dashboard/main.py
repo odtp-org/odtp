@@ -22,10 +22,10 @@ def start():
         user_page()
 
 
-@ui.page("/components")
-def components():
+@ui.page("/components/{version_id}")
+def components(version_id):
     with ui_theme.frame():
-        components_page()
+        components_page(version_id)
 
 
 @ui.page("/workflows/{workflow_id}")

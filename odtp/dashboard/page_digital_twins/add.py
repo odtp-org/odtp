@@ -7,6 +7,8 @@ import odtp.dashboard.page_digital_twins.validation as validation
 
 class DigitalTwinAddForm:
     def __init__(self, current_user):
+        if not current_user:
+            return
         self.user_id = current_user.get("user_id")
         self.build_form()
 
