@@ -314,7 +314,7 @@ class ExecutionDisplay:
 
     def _display_parameters(self, step, parameters):
         ui.label("Parameters")
-        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
+        with ui.grid(columns=1).classes('w-1/2 gap-0'):
             for key, value in parameters.items():
                 ui.input(
                     label=key,
