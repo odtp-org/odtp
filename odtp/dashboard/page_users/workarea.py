@@ -10,6 +10,7 @@ class Workarea():
     def __init__(self):
         self.current_user = storage.storage_get_current_user()
         self.ui_workarea()
+        self.ui_secrets()
 
     def ui_workarea(self):
         with ui.row().classes("w-full"):
@@ -40,6 +41,14 @@ class Workarea():
                 label="upload secrets (store encrypted)"
             ).classes('max-w-full')
 
+    @ui.refreshable
+    def ui_secrets(self):
+        secrets_path = os.path.join(self.current_user.get("workdir"), ODTP_SECRETS_FILE)
+        if os.path.exists(secrets_path):
+            with ui.row():
+                ui.icon("check").classes("text-teal text-lg 20px")
+                ui.label(f"secrets uploaded: {secrets_path}")
+
     async def handle_upload(self, event):
         """Handle file upload and encrypt the file."""
         content = event.content.read().decode('utf-8')
@@ -52,3 +61,4 @@ class Workarea():
             f.write(salt + iv + encrypted_data)
 
         ui.notify(f"Encrypted file saved to: {self.encrypted_file_path}", type="positive")
+        self.ui_secrets.refresh()
