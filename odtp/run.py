@@ -206,7 +206,6 @@ class DockerManager:
         log.info(f"RUN: Running ODTP component. Repo: {self.repo_url}, Image name: {self.docker_image_name}, Container Name: {container_name}")
 
         if step_id:
-            db.update_step(step_id, {"error":False, "msg": None, "run_step": False})
             parameters["ODTP_STEP_ID"] = step_id
         parameters["ODTP_MONGO_SERVER"] = config.ODTP_MONGO_SERVER
         parameters["ODTP_S3_SERVER"] = config.ODTP_S3_SERVER
@@ -244,11 +243,12 @@ class DockerManager:
         process = subprocess.Popen(command_string, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         output, error = process.communicate()
-
+        if step_id:
+            db.set_document_timestamp(step_id, db.collection_steps, "end_timestamp")
         if process.returncode != 0:
             msg = f"Failed to run Docker component\n{container_name}:\n{error.decode()}"
             if step_id:
-                db.update_step(step_id, {"error":True, "msg": msg})
+                db.update_step(step_id, {"error":True, "msg": msg, "run_step": False})
             log.exception(msg)
             raise OdtpRunException(msg)
         else:

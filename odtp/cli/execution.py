@@ -90,7 +90,7 @@ def run(
         flowManager = WorkflowManager(execution, project_path, secrets)
         flowManager.run_workflow()
     except Exception as e:
-        msg = f"ERROR: Prepare execution failed: {e}"
+        msg = f"ERROR: Run execution failed: {e}"
         log.exception(msg)
         print(msg)
         raise typer.Abort()

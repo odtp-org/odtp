@@ -2,6 +2,7 @@ import asyncio
 import os.path
 import shlex
 import sys
+import re
 from nicegui import ui
 import odtp.mongodb.db as db
 import odtp.helpers.utils as odtp_utils
@@ -29,6 +30,7 @@ class ExecutionDisplay:
         self.digital_twin = current_digital_twin
         self.execution_options = None
         self.folder_status = None
+        self.run = None
         self.get_execution_options()
         self.build_form()
 
@@ -37,11 +39,11 @@ class ExecutionDisplay:
         """render form elements"""
         self.db_get_execution()
         self.ui_execution_select()
+        self.ui_execution_run_info()
         self.ui_workflow_diagram()
         self.ui_execution_info()
         self.ui_project_directory()
         self.ui_prepare_execution()
-        self.ui_execution_run_info()
         self.ui_run_execution()
 
     def ui_execution_info(self):
@@ -53,21 +55,13 @@ class ExecutionDisplay:
     def ui_execution_run_info(self):
         if not self.execution:
             return
-        with ui.grid(columns='1fr 4fr').classes('w-full gap-0'):
-            ui.label("Execution created")
-            ui.label(self.execution['createdAt'].strftime(f'%Y-%m-%d %H:%M:%S'))
-            if not self.execution:
-                return
-            ui.label("Execution started")
+        with ui.row().classes('w-full gap-10'):
+            ui.icon("schedule").classes("text-xl")
+            ui.label(f"created {self.execution['createdAt'].strftime(f'%Y-%m-%d %H:%M:%S')}")
             if self.execution.get('start_timestamp'):
-                ui.label(self.execution['start_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S'))
-            else:
-                ui.label("not yet")
-            ui.label("Execution ended")
+                ui.label(f"started {self.execution['start_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S')}")
             if self.execution.get('end_timestamp'):
-                ui.label(self.execution['end_timestamp'].strftime('%Y-%m-%d %H:%M:%S'))
-            else:
-                ui.label("not yet")
+                ui.label(f"ended {self.execution['end_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S')}")
 
     def get_execution_options(self):
         """get execution options"""
@@ -115,6 +109,12 @@ class ExecutionDisplay:
             return
         if not self.folder_status >= run.FOLDER_PREPARED:
             return
+        if self.execution.get("start_timestamp"):
+            with ui.row():
+                ui.icon("check").classes("text-teal text-lg")
+                ui.label("The execution has run").classes("text-teal")
+        if not True in self.run:
+            return
         command = run.build_cli_command(
             cmd="run",
             execution_id=self.execution_id,
@@ -125,7 +125,7 @@ class ExecutionDisplay:
             "Run Execution",
             on_click=lambda: self.action_run_command(command, self.dialog, self.result),
             icon="rocket",
-        ).props("flat")
+        )
 
     @ui.refreshable
     def ui_open_logs(self, version_name):
@@ -173,13 +173,21 @@ class ExecutionDisplay:
     @ui.refreshable
     def ui_execution_select(self):
         """ui element for component select"""
-        ui.select(
-            self.execution_options,
-            value=self.execution_id,
-            on_change=lambda e: self.action_set_execution(str(e.value)),
-            label="execution",
-            with_input=True,
-        ).classes("w-full")
+        with ui.row().classes("w-full items-center"):
+            ui.select(
+                self.execution_options,
+                value=self.execution_id,
+                on_change=lambda e: self.action_set_execution(str(e.value)),
+                label="execution",
+                with_input=True,
+            ).classes("w-2/3")
+            if not self.execution_id:
+                return
+            ui.button(
+                "Reload execution",
+                on_click=lambda: self.build_form.refresh(),
+                icon="refresh",
+            )
 
     def action_set_execution(self, execution_id):
         """called when a new component has been selected"""
@@ -207,9 +215,15 @@ class ExecutionDisplay:
         self.steps = db.get_document_by_ids_in_collection(
             document_ids=step_ids, collection=db.collection_steps
         )
+        self.run = []
         for step in self.steps:
             step["_id"] = str(step["_id"])
-            step["executionRef"] = str(step["executionRef"])
+            if step.get("run_step"):
+                self.run.append(True)
+            else:
+                self.run.append(False)
+            if step.get("output"):
+                step["output"] = db.get_document_by_id(str(step["output"]), db.collection_outputs)
         self.execution_path = self.execution.get("execution_path")
         self.folder_status = run.get_folder_status(self.execution_id, self.execution_path)
 
@@ -233,8 +247,13 @@ class ExecutionDisplay:
             index
         )
 
-    def action_update_step(self, step, value):
+    def action_update_step(self, value, step, index):
         db.update_step(step["_id"], {"run_step":value})
+        if value == True:
+            self.run[index] = True
+        else:
+            self.run[index] = False
+        self.ui_run_execution.refresh()
 
     def _display_step(self, step, index):
         """Display information for a single step."""
@@ -243,19 +262,31 @@ class ExecutionDisplay:
         with ui.card().classes("w-full bg-gray-100"):
             with ui.grid(columns=3).classes("flex items-center"):
                 ui.label(version_name).classes("text-lg")
+            with ui.grid(columns=3).classes("flex items-center"):
+                ui.icon("schedule").classes("text-xl")
+                if self.execution.get('start_timestamp'):
+                    ui.label(f"started {self.execution['start_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S')}")
+                if self.execution.get('end_timestamp'):
+                    ui.label(f"ended {self.execution['end_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S')}")
                 self.ui_open_logs(version_name)
                 if self.execution["start_timestamp"]:
                     ui.switch(
                         'Re run step',
                         value=step.get("run_step"),
-                        on_change=lambda e, step=step: self.action_update_step(step, e.value),
+                        on_change=lambda e, step=step, index=index: self.action_update_step(e.value, step, index),
                     )
+            if step.get("output"):
+                with ui.grid(columns=3).classes("flex items-center"):
+                    ui.icon("output").classes("text-teal text-lg")
+                    ui.label(f"output: {step['output'].get('file_name')} ({step['output'].get('file_size')})")
+                    ui.label(f"S3: {step['output'].get('s3_bucket')} ({step['output'].get('s3_key')})")
+            with ui.grid(columns=3).classes("flex items-center"):
                 if step.get("secrets"):
+                    ui.icon("check").classes("text-teal text-lg")
                     ui.label("needs secrets")
                     secrets_path = os.path.join(self.user["workdir"], ODTP_SECRETS_FILE)
                     if os.path.exists(secrets_path):
                         db.update_step(step["_id"], {"secrets": secrets_path})
-                        print(f"db updated for {step['_id']}")
                         ui.label(secrets_path)
                     else:
                         ui.button(
@@ -263,19 +294,15 @@ class ExecutionDisplay:
                             on_click=lambda: ui.open(ui_theme.PATH_USERS),
                             icon="link",
                         ).props("flat")
-            with ui.grid(columns="5px auto"):
-                if step.get('end_timestamp'):
-                    ui.icon("check").classes("text-teal text-lg")
-                    ui.label(step['end_timestamp'].strftime('%Y-%m-%d %H:%M:%S'))
+            with ui.grid(columns=3).classes("flex items-center"):
+                if step.get("error"):
+                    ui.icon("clear").classes("text-red text-lg")
+                    ui.label(f"ERROR: {step.get('msg')}").classes("text-red")
                 else:
-                    if step.get("error"):
-                        ui.icon("clear").classes("text-red text-lg")
-                        ui.label(f"ERROR: {step.get('msg')}").classes("text-red")
-                    else:
-                        container_running = run.check_container_running(version_name)
-                        if container_running and step.get("type") == "ephemeral":
-                            ui.icon("check").classes("text-teal text-lg")
-                            ui.label(f"container {version_name} running")
+                    container_running = run.check_container_running(version_name)
+                    if container_running and step.get("type") == "ephemeral":
+                        ui.icon("check").classes("text-teal text-lg")
+                        ui.label(f"container {version_name} running")
             if step.get("parameters"):
                 self._display_parameters(step, step.get("parameters"))
             if step.get("ports"):
@@ -287,7 +314,7 @@ class ExecutionDisplay:
 
     def _display_parameters(self, step, parameters):
         ui.label("Parameters")
-        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
+        with ui.grid(columns=1).classes('w-1/2 gap-0'):
             for key, value in parameters.items():
                 ui.input(
                     label=key,
@@ -312,15 +339,13 @@ class ExecutionDisplay:
     def action_update_step_parameter(self, step, key, value):
         parameters = step.get("parameters")
         parameters[key] = value
-        print(step, parameters)
         db.update_step(step["_id"], {"parameters": parameters})
 
     def action_update_step_port(self, step, key, value):
         port_mappings = step.get("ports")
-        index = next((i for i, mapping in enumerate(port_mappings)
-                     if mapping.startswith(f"{key}:")), None)
-        port_mappings[index] = f"{value}:{key}"
-        db.update_step(step["_id"], {"ports": port_mappings})
+        pattern = re.compile(rf"(\d{{2,4}}):{key}")
+        updated_port_mappings = [pattern.sub(f"{value}:{key}", entry) for entry in port_mappings]
+        db.update_step(step["_id"], {"ports": updated_port_mappings})
 
 
     async def action_run_command(self, command, dialog, result):

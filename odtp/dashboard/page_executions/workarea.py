@@ -37,7 +37,12 @@ def ui_workarea_form(current_digital_twin, current_user, components):
                 f"""
                 #### Current Selection
                 - **user**: {current_user.get("user_name")}
-                - **digital twin**: {current_digital_twin.get("digital_twin_name")}
+                - **digital twin**: **{current_digital_twin.get("digital_twin_name")}**
                 - **work directory**: {current_user.get("workdir")}
                 """
             )
+            ui.button(
+                f"change digital twin",
+                on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
+                icon="link",
+            ).props("flat")

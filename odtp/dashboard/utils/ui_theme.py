@@ -92,3 +92,43 @@ def new_value_selected_in_ui_select(value):
     if value in ["", "None"]:
         return False
     return True
+
+
+def ui_version_section_content(version, label, section_key):
+    section_content = version.get(section_key)
+    if not section_content:
+        display_section_empty(label)
+    elif isinstance(section_content, dict):
+        ui.label(label).classes("text-lg")
+        display_section_dict(section_content)
+    elif isinstance(section_content, list):
+        ui.label(label).classes("text-lg")
+        for list_item in section_content:
+            display_section_dict(list_item)
+
+
+def display_section_dict(section_dict):
+    with ui.grid(columns='1fr 3fr').classes('w-full gap-0'):
+        for key, value in section_dict.items():
+            if value == None:
+                continue
+            ui.label(key).classes('bg-gray-200 border p-1')
+            ui.label(str(value)).classes('border p-1')
+
+
+def display_section_empty(label):
+    with ui.grid(columns='1fr 3fr').classes('w-full gap-0'):
+        ui.label(label).classes('p-1')
+        ui.label("does not apply").classes('p-1')
+
+
+def display_items_dict_with_links(display_items_list):
+    with ui.grid(columns='1fr 3fr').classes('w-full gap-0'):
+        for item in display_items_list:
+            if not item.display_value:
+                continue
+            ui.label(item.key).classes('bg-gray-200 border p-1')
+            if item.url:
+                ui.link(item.display_value, item.url)
+            else:
+                ui.label(item.display_value).classes('border p-1')

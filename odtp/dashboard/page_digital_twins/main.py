@@ -5,7 +5,6 @@ import odtp.dashboard.page_digital_twins.select as select
 import odtp.dashboard.page_digital_twins.add as add
 import odtp.dashboard.page_digital_twins.storage as storage
 import odtp.dashboard.page_digital_twins.workarea as workarea
-import odtp.mongodb.db as db
 
 log = logging.getLogger("__name__")
 

@@ -1,11 +1,11 @@
 import os
-import json
+import shutil
 from odtp.run import DockerManager, OdtpRunSetupException
 import odtp.helpers.utils as odtp_utils
-import odtp.helpers.parse as odtp_parse
 import odtp.helpers.secrets as odtp_secrets
 import odtp.helpers.settings as config
 import odtp.helpers.environment as env_helpers
+import odtp.run as run
 import odtp.mongodb.db as db
 import logging
 import zipfile
@@ -139,8 +139,23 @@ class WorkflowManager:
                 log.info(f"step {step_index} was excluded from run")
                 continue
 
+            # clear step directory in case of a rerun of the step
+            step_folder_path = self.steps_folder_paths[step_index]
+            step_output_dir = os.path.join(step_folder_path, run.OUTPUT_DIR)
+            if os.path.exists(step_output_dir):
+                log.info(f"clean step directory {step_output_dir}")
+                for file in os.listdir(step_output_dir):
+                    os.remove(file)
+            step_log_dir = os.path.join(step_folder_path, run.LOG_DIR)
+            if os.path.exists(step_log_dir):
+                log.info(f"clean step directory {step_log_dir}")
+                for file in os.listdir(step_log_dir):
+                    if os.path.exists(file):
+                        os.remove(file)
+
             # Start step timestamp
             db.set_document_timestamp(step_id, db.collection_steps, "start_timestamp")
+            db.update_step(step_id, {"error":False, "msg": None, "run_step": False})
 
             ports = step_doc["ports"]
             log.info(f"set ports {ports}")
@@ -189,10 +204,6 @@ class WorkflowManager:
                 container_name=self.container_names[step_index],
                 step_id=self.execution["steps"][step_index]
             )
-
-            # End step timestamp
-            db.set_document_timestamp(step_id, db.collection_steps, "end_timestamp")
-            db.update_step(step_id, {"run_step":False})
 
         # End execution timestamp
         db.set_document_timestamp(self.execution["_id"], db.collection_executions, "end_timestamp")
