@@ -1,5 +1,6 @@
 from nicegui import ui
 import odtp.mongodb.db as db
+import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.page_digital_twins.storage as storage
 
 
@@ -29,13 +30,13 @@ class DigitalTwinTable():
 
     def add_header(self):
         headers = [
-            {"text": "Name", "col_span": 1},
+            {"text": "Name", "col_span": 2},
             {"text": "Id", "col_span": 2},
             {"text": "Created At", "col_span": 1},
             {"text": "Updated At", "col_span": 1},
             {"text": "Executions", "col_span": 1},
         ]
-        with ui.row().classes("w-full bg-gray-200 p-2 border-b grid grid-cols-6 gap-4 justify-items-start"):
+        with ui.row().classes("w-full bg-gray-200 p-2 border-b grid grid-cols-7 gap-4 justify-items-start"):
             for header in headers:
                 ui.label(header["text"]).classes(
                     f"font-bold text-center truncate col-span-{header['col_span']}"
@@ -62,14 +63,17 @@ class DigitalTwinTable():
     @ui.refreshable
     def add_rows(self):
         for digital_twin in self.digital_twins:
-            with ui.row().classes("w-full p-2 border-b grid grid-cols-6 gap-4 flex items-center justify-items-start"):
+            with ui.row().classes("w-full p-2 border-b grid grid-cols-7 gap-4 flex items-center justify-items-start"):
                 ui.button(
                     digital_twin['name'],
                     on_click=lambda digital_twin=digital_twin: self.storage_set_current_digital_twin(
                         digital_twin
                     ),
-                ).classes(f"truncate col-span-1").props("flat no-caps")
+                ).classes(f"truncate col-span-2").props("flat no-caps")
                 ui.label(str(digital_twin["_id"])).classes(f"truncate col-span-2")
                 ui.label(self.display_date(digital_twin['created_at'])).classes(f"truncate col-span-1")
                 ui.label(self.display_date(digital_twin['updated_at'])).classes(f"truncate col-span-1")
-                ui.label(self.display_count(digital_twin['executions'])).classes(f"truncate col-span-1")
+                ui.link(
+                    f"{self.display_count(digital_twin['executions'])}",
+                    ui_theme.PATH_EXECUTIONS,
+                ).classes(f"truncate col-span-1")

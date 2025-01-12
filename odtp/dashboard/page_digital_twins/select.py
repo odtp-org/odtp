@@ -77,4 +77,7 @@ class SelectDigitalTwinForm():
             ui.label("Updated At")
             ui.label(self.digital_twin['updated_at'])
             ui.label("Executions")
-            ui.label(self.digital_twin['execution_count'])
+            ui.link(
+                self.digital_twin['execution_count'],
+                ui_theme.PATH_EXECUTIONS,
+            )
