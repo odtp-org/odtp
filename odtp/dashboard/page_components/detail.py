@@ -1,6 +1,7 @@
 from collections import namedtuple
 from nicegui import ui
 import odtp.mongodb.db as db
+import odtp.dashboard.utils.ui_theme as ui_theme
 
 DisplayItem = namedtuple('DisplayItem', ['key', 'display_value', 'url'])
 
@@ -136,7 +137,7 @@ class VersionDisplay:
             DisplayItem("odtp_version", self.version["odtp_version"], None),
         ]
         ui.label(f"Component Version Info").classes("text-lg")
-        self.display_items_dict_with_links(component_display_item_list)
+        ui_theme.display_items_dict_with_links(component_display_item_list)
 
     def show_tools_info(self):
         if not self.version:
@@ -174,51 +175,13 @@ class VersionDisplay:
                 DisplayItem("           doi", tool["tool-repository"].get("doi"), None),
                 DisplayItem("version", tool.get("tool-version"), None),
             ])
-            self.display_items_dict_with_links(tool_display_item_list)
+            ui_theme.display_items_dict_with_links(tool_display_item_list)
 
     def show_version_info(self):
         if not self.version:
             return
-        self.display_section_content("Parameters", "parameters")
-        self.display_section_content("Ports", "ports")
-        self.display_section_content("Secrets", "secrets")
-        self.display_section_content("Inputs", "data-inputs")
-        self.display_section_content("Outputs", "data-outputs")
-
-    def display_section_content(self, label, section_key):
-        section_content = self.version.get(section_key)
-        if not section_content:
-            self.display_section_empty(label)
-        elif isinstance(section_content, dict):
-            ui.label(label).classes("text-lg")
-            self.display_section_dict(section_content)
-        elif isinstance(section_content, list):
-            ui.label(label).classes("text-lg")
-            for list_item in section_content:
-                self.display_section_dict(list_item)
-
-    def display_section_dict(self, section_dict):
-        with ui.grid(columns='1fr 3fr').classes('w-full gap-0'):
-            for key, value in section_dict.items():
-                if value == None:
-                    continue
-                ui.label(key).classes('bg-gray-200 border p-1')
-                print(f"{key} {value} {type(value)}")
-                ui.label(str(value)).classes('border p-1')
-
-    def display_section_empty(self, label):
-        with ui.grid(columns='1fr 3fr').classes('w-full gap-0'):
-            ui.label(label).classes('p-1')
-            ui.label("does not apply").classes('p-1')
-
-    def display_items_dict_with_links(self, display_items_list):
-        with ui.grid(columns='1fr 3fr').classes('w-full gap-0'):
-            for item in display_items_list:
-                if not item.display_value:
-                    continue
-                ui.label(item.key).classes('bg-gray-200 border p-1')
-                if item.url:
-                    ui.link(item.display_value, item.url)
-                else:
-                    ui.label(item.display_value).classes('border p-1')
-
+        ui_theme.ui_version_section_content(self.version, "Parameters", "parameters")
+        ui_theme.ui_version_section_content(self.version, "Ports", "ports")
+        ui_theme.ui_version_section_content(self.version, "Secrets", "secrets")
+        ui_theme.ui_version_section_content(self.version, "Inputs", "data-inputs")
+        ui_theme.ui_version_section_content(self.version, "Outputs", "data-outputs")
