@@ -141,10 +141,17 @@ class WorkflowManager:
 
             # clear step directory in case of a rerun of the step
             step_folder_path = self.steps_folder_paths[step_index]
-            for file in os.listdir(os.path.join(step_folder_path, run.OUTPUT_DIR)):
-                os.remove(file)
-            for file in os.listdir(os.path.join(step_folder_path, run.LOG_DIR)):
-                os.remove(file)
+            step_output_dir = os.path.join(step_folder_path, run.OUTPUT_DIR)
+            if os.path.exists(step_output_dir):
+                log.info(f"clean step directory {step_output_dir}")
+                for file in os.listdir(step_output_dir):
+                    os.remove(file)
+            step_log_dir = os.path.join(step_folder_path, run.LOG_DIR)
+            if os.path.exists(step_log_dir):
+                log.info(f"clean step directory {step_log_dir}")
+                for file in os.listdir(step_log_dir):
+                    if os.path.exists(file):
+                        os.remove(file)
 
             # Start step timestamp
             db.set_document_timestamp(step_id, db.collection_steps, "start_timestamp")
