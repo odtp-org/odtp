@@ -1,6 +1,7 @@
 from nicegui import ui
 import odtp.mongodb.db as db
 import odtp.dashboard.utils.helpers as helpers
+import odtp.dashboard.utils.ui_theme as ui_theme
 
 
 class WorkflowDisplay:
@@ -89,32 +90,6 @@ class WorkflowDisplay:
         with ui.card().classes("bg-gray-100 w-1/2"):
             version_name = self.get_version_display(version)
             ui.link(version_name, f"../components/{str(version['_id'])}", new_tab=True).classes("text-lg")
-            parameters = version.get("parameters", [])
-            if parameters:
-                self.display_dict_list(version, "Parameters", "parameters")
-            else:
-                self.display_not_set("Parameters")
-            ports = version.get("ports", [])
-            if ports:
-                self.display_dict_list(version, "Ports", "ports")
-            else:
-                self.display_not_set("Ports")
-            secrets = version.get("secrets", [])
-            if secrets:
-                self.display_dict_list(version, "Secrets", "secrets")
-            else:
-                self.display_not_set("Secrets")
-
-    def display_not_set(self, label):
-        with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
-            ui.label(label)
-            ui.label("does not apply")
-
-    def display_dict_list(self, version, label, dict_list_name):
-        """display a list of dicts"""
-        ui.label(label)
-        with ui.grid(columns='1fr 2fr').classes('w-full gap-0'):
-            for dict_item in version.get(dict_list_name):
-                for key, value in dict_item.items():
-                    ui.label(key).classes('bg-gray-200 border p-1')
-                    ui.label(str(value)).classes('border p-1')
+            ui_theme.ui_version_section_content(version, "Parameters", "parameters")
+            ui_theme.ui_version_section_content(version, "Ports", "ports")
+            ui_theme.ui_version_section_content(version, "Secrets", "secrets")
