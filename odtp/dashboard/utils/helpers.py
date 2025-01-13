@@ -1,3 +1,6 @@
+import os
+from odtp.helpers.settings import ODTP_SECRETS_DIR
+
 def get_workflow_mermaid(step_names, init="graph TB;"):
     mermaid_graph = init
     step_count = len(step_names)
@@ -18,3 +21,11 @@ def get_execution_step_display_name(
 ):
     display_name = f"{component_name}:{component_version}"
     return display_name
+
+def get_secrets_files_for_user(user_workdir):
+    secrets_path = os.path.join(user_workdir, ODTP_SECRETS_DIR)
+    if os.path.exists(secrets_path):
+        return os.listdir(secrets_path)
+    else:
+        os.makedirs(secrets_path, exist_ok=True)
+        return []

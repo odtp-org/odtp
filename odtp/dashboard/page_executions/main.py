@@ -22,13 +22,13 @@ def content() -> None:
         )
         if not current_digital_twin or not current_user:
             return
-        ui_tabs(current_digital_twin, current_user)
+        ui_tabs(current_user, current_digital_twin)
     except Exception as e:
         log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
 
 
 @ui.refreshable
-def ui_tabs(current_digital_twin, current_user):
+def ui_tabs(current_user, current_digital_twin):
     try:
         with ui.tabs() as tabs:
             manage = ui.tab("Manage execution")
@@ -38,16 +38,16 @@ def ui_tabs(current_digital_twin, current_user):
             with ui.tab_panel(select):
                 ui_execution_select(current_user, current_digital_twin)
             with ui.tab_panel(add):
-                ui_add_execution(current_digital_twin)
+                ui_add_execution(current_user, current_digital_twin)
             with ui.tab_panel(manage):
                 ui_executions_table(current_digital_twin)
     except Exception as e:
         log.exception(f"Execution Tabs could not be loaded. An Exception occurred: {e}")
 
 
-def ui_add_execution(current_digital_twin):
+def ui_add_execution(current_user, current_digital_twin):
     try:
-        add.ExecutionForm(current_digital_twin["digital_twin_id"])
+        add.ExecutionForm(current_user, current_digital_twin, )
     except Exception as e:
         log.exception(f"Execution Add form could not be loaded. An Exception occurred: {e}")
 
@@ -72,7 +72,7 @@ def ui_executions_table(current_digital_twin):
 
 
 @ui.refreshable
-def ui_workarea(current_digital_twin, current_user, components):
+def ui_workarea(current_user, current_digital_twin, components):
     try:
         workarea.ui_workarea_form(
             current_digital_twin=current_digital_twin,

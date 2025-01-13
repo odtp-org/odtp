@@ -3,14 +3,16 @@ import os.path
 import shlex
 import sys
 import re
+import os
 from nicegui import ui
 import odtp.mongodb.db as db
 import odtp.helpers.utils as odtp_utils
+from odtp.helpers.settings import ODTP_SECRETS_DIR
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.page_executions.projectdir as projectdir
 import odtp.dashboard.page_executions.run as run
-from odtp.helpers.settings import ODTP_SECRETS_FILE, ODTP_LOG_PATH
+from odtp.helpers.settings import ODTP_SECRETS_DIR, ODTP_LOG_PATH
 
 
 from nicegui import ui
@@ -283,17 +285,7 @@ class ExecutionDisplay:
             with ui.grid(columns=3).classes("flex items-center"):
                 if step.get("secrets"):
                     ui.icon("check").classes("text-teal text-lg")
-                    ui.label("needs secrets")
-                    secrets_path = os.path.join(self.user["workdir"], ODTP_SECRETS_FILE)
-                    if os.path.exists(secrets_path):
-                        db.update_step(step["_id"], {"secrets": secrets_path})
-                        ui.label(secrets_path)
-                    else:
-                        ui.button(
-                            "Add secrets as file",
-                            on_click=lambda: ui.open(ui_theme.PATH_USERS),
-                            icon="link",
-                        ).props("flat")
+                    ui.label(f"Secrets uploaded: {step.get('secrets')}")
             with ui.grid(columns=3).classes("flex items-center"):
                 if step.get("error"):
                     ui.icon("clear").classes("text-red text-lg")
@@ -311,6 +303,8 @@ class ExecutionDisplay:
                     ports_split = pm.split(":")
                     port_mappings[ports_split[1]] = ports_split[0]
                 self._display_port_mappings(step, port_mappings)
+            if step.get("secrets"):
+                self._display_secrets(step, step.get("secrets"))
 
     def _display_parameters(self, step, parameters):
         ui.label("Parameters")
@@ -336,10 +330,38 @@ class ExecutionDisplay:
                     ),
                 )
 
+    def _display_secrets(self, step, secrets):
+        ui.label("Secrets file")
+        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
+            if secrets:
+                ui.select(
+                    label=f"Secrets file",
+                    value=step["secrets"].split("/")[-1],
+                    options=self.set_secret_file_select_options(),
+                    on_change=lambda e, step=step: self.action_update_step_secrets(
+                        step, e.value
+                    )
+                ).classes("w-full")
+
+    def set_secret_file_select_options(self):
+        secret_files = helpers.get_secrets_files_for_user(self.user.get("workdir"))
+        return secret_files
+
     def action_update_step_parameter(self, step, key, value):
         parameters = step.get("parameters")
         parameters[key] = value
         db.update_step(step["_id"], {"parameters": parameters})
+
+    def action_update_step_secrets(self, step, value):
+        if value:
+            secrets_path = os.path.join(
+                self.user["workdir"],
+                ODTP_SECRETS_DIR,
+                value,
+            )
+        else:
+            secrets_path = False
+        db.update_step(step["_id"], {"secrets": secrets_path})
 
     def action_update_step_port(self, step, key, value):
         port_mappings = step.get("ports")

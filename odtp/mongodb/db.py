@@ -440,6 +440,7 @@ def add_execution(
     name,
     parameters,
     ports,
+    secret_files=None,
 ):
     """add and execution to the database"""
     with MongoClient(ODTP_MONGO_SERVER) as client:
@@ -492,11 +493,13 @@ def add_execution(
                     "component_version": versions[i],
                     "parameters": parameters[i] or {},
                     "ports": ports[i],
-                    "secrets": True if version_document.get("secrets") else False,
+                    "secrets": False,
                     "run_step": True,
                     "createdAt": datetime.now(timezone.utc),
                     "updatedAt": datetime.now(timezone.utc)
                 }
+                if secret_files:
+                    step["secrets"] = secret_files[i]
                 steps.append(step)
             execution_id = append_execution_to_digital_twin(db, dt_id, execution)
             log.info(f"Execution added with ID {execution_id}")
