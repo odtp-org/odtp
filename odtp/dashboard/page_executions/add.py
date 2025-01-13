@@ -1,19 +1,23 @@
+import os
 from nicegui import ui, events
 import odtp.mongodb.db as db
+from odtp.helpers.settings import ODTP_SECRETS_DIR
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.page_executions.validation as validation
 import odtp.dashboard.utils.ui_theme as ui_theme
 
 
 class ExecutionForm(object):
-    def __init__(self, digital_twin_id):
-        self.digital_twin_id = digital_twin_id
+    def __init__(self, current_user, current_digital_twin):
+        self.digital_twin_id = current_digital_twin["digital_twin_id"]
+        self.user = current_user
         self.get_select_options()
         self.init_form()
 
     def init_form(self):
         self.execution = None
         self.parameters = None
+        self.secret_files = None
         self.step_count = None
         self.port_mappings = None
         self.workflow = None
@@ -76,6 +80,7 @@ class ExecutionForm(object):
         self.step_count = len(self.workflow.get("versions", []))
         self.port_mappings = [{} for i in range(self.step_count)]
         self.parameters = [{} for i in range(self.step_count)]
+        self.secret_files = [None for i in range(self.step_count)]
         self.parameter_containers = []
         for i in range(self.step_count):
             self.parameter_containers.append(ui.row().classes("w-full"))
@@ -97,6 +102,7 @@ class ExecutionForm(object):
             for i, version_id in enumerate(self.workflow.get("versions", [])):
                 version = self.versions_dict[version_id]
                 self.parameters[i] = self.get_default_parameters(version)
+                self.secret_files[i] = self.get_secrets_files(version)
                 self.port_mappings[i] = self.get_default_port_mappings(version)
 
     def ui_parameters_from_file(self, version, i):
@@ -133,7 +139,7 @@ class ExecutionForm(object):
             with ui.card().classes("w-full bg-gray-100"):
                 with ui.row().classes("w-full"):
                     ui.label(self.get_version_display(version)).classes("text-lg")
-                    with ui.grid(columns=2).classes("w-full"):
+                    with ui.grid(columns=3).classes("w-full"):
                         with ui.column():
                             ui.label("Parameters").classes("text-lg")
                             if self.parameters[i]:
@@ -157,6 +163,31 @@ class ExecutionForm(object):
                                                 e.value, port_component, i
                                             )
                                         )
+                        with ui.column():
+                            ui.label("Secrets").classes("text-lg")
+                            if self.secret_files[i]:
+                                ui.select(
+                                    label=f"Secrets file",
+                                    value=None,
+                                    options=self.set_secret_file_select_options(),
+                                    on_change=lambda e, i=i: self.update_secrets(
+                                        e.value, i
+                                    )
+                                ).classes("w-full")
+
+    def update_secrets(self, value, i):
+        if value:
+            self.secret_files[i] = os.path.join(
+                self.user["workdir"],
+                ODTP_SECRETS_DIR,
+                value,
+            )
+        else:
+            self.secret_files[i] = False
+
+    def set_secret_file_select_options(self):
+        secret_files = helpers.get_secrets_files_for_user(self.user.get("workdir"))
+        return secret_files
 
     def update_port_mapping(self, port_host, port_component, i):
         self.port_mappings[i][port_component] = port_host
@@ -174,6 +205,11 @@ class ExecutionForm(object):
             if key:
                 default_parameters[key] = value
         return default_parameters
+
+    def get_secrets_files(self, version):
+        if version.get("secrets"):
+            return True
+        return False
 
     def get_default_port_mappings(self, version):
         if not version.get("ports"):
@@ -209,7 +245,7 @@ class ExecutionForm(object):
         return f"{version['component']['componentName']}_{version['component_version']}"
 
     def display_version(self, version):
-        with ui.expansion("component version info").classes("bg-gray-100 w-1/2"):
+        with ui.expansion("component version info").classes("w-1/2"):
             version_name = self.get_version_display(version)
             ui.link(version_name, f"../components/{str(version['_id'])}", new_tab=True).classes("text-lg")
             ui_theme.ui_version_section_content(version, "Parameters", "parameters")
@@ -255,6 +291,7 @@ class ExecutionForm(object):
             name=self.title,
             parameters=self.parameters,
             ports=port_mappings_db,
+            secret_files=self.secret_files,
         )
         ui.notify(
             f"Execution {execution_id} has been added",

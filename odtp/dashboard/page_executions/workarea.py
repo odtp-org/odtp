@@ -3,7 +3,7 @@ from nicegui import ui
 import odtp.dashboard.utils.ui_theme as ui_theme
 
 
-def ui_workarea_form(current_digital_twin, current_user, components):
+def ui_workarea_form(current_user, current_digital_twin, components):
     with ui.row().classes("w-full"):
         ui.markdown(
             """
