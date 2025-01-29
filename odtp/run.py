@@ -76,7 +76,8 @@ class DockerManager:
             )
         
     def _checks_for_prepare(self):
-        log.debug(f"VALIDATION: check commit hash {self.commit_hash} for prepare") 
+        log.debug(f"VALIDATION: check commit hash {self.commit_hash} for prepare")
+        log.debug(f"FOLDER: {self.project_folder}")
         env_helpers.check_project_folder_empty(self.project_folder)
         self.commit_hash = git_helpers.check_commit_for_repo(
             repo_url=self.repo_url, 
