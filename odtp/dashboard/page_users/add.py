@@ -3,7 +3,7 @@ from nicegui import ui, app
 import odtp.mongodb.db as db
 import odtp.dashboard.page_users.workdir as workdir
 import odtp.dashboard.page_users.storage as storage
-import odtp.dashboard.page_users.validation as validation
+import odtp.helpers.validation as validation
 
 
 log = logging.getLogger("__name__")

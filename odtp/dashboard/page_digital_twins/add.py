@@ -2,7 +2,7 @@
 from nicegui import ui
 import odtp.mongodb.db as db
 import odtp.dashboard.page_digital_twins.storage as storage
-import odtp.dashboard.page_digital_twins.validation as validation
+import odtp.helpers.validation as validation
 
 
 class DigitalTwinAddForm:

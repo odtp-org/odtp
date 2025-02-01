@@ -13,6 +13,10 @@ class OdtpLocalEnvironmentException(Exception):
 
 
 def check_project_folder_empty(project_folder):
+    if not os.path.exists(project_folder):
+        raise OdtpLocalEnvironmentException(
+            f"project folder {project_folder} does not exist. Please create it first."
+        )
     if not project_folder_is_empty(project_folder):
         raise OdtpLocalEnvironmentException(
             f"project folder {project_folder} was not empty"
@@ -22,7 +26,7 @@ def check_project_folder_empty(project_folder):
 def check_directory_folder_matches_execution(execution_id, project_folder):
     if not directory_folder_matches_execution(execution_id, project_folder):
         raise OdtpLocalEnvironmentException(
-            f"""project folder {project_folder} does not match execution. 
+            f"""project folder {project_folder} does not match execution.
             First run 'prepare' on an empty folder to prepare for the run of the execution"""
         )
 
