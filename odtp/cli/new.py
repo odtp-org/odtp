@@ -5,6 +5,8 @@ import typer
 from typing_extensions import Annotated
 import logging
 import requests
+from rich.console import Console
+from rich.markdown import Markdown
 import odtp.mongodb.db as db
 import odtp.mongodb.utils as mongodb_utils
 import odtp.helpers.parse as odtp_parse
@@ -13,6 +15,7 @@ import odtp.helpers.validation as validation_helpers
 import traceback
 
 app = typer.Typer()
+console = Console()
 
 log = logging.getLogger(__name__)
 
@@ -23,8 +26,31 @@ def user_entry(
     github: str = typer.Option(..., "--github", help="Specify the github"),
 ):
     """Add new user in the MongoDB"""
-    user_id = db.add_user(name=name, github=github, email=email)
-    log.info(f"A user has been added {user_id}")
+    try:
+        if name is None or email is None or github is None:
+            console.print("[bold red]❌ ERROR:[/bold red] Please provide either --name or --email and --github")
+            raise typer.Exit(code=1)
+
+        if not validation_helpers.validate_user_name_unique(name):
+            console.print("[bold red]❌ ERROR:[/bold red] --name must be unique.")
+            raise typer.Exit(code=1)
+
+        if not validation_helpers.validate_github_user_name(github):
+            console.print("[bold red]❌ ERROR:[/bold red] --github must be a valid github user name.")
+            raise typer.Exit(code=1)
+
+        user_id = db.add_user(name=name, github=github, email=email)
+
+    except typer.Exit:
+        pass
+
+    except Exception as e:
+        log.exception("Unexpected error in user_entry")
+        console.print(f"[bold red]❌ ERROR:[/bold red] Failed to add user. Details: {str(e)}")
+        raise typer.Exit(code=1)
+    else:
+        success_message = f"[bold green]✅ SUCCESS: User with User Id {user_id} has been added![/bold green]"
+        console.print(success_message)
 
 
 @app.command()
@@ -53,28 +79,28 @@ def odtp_component_entry(
 
     except git_helpers.OdtpGithubException as e:
         typer.echo(f"Error: An error occurred while fetching information from GitHub: {e}")
-        raise typer.Exit(code=2)
+        raise typer.Exit(code=1)
 
     except mongodb_utils.OdtpDbMongoDBValidationException as e:
         typer.echo(f"Error: Component version could not be added: {e}")
-        raise typer.Exit(code=3)
+        raise typer.Exit(code=1)
 
     except validation_helpers.OdtpYmlException as e:
         log.error(f"Validation error occurred when parsing odtp.yml")
         typer.echo(f"Error: Validation of odtp.yml failed: {e}")
-        raise typer.Exit(code=4)
+        raise typer.Exit(code=1)
 
     except requests.RequestException as e:
         log.error(f"Network error: {e}")
         typer.echo(f"Error: A network error occurred while communicating with GitHub.: {e}")
-        raise typer.Exit(code=5)
+        raise typer.Exit(code=1)
 
     except Exception as e:
         error_message = f"Error: An unexpected error occurred: {e}"
         if debug:
             error_message += f"\n{traceback.format_exc()}"
         typer.echo(error_message, err=True)
-        raise typer.Exit(code=99)
+        raise typer.Exit(code=1)
 
     else:
         if component_id and version_id:
@@ -94,14 +120,39 @@ def digital_twin_entry(
     user_email: str = typer.Option(None, "--user-email", help="Specify the email"),
     name: str = typer.Option(..., "--name", help="Specify the digital twin name"),
 ):
-    if user_id is None and user_email is None:
-        raise typer.Exit("Please provide either --user-id or --user-email")
+    try:
+        if user_id is None and user_email is None:
+            console.print("[bold red]❌ ERROR:[/bold red] Please provide either --user-id or --user-email")
+            raise typer.Exit(code=1)
 
-    if user_email:
-        user_id = db.get_document_id_by_field_value("email", user_email, "users")
+        if user_email:
+            user_id = db.get_document_id_by_field_value("email", user_email, "users")
 
-    dt_id = db.add_digital_twin(userRef=user_id, name=name)
-    log.info(f"Digital Twin added with ID {dt_id}")
+        if not user_id:
+            console.print("[bold red]❌ ERROR:[/bold red] User does not exist. Please add the user first.")
+            raise typer.Exit(code=1)
+
+        if not validation_helpers.validate_digital_twin_name_unique(digital_twin_name=name, user_id=user_id):
+            console.print("[bold red]❌ ERROR:[/bold red] Digital Twin name must be unique and 6 characters long. Choose a different name.")
+            raise typer.Exit(code=1)
+
+        dt_id = db.add_digital_twin(userRef=user_id, name=name)
+
+        if not dt_id:
+            console.print("[bold red]❌ ERROR:[/bold red] Failed to create Digital Twin due to a database issue.")
+            raise typer.Exit(code=1)
+
+    except typer.Exit:
+        pass
+
+    except Exception as e:
+        console.print(f"[bold red]❌ ERROR:[/bold red] An unexpected error occurred: {str(e)}")
+        log.exception("Unexpected error in digital_twin_entry")
+        raise typer.Exit(code=1)
+
+    else:
+        success_message = f"[bold green]✅ SUCCESS: Digital Twin with id {dt_id} has been added![/bold green]"
+        console.print(success_message)
 
 
 @app.command()
@@ -116,7 +167,8 @@ def workflow_entry(
 ):
     try:
         if component_tags is None and component_versions is None:
-            raise typer.Exit("Please provide either --component-tags or --component-versions")
+            console.print("[bold red]❌ ERROR:[/bold red] Please provide either --component-tags or --component-versions")
+            raise typer.Exit(code=1)
         if component_tags:
             component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
         versions = odtp_parse.parse_versions(component_versions)
@@ -125,14 +177,14 @@ def workflow_entry(
             workflow=versions,
         )
     except Exception as e:
-        log.error(f"ERROR: {e}")
-        traceback.print_exc()
+        console.print(f"[bold red]❌ ERROR:[/bold red] An unexpected error occurred: {str(e)}")
+        log.exception("Unexpected error in workflow_entry")
+        raise typer.Exit(code=1)
     success_message = (
         f"SUCCESS: Workflow has been added:\n"
         f" - Workflow ID: {workflow_id}\n"
     )
-    log.info(success_message)
-    typer.echo(f"✅ {success_message}")
+    console.print(f"✅ {success_message}")
 
 
 @app.command()
@@ -140,6 +192,9 @@ def execution_entry(
     execution_name: str = typer.Option(..., "--name", help="Specify the name of the execution"),
     wf_id: str = typer.Option(
         None, "--workflow-id", help="Specify the workflow ID"
+    ),
+    wf_name: str = typer.Option(
+        None, "--workflow-name", help="Specify the workflow name"
     ),
     component_tags: str = typer.Option(
         None, "--component-tags", help="Specify the components-tags (component-name:version) separated by commas"
@@ -157,11 +212,11 @@ def execution_entry(
 ):
     try:
         if dt_name is None and dt_id is None:
-            raise typer.Exit("Please provide either --digital-twin-name or --digital-twin-id")
-
+            print("Please provide either --digital-twin-name or --digital-twin-id")
+            raise typer.Exit(code=1)
         if wf_id is None and component_tags is None:
-            raise typer.Exit("Please provide either --workflow-id or --component-tags")
-
+            print("Please provide either --workflow-id or --component-tags")
+            raise typer.Exit(code=1)
         if dt_name:
             dt_id = db.get_document_id_by_field_value("name", dt_name, "digitalTwins")
 
@@ -171,7 +226,7 @@ def execution_entry(
         if component_tags:
             component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
             versions = odtp_parse.parse_versions(component_versions)
-            workflow = db.get_or_create_workflow_by_versions(execution_name, versions)
+            workflow = db.get_workflow_or_create_by_versions(execution_name, versions)
         step_count = len(workflow.get("versions"))
         if parameter_files is None:
             parameters = db.get_default_parameters_for_workflow(workflow["versions"])
@@ -195,13 +250,14 @@ def execution_entry(
     except Exception as e:
         log.error(f"ERROR: {e}")
         traceback.print_exc()
-    success_message = (
-        f"SUCCESS: execution has been added: see above for the details.\n"
-        f" - execution id: {execution_id}\n"
-        f" - step_ids: {step_ids}\n"
-    )
-    log.info(success_message)
-    typer.echo(f"✅ {success_message}")
+    else:
+        success_message = (
+            f"SUCCESS: execution has been added: see above for the details.\n"
+            f" - execution id: {execution_id}\n"
+            f" - step_ids: {step_ids}\n"
+        )
+        log.info(success_message)
+        typer.echo(f"✅ {success_message}")
 
 
 if __name__ == "__main__":
