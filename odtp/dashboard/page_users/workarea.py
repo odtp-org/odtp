@@ -1,8 +1,9 @@
 import os
-from nicegui import ui, events
+from nicegui import ui
 import odtp.dashboard.utils.ui_theme as ui_theme
 import odtp.dashboard.utils.helpers as helpers
 import odtp.helpers.secrets as secrets
+import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.page_users.storage as storage
 from odtp.helpers.settings import ODTP_PASSWORD, ODTP_SECRETS_DIR
 
@@ -44,17 +45,21 @@ class Workarea():
 
     @ui.refreshable
     def ui_secrets(self):
-        secret_files = helpers.get_secrets_files_for_user(self.current_user.get("workdir"))
-        with ui.grid(columns="5px auto"):
-            for file in secret_files:
-                ui.icon("check").classes("text-teal text-lg 20px")
-                ui.label(f"secrets uploaded: {file}")
+        if not self.current_user:
+            return
+        file_dict = helpers.get_secrets_files(self.current_user.get("workdir"))
+        if file_dict:
+            with ui.column():
+                ui.label("Uploaded Secrets Files:").classes("font-bold")
+                for value in file_dict.values():
+                    ui.label(f"📄 {value} ")
+        else:
+            ui.label("No files found in the secrets directory.")
 
     async def handle_upload(self, event):
         """Handle file upload and encrypt the file."""
         content = event.content.read().decode('utf-8')
-        dir_path = os.path.join(self.current_user["workdir"], ODTP_SECRETS_DIR)
-        file_path = os.path.join(dir_path, event.name)
+        file_path = os.path.join(self.current_user["workdir"], ODTP_SECRETS_DIR, event.name)
 
         salt, iv, encrypted_data = secrets.encrypt_text(content, ODTP_PASSWORD)
         # Save the encrypted data to a file

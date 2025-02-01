@@ -108,3 +108,14 @@ def parse_component_tags(component_tags):
         version_id = str(version_documents[0]["_id"])
         version_ids.append(version_id)
     return version_ids
+
+
+def parse_run_flags(run_flags_param, step_count):
+    run_flags = ",".split(run_flags_param)
+    wrong_flag = [flag for flag in run_flags if flag not in ["T", "F"]]
+    wrong_flag_count = len(run_flags) != step_count
+    if wrong_flag or wrong_flag_count:
+        raise OdtpParameterParsingException(
+            f"Run flags {run_flags_param} must be a comma separated list of 'T' and 'F' for all steps"
+        )
+    return run_flags

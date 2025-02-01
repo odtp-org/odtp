@@ -4,11 +4,8 @@ This scripts contains odtp subcommands for 'new'
 import typer
 from typing_extensions import Annotated
 import logging
-import requests
 from rich.console import Console
-from rich.markdown import Markdown
 import odtp.mongodb.db as db
-import odtp.mongodb.utils as mongodb_utils
 import odtp.helpers.parse as odtp_parse
 import odtp.helpers.git as git_helpers
 import odtp.helpers.validation as validation_helpers
@@ -78,21 +75,21 @@ def odtp_component_entry(
         )
 
     except git_helpers.OdtpGithubException as e:
-        typer.echo(f"Error: An error occurred while fetching information from GitHub: {e}")
+        console.print(f"[bold red]❌ ERROR:An error occurred while fetching information from GitHub: {e}[/bold red]")
         raise typer.Exit(code=1)
 
     except mongodb_utils.OdtpDbMongoDBValidationException as e:
-        typer.echo(f"Error: Component version could not be added: {e}")
+        console.print(f"[bold yellow]⚠️ WARNING: Component was not added in db: {e}[/bold yellow] ")
         raise typer.Exit(code=1)
 
     except validation_helpers.OdtpYmlException as e:
+        console.print(f"[bold red]❌ ERROR: Validation error occurred when parsing odtp.yml: {e}[/bold red]")
         log.error(f"Validation error occurred when parsing odtp.yml")
-        typer.echo(f"Error: Validation of odtp.yml failed: {e}")
         raise typer.Exit(code=1)
 
     except requests.RequestException as e:
         log.error(f"Network error: {e}")
-        typer.echo(f"Error: A network error occurred while communicating with GitHub.: {e}")
+        console.print(f"[bold red]❌ ERROR:[/bold red]: A network error occurred while communicating with GitHub.: {e}[/bold red]")
         raise typer.Exit(code=1)
 
     except Exception as e:
@@ -122,31 +119,31 @@ def digital_twin_entry(
 ):
     try:
         if user_id is None and user_email is None:
-            console.print("[bold red]❌ ERROR:[/bold red] Please provide either --user-id or --user-email")
+            console.print("[bold red]❌ ERROR: Please provide either --user-id or --user-email[/bold red]")
             raise typer.Exit(code=1)
 
         if user_email:
             user_id = db.get_document_id_by_field_value("email", user_email, "users")
 
         if not user_id:
-            console.print("[bold red]❌ ERROR:[/bold red] User does not exist. Please add the user first.")
+            console.print("[bold red]❌ ERROR: User does not exist. Please add the user first.[/bold red]")
             raise typer.Exit(code=1)
 
         if not validation_helpers.validate_digital_twin_name_unique(digital_twin_name=name, user_id=user_id):
-            console.print("[bold red]❌ ERROR:[/bold red] Digital Twin name must be unique and 6 characters long. Choose a different name.")
+            console.print("[bold yellow]⚠️ WARNING: Digital Twin has not been created since it already exists.[/bold yellow]")
             raise typer.Exit(code=1)
 
         dt_id = db.add_digital_twin(userRef=user_id, name=name)
 
         if not dt_id:
-            console.print("[bold red]❌ ERROR:[/bold red] Failed to create Digital Twin due to a database issue.")
+            console.print("[bold red]❌ ERROR:Failed to create Digital Twin due to a database issue.[/bold red]")
             raise typer.Exit(code=1)
 
     except typer.Exit:
         pass
 
     except Exception as e:
-        console.print(f"[bold red]❌ ERROR:[/bold red] An unexpected error occurred: {str(e)}")
+        console.print(f"[bold red]❌ ERROR:An unexpected error occurred: {str(e)}[/bold red] ")
         log.exception("Unexpected error in digital_twin_entry")
         raise typer.Exit(code=1)
 
@@ -167,7 +164,7 @@ def workflow_entry(
 ):
     try:
         if component_tags is None and component_versions is None:
-            console.print("[bold red]❌ ERROR:[/bold red] Please provide either --component-tags or --component-versions")
+            console.print("[bold red]❌ ERROR: Please provide either --component-tags or --component-versions[/bold red]")
             raise typer.Exit(code=1)
         if component_tags:
             component_versions = ",".join(odtp_parse.parse_component_tags(component_tags))
@@ -177,14 +174,14 @@ def workflow_entry(
             workflow=versions,
         )
     except Exception as e:
-        console.print(f"[bold red]❌ ERROR:[/bold red] An unexpected error occurred: {str(e)}")
+        console.print(f"[bold red]❌ ERROR: An unexpected error occurred: {str(e)}[/bold red]")
         log.exception("Unexpected error in workflow_entry")
         raise typer.Exit(code=1)
     success_message = (
         f"SUCCESS: Workflow has been added:\n"
         f" - Workflow ID: {workflow_id}\n"
     )
-    console.print(f"✅ {success_message}")
+    console.print(f"[bold green]✅ {success_message}[/bold green]")
 
 
 @app.command()
@@ -257,7 +254,7 @@ def execution_entry(
             f" - step_ids: {step_ids}\n"
         )
         log.info(success_message)
-        typer.echo(f"✅ {success_message}")
+        console.print(f"[bold green]✅ {success_message}[/bold green]")
 
 
 if __name__ == "__main__":
