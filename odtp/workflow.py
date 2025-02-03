@@ -1,5 +1,4 @@
 import os
-import shutil
 from odtp.run import DockerManager, OdtpRunSetupException
 import odtp.helpers.utils as odtp_utils
 import odtp.helpers.secrets as odtp_secrets
@@ -16,12 +15,12 @@ log.addHandler(config.get_command_log_handler())
 
 
 class WorkflowManager:
-    def __init__(self, execution_data, working_path, secrets=None):
+    def __init__(self, execution_data, secrets=None):
         # This workflow will have one execution ID associated
         # This class should contain flags used to know the status of the workflow.
         self.execution = execution_data
+        self.working_path = execution_data["execution_path"]
         self.schema = execution_data["workflowSchema"]
-        self.working_path = working_path
         self.docker_image_names = []
         self.docker_image_links = []
         self.repo_urls = []
@@ -127,7 +126,9 @@ class WorkflowManager:
                 collection=db.collection_steps
             )
             secrets = self.secrets[step_index]
+
             if not secrets and step_doc.get("secrets"):
+
                 secrets_file = step_doc["secrets"]
                 decrypted_content = odtp_secrets.decrypt_file_to_dict(
                     secrets_file,

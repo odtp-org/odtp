@@ -10,9 +10,9 @@ import odtp.helpers.utils as odtp_utils
 from odtp.helpers.settings import ODTP_SECRETS_DIR
 import odtp.dashboard.utils.helpers as helpers
 import odtp.dashboard.utils.ui_theme as ui_theme
-import odtp.dashboard.page_executions.projectdir as projectdir
+import odtp.helpers.environment as environment
 import odtp.dashboard.page_executions.run as run
-from odtp.helpers.settings import ODTP_SECRETS_DIR, ODTP_LOG_PATH
+from odtp.helpers.settings import ODTP_LOG_PATH
 
 
 from nicegui import ui
@@ -96,7 +96,6 @@ class ExecutionDisplay:
         command = run.build_cli_command(
             cmd="prepare",
             execution_id=self.execution_id,
-            project_path=self.execution_path,
         )
         ui.label(command).classes("font-mono w-full")
         ui.button(
@@ -120,7 +119,6 @@ class ExecutionDisplay:
         command = run.build_cli_command(
             cmd="run",
             execution_id=self.execution_id,
-            project_path=self.execution_path,
         )
         ui.label(command).classes("font-mono w-full")
         ui.button(
@@ -134,7 +132,7 @@ class ExecutionDisplay:
         log_file_path = f"{self.execution_path}/{version_name}/{ODTP_LOG_PATH}"
         if not os.path.exists(log_file_path):
             return
-        command = f"cat {log_file_path}"
+        command = f"tail {log_file_path}"
         ui.button(
             "Show logs",
             on_click=lambda: self.action_run_command(command, self.dialog, self.result),
@@ -159,12 +157,14 @@ class ExecutionDisplay:
             )
 
     def action_create_folder(self):
-        execution_path = projectdir.make_project_dir_for_execution(
+        print("make project dir")
+        execution_path = environment.make_project_dir_for_execution(
             self.user["workdir"],
             self.digital_twin["digital_twin_name"],
             self.execution["title"]
         )
         db.set_execution_path(self.execution_id, execution_path=execution_path)
+        print(f"set execution path {execution_path}")
         ui.notify(
             f"project directory {execution_path} has been created and set as project directory",
             type="positive",
@@ -282,10 +282,29 @@ class ExecutionDisplay:
                     ui.icon("output").classes("text-teal text-lg")
                     ui.label(f"output: {step['output'].get('file_name')} ({step['output'].get('file_size')})")
                     ui.label(f"S3: {step['output'].get('s3_bucket')} ({step['output'].get('s3_key')})")
-            with ui.grid(columns=3).classes("flex items-center"):
-                if step.get("secrets"):
-                    ui.icon("check").classes("text-teal text-lg")
-                    ui.label(f"Secrets uploaded: {step.get('secrets')}")
+
+            with ui.grid(columns=1).classes("flex items-center"):
+                step_secrets = step.get("secrets")
+                if step_secrets:
+                    ui.label("needs secrets")
+                    if os.path.isfile(step["secrets"]):
+                        ui.icon("check").classes("text-teal text-lg")
+                    secret_options = self.get_secrets_select_options()
+                    if secret_options:
+                        ui.select(
+                            self.get_secrets_select_options(),
+                            value=step_secrets,
+                            on_change=lambda e, step=step : self.set_secret_for_step(step, e.value),
+                            label="secrets file for step",
+                            with_input=True,
+                        ).classes("w-full")
+                    else:
+                        ui.button(
+                            "Add secrets as file",
+                            on_click=lambda: ui.open(ui_theme.PATH_USERS),
+                            icon="link",
+                        ).props("flat")
+
             with ui.grid(columns=3).classes("flex items-center"):
                 if step.get("error"):
                     ui.icon("clear").classes("text-red text-lg")
@@ -305,6 +324,13 @@ class ExecutionDisplay:
                 self._display_port_mappings(step, port_mappings)
             if step.get("secrets"):
                 self._display_secrets(step, step.get("secrets"))
+
+    def set_secret_for_step(self, step, value):
+        db.update_step(step["_id"], {"secrets": value})
+
+    def get_secrets_select_options(self):
+        secrets_files = helpers.get_secrets_files(self.user["workdir"])
+        return secrets_files
 
     def _display_parameters(self, step, parameters):
         ui.label("Parameters")

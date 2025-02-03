@@ -40,7 +40,7 @@ class ExecutionForm(object):
             placeholder="Execution title",
             on_change=lambda e: self.set_title(e.value),
             validation={
-                "Should be unique and at least 6 characters long" \
+                "Title should be unique: this execution already exists for digital twin" \
                 : lambda value: validation.validate_execution_name_unique(value.strip(), self.digital_twin_id)
             },
         ).classes("w-1/2")
@@ -151,7 +151,7 @@ class ExecutionForm(object):
                                             on_change=lambda e, i=i, key=key: self.update_parameter_value(
                                                 e.value, key, i
                                             )
-                                        )
+                                        ).classes("w-2/3")
                         with ui.column():
                             ui.label("Ports").classes("text-lg")
                             if self.port_mappings[i].items():
@@ -220,13 +220,6 @@ class ExecutionForm(object):
             if port_value:
                 default_ports[port_value] = port_value
         return default_ports
-
-    def ui_parameters(self, version):
-        key, value = self.get_default_parameters(version)
-        with ui.row().classes("w-full"):
-            with ui.grid(columns=2).classes("w-full"):
-                key = ui.input(label="key", value=key, placeholder="key")
-                value = ui.input(label="value", value=value, placeholder="value")
 
     @ui.refreshable
     def ui_workflow_diagram(self, init="graph LR;"):
