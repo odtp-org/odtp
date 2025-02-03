@@ -9,6 +9,7 @@ import odtp.mongodb.db as db
 import odtp.helpers.parse as odtp_parse
 import odtp.helpers.git as git_helpers
 import odtp.helpers.validation as validation_helpers
+import odtp.mongodb.utils as mongodb_utils
 import traceback
 
 app = typer.Typer()
