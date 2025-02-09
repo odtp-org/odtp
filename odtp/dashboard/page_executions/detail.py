@@ -35,6 +35,7 @@ class ExecutionDisplay:
         self.run = None
         self.get_execution_options()
         self.build_form()
+        self.secret_files = helpers.get_secrets_files(self.user["workdir"])
 
     @ui.refreshable
     def build_form(self):
@@ -262,38 +263,36 @@ class ExecutionDisplay:
         version = self.versions_dict.get(step["component_version"])
         version_name = self._get_version_display(version, index)
         with ui.card().classes("w-full bg-gray-100"):
-            with ui.grid(columns=3).classes("flex items-center"):
-                ui.label(version_name).classes("text-lg")
-            with ui.grid(columns=3).classes("flex items-center"):
-                ui.icon("schedule").classes("text-xl")
-                if self.execution.get('start_timestamp'):
-                    ui.label(f"started {self.execution['start_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S')}")
-                if self.execution.get('end_timestamp'):
-                    ui.label(f"ended {self.execution['end_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S')}")
-                self.ui_open_logs(version_name)
-                if self.execution["start_timestamp"]:
-                    ui.switch(
-                        'Re run step',
-                        value=step.get("run_step"),
-                        on_change=lambda e, step=step, index=index: self.action_update_step(e.value, step, index),
-                    )
-            if step.get("output"):
-                with ui.grid(columns=3).classes("flex items-center"):
-                    ui.icon("output").classes("text-teal text-lg")
-                    ui.label(f"output: {step['output'].get('file_name')} ({step['output'].get('file_size')})")
-                    ui.label(f"S3: {step['output'].get('s3_bucket')} ({step['output'].get('s3_key')})")
+            ui.label(version_name).classes("text-lg")
+            self.ui_step_run_status(step, index, version_name)
+            self.ui_display_output(step)
+            self.ui_display_secrets(step)
+            self.ui_display_errors(step, version_name)
+            self.display_parameters(step, step.get("parameters"))
+            self.ui_display_ports(step)
 
-            with ui.grid(columns=1).classes("flex items-center"):
-                step_secrets = step.get("secrets")
-                if step_secrets:
-                    ui.label("needs secrets")
-                    if os.path.isfile(step["secrets"]):
-                        ui.icon("check").classes("text-teal text-lg")
+    def set_secret_for_step(self, step, value):
+        print(f"update {step} secret with {value}")
+        db.update_step(step["_id"], {"secrets": value})
+
+    def get_secrets_select_options(self):
+        secrets_files = helpers.get_secrets_files(self.user["workdir"])
+        return secrets_files
+
+    def ui_display_secrets(self, step):
+        with ui.grid(columns=1).classes("flex items-center"):
+            step_secrets = step.get("secrets")
+            if step_secrets:
+                ui.label("needs secrets")
+                if os.path.isfile(step["secrets"]):
+                    ui.icon("check").classes("text-teal text-lg")
+                    ui.label(self.secret_files.get(step_secrets))
+                else:
                     secret_options = self.get_secrets_select_options()
                     if secret_options:
                         ui.select(
-                            self.get_secrets_select_options(),
-                            value=step_secrets,
+                            self.secret_files,
+                            value=None,
                             on_change=lambda e, step=step : self.set_secret_for_step(step, e.value),
                             label="secrets file for step",
                             with_input=True,
@@ -305,35 +304,20 @@ class ExecutionDisplay:
                             icon="link",
                         ).props("flat")
 
-            with ui.grid(columns=3).classes("flex items-center"):
-                if step.get("error"):
-                    ui.icon("clear").classes("text-red text-lg")
-                    ui.label(f"ERROR: {step.get('msg')}").classes("text-red")
-                else:
-                    container_running = run.check_container_running(version_name)
-                    if container_running and step.get("type") == "ephemeral":
-                        ui.icon("check").classes("text-teal text-lg")
-                        ui.label(f"container {version_name} running")
-            if step.get("parameters"):
-                self._display_parameters(step, step.get("parameters"))
-            if step.get("ports"):
-                port_mappings = {}
-                for pm in step.get("ports"):
-                    ports_split = pm.split(":")
-                    port_mappings[ports_split[1]] = ports_split[0]
-                self._display_port_mappings(step, port_mappings)
-            if step.get("secrets"):
-                print(self.get("secrets"))
-                self._display_secrets(step, step.get("secrets"))
+    def ui_display_errors(self, step, version_name):
+        with ui.grid(columns=3).classes("flex items-center"):
+            if step.get("error"):
+                ui.icon("clear").classes("text-red text-lg")
+                ui.label(f"ERROR: {step.get('msg')}").classes("text-red")
+            else:
+                container_running = run.check_container_running(version_name)
+                if container_running and step.get("type") == "ephemeral":
+                    ui.icon("check").classes("text-teal text-lg")
+                    ui.label(f"container {version_name} running")
 
-    def set_secret_for_step(self, step, value):
-        db.update_step(step["_id"], {"secrets": value})
-
-    def get_secrets_select_options(self):
-        secrets_files = helpers.get_secrets_files(self.user["workdir"])
-        return secrets_files
-
-    def _display_parameters(self, step, parameters):
+    def display_parameters(self, step, parameters):
+        if not step.get("parameters"):
+            return
         ui.label("Parameters")
         with ui.grid(columns=1).classes('w-1/2 gap-0'):
             for key, value in parameters.items():
@@ -344,6 +328,39 @@ class ExecutionDisplay:
                         step, key, e.value
                     ),
                 )
+
+    def ui_display_ports(self, step):
+        if not step.get("ports"):
+            return
+        port_mappings = {}
+        for pm in step.get("ports"):
+            ports_split = pm.split(":")
+            port_mappings[ports_split[1]] = ports_split[0]
+        self._display_port_mappings(step, port_mappings)
+
+    def ui_step_run_status(self, step, index, version_name):
+        with ui.grid(columns=3).classes("flex items-center"):
+            ui.icon("schedule").classes("text-xl")
+            if not self.execution.get('start_timestamp'):
+                ui.label("has not yet run")
+            if self.execution.get('start_timestamp'):
+                ui.label(f"started {self.execution['start_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S')}")
+            if self.execution.get('end_timestamp'):
+                ui.label(f"ended {self.execution['end_timestamp'].strftime(f'%Y-%m-%d %H:%M:%S')}")
+            self.ui_open_logs(version_name)
+            if self.execution["start_timestamp"]:
+                ui.switch(
+                    'Re run step',
+                    value=step.get("run_step"),
+                    on_change=lambda e, step=step, index=index: self.action_update_step(e.value, step, index),
+                )
+
+    def ui_display_output(self, step):
+        if step.get("output"):
+            with ui.grid(columns=3).classes("flex items-center"):
+                ui.icon("output").classes("text-teal text-lg")
+                ui.label(f"output: {step['output'].get('file_name')} ({step['output'].get('file_size')})")
+                ui.label(f"S3: {step['output'].get('s3_bucket')} ({step['output'].get('s3_key')})")
 
     def _display_port_mappings(self, step, port_mappings):
         ui.label("Port Mappings")
@@ -357,38 +374,10 @@ class ExecutionDisplay:
                     ),
                 )
 
-    def _display_secrets(self, step, secrets):
-        ui.label("Secrets file")
-        with ui.grid(columns='1fr 5fr').classes('w-full gap-0'):
-            if secrets:
-                ui.select(
-                    label=f"Secrets file",
-                    value=step["secrets"].split("/")[-1],
-                    options=self.set_secret_file_select_options(),
-                    on_change=lambda e, step=step: self.action_update_step_secrets(
-                        step, e.value
-                    )
-                ).classes("w-full")
-
-    def set_secret_file_select_options(self):
-        secret_files = helpers.get_secrets_files(self.user.get("workdir"))
-        return secret_files
-
     def action_update_step_parameter(self, step, key, value):
         parameters = step.get("parameters")
         parameters[key] = value
         db.update_step(step["_id"], {"parameters": parameters})
-
-    def action_update_step_secrets(self, step, value):
-        if value:
-            secrets_path = os.path.join(
-                self.user["workdir"],
-                ODTP_SECRETS_DIR,
-                value,
-            )
-        else:
-            secrets_path = False
-        db.update_step(step["_id"], {"secrets": secrets_path})
 
     def action_update_step_port(self, step, key, value):
         port_mappings = step.get("ports")
