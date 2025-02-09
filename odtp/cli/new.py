@@ -191,9 +191,6 @@ def execution_entry(
     wf_id: str = typer.Option(
         None, "--workflow-id", help="Specify the workflow ID"
     ),
-    wf_name: str = typer.Option(
-        None, "--workflow-name", help="Specify the workflow name"
-    ),
     component_tags: str = typer.Option(
         None, "--component-tags", help="Specify the components-tags (component-name:version) separated by commas"
     ),
@@ -210,14 +207,18 @@ def execution_entry(
 ):
     try:
         if dt_name is None and dt_id is None:
-            print("Please provide either --digital-twin-name or --digital-twin-id")
+            console.print("[bold red]❌ ERROR: Please provide either --digital-twin-name or --digital-twin-id[/bold red]")
             raise typer.Exit(code=1)
         if wf_id is None and component_tags is None:
-            print("Please provide either --workflow-id or --component-tags")
+            console.print("[bold red]❌ ERROR: Please provide either --workflow-id or --component-tags")
             raise typer.Exit(code=1)
         if dt_name:
             dt_id = db.get_document_id_by_field_value("name", dt_name, "digitalTwins")
-
+            if not dt_id:
+                console.print("[bold red]❌ ERROR: Digital Twin with name {dt_name} was not found")
+                raise typer.Exit(code=1)
+        if not validation_helpers.validate_execution_name_unique(execution_name, dt_id):
+            console.print("[bold yellow]⚠️ WARNING: Execution already exists: you can rerun it [/bold yellow]")
         if wf_id:
             workflow = db.get_document_by_id(wf_id, db.collection_workflows)
 
