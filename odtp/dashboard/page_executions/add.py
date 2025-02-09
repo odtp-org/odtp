@@ -166,14 +166,22 @@ class ExecutionForm(object):
                         with ui.column():
                             ui.label("Secrets").classes("text-lg")
                             if self.secret_files[i]:
-                                ui.select(
-                                    label=f"Secrets file",
-                                    value=None,
-                                    options=self.set_secret_file_select_options(),
-                                    on_change=lambda e, i=i: self.update_secrets(
-                                        e.value, i
+                                file_options = self.set_secret_file_select_options()
+                                if file_options:
+                                    ui.select(
+                                        label=f"Secrets file",
+                                        value=self.secret_files[i],
+                                        options=file_options,
+                                        on_change=lambda e, i=i: self.update_secrets(
+                                            e.value, i
+                                        )
+                                    ).classes("w-full")
+                                else:
+                                    ui_theme.ui_add_first(
+                                        "secret files",
+                                        ui_theme.PATH_USERS,
+                                        action="upload"
                                     )
-                                ).classes("w-full")
 
     def update_secrets(self, value, i):
         if value:
@@ -182,8 +190,6 @@ class ExecutionForm(object):
                 ODTP_SECRETS_DIR,
                 value,
             )
-        else:
-            self.secret_files[i] = False
 
     def set_secret_file_select_options(self):
         secret_files = helpers.get_secrets_files(self.user.get("workdir"))
