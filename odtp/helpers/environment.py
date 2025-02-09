@@ -85,12 +85,8 @@ def delete_folder(folder_path, keep_project_path=True):
 
 def make_project_dir_for_execution(user_workdir, digital_twin_name, execution_title):
     digital_twin_slug = slugify(digital_twin_name)
-    print(digital_twin_slug)
     execution_slug = slugify(execution_title)
-    print(execution_slug)
     project_dir = os.path.join(user_workdir, digital_twin_slug, execution_slug)
-    print(project_dir)
-    print("now create")
     make_project_dir(project_dir)
     return project_dir
 

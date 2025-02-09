@@ -46,18 +46,21 @@ def prepare(
                 console.print(f"[bold red]❌ ERROR: Execution with name {execution_name} was not found.[/bold red] ")
                 raise typer.Exit(code=1)
 
-
         execution = db.get_document_by_id(
             document_id=execution_id,
             collection=db.collection_executions
         )
-        if not execution.get("execution_path") and not project_path:
+        if not project_path and execution.get("execution_path"):
+            project_path = execution["execution_path"]
+
+        if not project_path:
             console.print(f"[bold red]❌ ERROR: Project path not provided.[/bold red]")
             raise typer.Exit(code=1)
 
         if not env_helpers.project_folder_exists_file_or_not_empty(project_path):
             console.print(f"[bold yellow]⚠️ WARNING: Project path exists and is not an empty directory[/bold yellow]")
             raise typer.Exit(code=1)
+
         env_helpers.make_project_dir(project_path)
 
         if project_path:
@@ -66,7 +69,6 @@ def prepare(
                 document_id=execution_id,
                 collection=db.collection_executions
             )
-        print(execution)
 
         if not execution.get("execution_path"):
             console.print(f"[bold red]❌ ERROR:[/bold red] Failed to set execution path")

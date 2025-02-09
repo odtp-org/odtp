@@ -46,8 +46,6 @@ def executions():
         executions_page()
 
 
-app.add_static_files("/static", "static")
-
 ui.run(
     title="ODTP",
     storage_secret="private key to secure the browser session cookie",
