@@ -186,7 +186,7 @@ class ExecutionForm(object):
             self.secret_files[i] = False
 
     def set_secret_file_select_options(self):
-        secret_files = helpers.get_secrets_files_for_user(self.user.get("workdir"))
+        secret_files = helpers.get_secrets_files(self.user.get("workdir"))
         return secret_files
 
     def update_port_mapping(self, port_host, port_component, i):

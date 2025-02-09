@@ -323,6 +323,7 @@ class ExecutionDisplay:
                     port_mappings[ports_split[1]] = ports_split[0]
                 self._display_port_mappings(step, port_mappings)
             if step.get("secrets"):
+                print(self.get("secrets"))
                 self._display_secrets(step, step.get("secrets"))
 
     def set_secret_for_step(self, step, value):
@@ -370,7 +371,7 @@ class ExecutionDisplay:
                 ).classes("w-full")
 
     def set_secret_file_select_options(self):
-        secret_files = helpers.get_secrets_files_for_user(self.user.get("workdir"))
+        secret_files = helpers.get_secrets_files(self.user.get("workdir"))
         return secret_files
 
     def action_update_step_parameter(self, step, key, value):
