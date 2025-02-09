@@ -69,7 +69,6 @@ def prepare(
                 document_id=execution_id,
                 collection=db.collection_executions
             )
-        print(execution)
 
         if not execution.get("execution_path"):
             console.print(f"[bold red]❌ ERROR:[/bold red] Failed to set execution path")
