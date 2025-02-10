@@ -1,20 +1,34 @@
 ## Changelog
 
+- v0.5.0
+    - gui and cli: making partial executions possible
+    - gui: allow to upload and store secret files per user. These files are then stored encrypted in the
+    users working directory and the user can link them to execution runs
+    - gui and cli: odtp.yml is now parsed when a component version is added and the default parameters are
+    stored. Therefore when an execution is created it is preset with the default parameter and port values.
+    These can be overwritten during execution runs.
+    - gui and cli: workflows are added as step between component versions and execution: a workflow is the
+    sequence of component versions. Workflows are not user owned and can be shared between users in the same
+    way as component versions are shared
+    - gui: gui allows now to deprecate workflows, executions and component versions. Deprecated items are
+    no longer offered in selects. Items can be deprecated and also reactivated
+    - env: an additional env variable is added ALLOW_DOCKER_GPUS that must be set to false if the used Docker
+    version does not allow GPU settings such as 
 - v0.4.0
     - gui: the general workflow for the user was improved (new Items are selected automatically for example)
     - gui: validation has been implemented in the forms to make sure data that is entered will be valid
     - gui: the run page for executions has been improved in the gui: logs are now also available from the gui when a workflow runs
     - gui: on the dashboard homepage you can now directly see whether all services including github are connected
     - gui: the workarea in the dashboard was removed and replace by an info section on top of the pages
-    - logging: improve logging at GUI/CLI: run commands are now logged to a file, while everything else is still logged to the command line: this is so run commands can be easier debugged by knowing what was run in docker and how that run was triggered 
+    - logging: improve logging at GUI/CLI: run commands are now logged to a file, while everything else is still logged to the command line: this is so run commands can be easier debugged by knowing what was run in docker and how that run was triggered
     - logging: the logs of the execution runs are now exposed as volumes, so that will be directly available when the component starts and will remain in the project path even after a component exited prematurely
     - execution: execution and step timestamps
     - cli: printing table from mongodb colleciton
-    - cli: delete methods for execution and related items. 
+    - cli: delete methods for execution and related items.
     - components: avoid rebuilding image if component is available
     - compose: a dev version for docker compose has been added to facilitate development
 
-- v0.3.1 
+- v0.3.1
     - hotfixes for bugs
     - removal of unused dependencies and adition of pandas
 
@@ -24,7 +38,7 @@
     - the execution run page is now only accessible via the execution
     - the workflow in the dashboard has been improved
     - the docker compose setup has now a dev and a prod file
-    - log levels for dashboard and docker runs can now be set separately   
+    - log levels for dashboard and docker runs can now be set separately
 
 - v0.2.8: bug fixes and settings updates
 
