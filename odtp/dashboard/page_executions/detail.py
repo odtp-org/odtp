@@ -158,14 +158,12 @@ class ExecutionDisplay:
             )
 
     def action_create_folder(self):
-        print("make project dir")
         execution_path = environment.make_project_dir_for_execution(
             self.user["workdir"],
             self.digital_twin["digital_twin_name"],
             self.execution["title"]
         )
         db.set_execution_path(self.execution_id, execution_path=execution_path)
-        print(f"set execution path {execution_path}")
         ui.notify(
             f"project directory {execution_path} has been created and set as project directory",
             type="positive",
@@ -272,7 +270,6 @@ class ExecutionDisplay:
             self.ui_display_ports(step)
 
     def set_secret_for_step(self, step, value):
-        print(f"update {step} secret with {value}")
         db.update_step(step["_id"], {"secrets": value})
 
     def get_secrets_select_options(self):
