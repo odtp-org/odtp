@@ -219,6 +219,7 @@ def execution_entry(
                 raise typer.Exit(code=1)
         if not validation_helpers.validate_execution_name_unique(execution_name, dt_id):
             console.print("[bold yellow]⚠️ WARNING: Execution already exists: you can rerun it [/bold yellow]")
+            raise typer.Exit(code=1)
         if wf_id:
             workflow = db.get_document_by_id(wf_id, db.collection_workflows)
 
