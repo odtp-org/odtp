@@ -1,8 +1,7 @@
 import os
 import shutil
 import logging
-
-import odtp.helpers.utils as utils
+from slugify import slugify
 import odtp.helpers.utils as odtp_utils
 import odtp.mongodb.db as db
 
@@ -13,6 +12,10 @@ class OdtpLocalEnvironmentException(Exception):
 
 
 def check_project_folder_empty(project_folder):
+    if not os.path.exists(project_folder):
+        raise OdtpLocalEnvironmentException(
+            f"project folder {project_folder} does not exist. Please create it first."
+        )
     if not project_folder_is_empty(project_folder):
         raise OdtpLocalEnvironmentException(
             f"project folder {project_folder} was not empty"
@@ -22,7 +25,7 @@ def check_project_folder_empty(project_folder):
 def check_directory_folder_matches_execution(execution_id, project_folder):
     if not directory_folder_matches_execution(execution_id, project_folder):
         raise OdtpLocalEnvironmentException(
-            f"""project folder {project_folder} does not match execution. 
+            f"""project folder {project_folder} does not match execution.
             First run 'prepare' on an empty folder to prepare for the run of the execution"""
         )
 
@@ -30,6 +33,14 @@ def check_directory_folder_matches_execution(execution_id, project_folder):
 def project_folder_is_empty(project_folder):
     empty_directory = os.path.isdir(project_folder) and not os.listdir(project_folder)
     if not empty_directory:
+        return False
+    return True
+
+
+def project_folder_exists_file_or_not_empty(project_folder):
+    if os.path.exists(project_folder):
+        if project_folder_is_empty(project_folder):
+            return True
         return False
     return True
 
@@ -70,3 +81,17 @@ def delete_folder(folder_path, keep_project_path=True):
         os.mkdir(folder_path)
 
     log.info("Folder deleted: %s", folder_path)
+
+
+def make_project_dir_for_execution(user_workdir, digital_twin_name, execution_title):
+    digital_twin_slug = slugify(digital_twin_name)
+    execution_slug = slugify(execution_title)
+    project_dir = os.path.join(user_workdir, digital_twin_slug, execution_slug)
+    make_project_dir(project_dir)
+    return project_dir
+
+
+def make_project_dir(project_dir):
+    if os.path.exists(project_dir):
+        shutil.rmtree(project_dir)
+    os.makedirs(project_dir)

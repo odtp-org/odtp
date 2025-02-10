@@ -6,51 +6,49 @@ from odtp.dashboard.page_about.main import content as about_page
 from odtp.dashboard.page_components.main import content as components_page
 from odtp.dashboard.page_digital_twins.main import content as digital_twins_page
 from odtp.dashboard.page_executions.main import content as executions_page
-from odtp.dashboard.page_run.main import content as run_page
 from odtp.dashboard.page_users.main import content as user_page
+from odtp.dashboard.page_workflows.main import content as workflows_page
 
 
 @ui.page("/")
-def home() -> None:
-    with ui_theme.frame("Homepage"):
+def home():
+    with ui_theme.frame():
         about_page()
 
 
 @ui.page("/users")
 def start():
-    with ui_theme.frame("Users"):
+    with ui_theme.frame():
         user_page()
 
 
-@ui.page("/components")
-def components():
-    with ui_theme.frame("Components"):
-        components_page()
+@ui.page("/components/{version_id}")
+def components(version_id):
+    with ui_theme.frame():
+        components_page(version_id)
 
 
-@ui.page("/run")
-def components():
-    with ui_theme.frame("Run"):
-        run_page()
+@ui.page("/workflows/{workflow_id}")
+def workflows(workflow_id):
+    with ui_theme.frame():
+        workflows_page(workflow_id)
 
 
 @ui.page("/digital-twins")
-def components():
-    with ui_theme.frame("Digital Twins"):
+def digital_twins():
+    with ui_theme.frame():
         digital_twins_page()
 
 
 @ui.page("/executions")
-def components():
-    with ui_theme.frame("Executions"):
+def executions():
+    with ui_theme.frame():
         executions_page()
 
 
-app.add_static_files("/static", "static")
-
 ui.run(
-    title="ODTP", 
-    storage_secret="private key to secure the browser session cookie", 
+    title="ODTP",
+    storage_secret="private key to secure the browser session cookie",
     port=ODTP_DASHBOARD_PORT,
     reload=ODTP_DASHBOARD_RELOAD,
 )

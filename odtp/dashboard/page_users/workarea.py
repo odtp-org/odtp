@@ -1,117 +1,71 @@
-import logging
 import os
-from nicegui import ui, app
+from nicegui import ui
 import odtp.dashboard.utils.ui_theme as ui_theme
-import odtp.dashboard.utils.validators as validators
-import odtp.dashboard.utils.storage as storage
-from odtp.dashboard.utils.file_picker import local_file_picker
-from odtp.helpers.settings import ODTP_PATH
+import odtp.dashboard.utils.helpers as helpers
+import odtp.helpers.secrets as secrets
+import odtp.dashboard.utils.helpers as helpers
+import odtp.dashboard.page_users.storage as storage
+from odtp.helpers.settings import ODTP_PASSWORD, ODTP_SECRETS_DIR
 
 
-log = logging.getLogger("__name__")
+class Workarea():
+    def __init__(self):
+        self.current_user = storage.storage_get_current_user()
+        self.ui_workarea()
+        self.ui_secrets()
 
-
-def ui_workarea_form(user, workdir):
-    try:
-        if user:
-            user_name = user.get("display_name")
-        else:
-            user_name = ui_theme.MISSING_VALUE
+    def ui_workarea(self):
         with ui.row().classes("w-full"):
             ui.markdown(
                 """
-                # Manage Users 
+                ## Manage Users
                 """
             )
-        if not user:
+        current_user = storage.storage_get_current_user()
+        if not current_user:
             return
-        with ui.grid(columns=2):
+        with ui.row():
+            ui.markdown(
+                f"""
+                #### Current Selection
+                - **user**: {current_user.get("user_name")}
+                - **work directory**: {current_user.get("workdir")}
+                """
+            )
+        with ui.column():
+            ui.button(
+                "Manage digital twins",
+                on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
+                icon="link",
+            )
+            ui.upload(
+                on_upload=self.handle_upload,
+                label="upload secrets (store encrypted)"
+            ).classes('max-w-full')
+
+    @ui.refreshable
+    def ui_secrets(self):
+        if not self.current_user:
+            return
+        file_dict = helpers.get_secrets_files(self.current_user.get("workdir"))
+        if file_dict:
             with ui.column():
-                ui.markdown(
-                    f"""
-                    #### Current Selection
-                    - **user**: {user_name}
-                    - **work directory**: {workdir}              
-                    """
-                )
-            with ui.column():
-                ui.markdown(
-                    f"""
-                    #### Actions
-                    """
-                )
-                ui.button(
-                    "Manage digital twins",
-                    on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
-                    icon="link",
-                )
-                ui.button("Set Work directory", on_click=pick_workdir, icon="folder")
-                ui.button(
-                    "Set Work directory to default",
-                    on_click=set_default_workdir,
-                    icon="folder",
-                ).props("flat")
-                with ui.row().classes("flex items-center"):
-                    folder_name_input = ui.input(
-                        label="Project folder name",
-                        placeholder="execution",
-                        validation={
-                            f"Please provide a folder name does not yet exist in the working directory": lambda value: validators.validate_folder_does_not_exist(
-                                value, ODTP_PATH
-                            )
-                        },
-                    )
-                    ui.button(
-                        "Create new work directory",
-                        on_click=lambda: create_workdir(folder_name_input),
-                        icon="add",
-                    ).props("flat")
-    except Exception as e:
-        log.exception(f"Workarea could not be loaded: an Exception occurred: {e}")                    
+                ui.label("Uploaded Secrets Files:").classes("font-bold")
+                for value in file_dict.values():
+                    ui.label(f"📄 {value} ")
+        else:
+            ui.label("No files found in the secrets directory.")
 
+    async def handle_upload(self, event):
+        """Handle file upload and encrypt the file."""
+        content = event.content.read().decode('utf-8')
+        file_path = os.path.join(self.current_user["workdir"], ODTP_SECRETS_DIR, event.name)
 
-def create_workdir(folder_name_input):
-    try:
-        folder_name = folder_name_input.value
-        workdir = os.path.join(ODTP_PATH, folder_name)
-        os.mkdir(workdir)
-        app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
-    except Exception as e:
-        ui.notify(
-            f"The directory could not be created: {workdir} an exception occurred: {e}",
-            type="negative",
-        )
-        log.exception("The directory could not be created: {workdir} an exception occurred: {e}")
-    else:
-        ui.notify(
-            f"the directory {workdir} has been created and set as working directory",
-            type="positive",
-        )
-        from odtp.dashboard.page_users.main import ui_workarea
-        ui_workarea.refresh()
+        salt, iv, encrypted_data = secrets.encrypt_text(content, ODTP_PASSWORD)
+        # Save the encrypted data to a file
+        self.encrypted_file_path = file_path
+        with open(self.encrypted_file_path, "wb") as f:
+            f.write(salt + iv + encrypted_data)
 
-
-async def pick_workdir() -> None:
-    try:
-        root = ODTP_PATH
-        result = await local_file_picker(root, multiple=False)
-        if result:
-            workdir = result[0]
-            app.storage.user[storage.CURRENT_USER_WORKDIR] = workdir
-            ui.notify(f"A new user workdir has been set to {workdir}", type="positive")
-    except Exception as e:
-        log.exception(f"Work directory could not be picked: an Exception occurred: {e}")
-    else:
-        from odtp.dashboard.page_users.main import ui_workarea
-        ui_workarea.refresh()
-
-
-def set_default_workdir():
-    try: 
-        app.storage.user[storage.CURRENT_USER_WORKDIR] = ODTP_PATH
-    except Exception as e:  
-        log.exception(f"Default work directory could not be set: an Exception occurred: {e}")
-    else:
-        ui.notify(f"User workdir has been set to {ODTP_PATH}", type="positive")     
-        from odtp.dashboard.page_users.main import ui_workarea
-        ui_workarea.refresh()        
+        ui.notify(f"Encrypted file saved to: {self.encrypted_file_path}", type="positive")
+        self.ui_secrets.refresh()

@@ -3,23 +3,16 @@ from nicegui import ui
 import odtp.dashboard.utils.ui_theme as ui_theme
 
 
-def ui_workarea_form(current_digital_twin, current_user, workdir, components, current_execution):
+def ui_workarea_form(current_user, current_digital_twin, components):
     with ui.row().classes("w-full"):
         ui.markdown(
             """
-            # Manage Executions
+            ## Manage Executions
             """
         )
     if not current_user:
         ui_theme.ui_add_first(
             item_name="a user",
-            page_link=ui_theme.PATH_USERS,
-            action="select",
-        )
-        return
-    if not workdir:
-        ui_theme.ui_add_first(
-            item_name="a working directory",
             page_link=ui_theme.PATH_USERS,
             action="select",
         )
@@ -38,30 +31,18 @@ def ui_workarea_form(current_digital_twin, current_user, workdir, components, cu
             action="add",
         )
         return
-    if current_execution:
-        execution_title = current_execution.get("title")
-    else:
-        execution_title = ui_theme.MISSING_VALUE
     with ui.grid(columns=2):
         with ui.column():
             ui.markdown(
                 f"""
                 #### Current Selection
-                - **user**: {current_user.get("display_name")}
-                - **digital twin**: {current_digital_twin.get("name")}
-                - **current execution**: {execution_title}
-                - **work directory**: {workdir}
+                - **user**: {current_user.get("user_name")}
+                - **digital twin**: **{current_digital_twin.get("digital_twin_name")}**
+                - **work directory**: {current_user.get("workdir")}
                 """
             )
-        with ui.column():
-            if current_execution:
-                ui.markdown(
-                    f"""
-                    #### Actions
-                    """
-                )
-                ui.button(
-                    "Prepare and Run Executions",
-                    on_click=lambda: ui.open(ui_theme.PATH_RUN),
-                    icon="link",
-                )
+            ui.button(
+                f"change digital twin",
+                on_click=lambda: ui.open(ui_theme.PATH_DIGITAL_TWINS),
+                icon="link",
+            ).props("flat")

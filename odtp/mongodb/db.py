@@ -22,6 +22,7 @@ collection_steps = "steps"
 collection_results = "results"
 collection_logs = "logs"
 collection_outputs = "outputs"
+collection_workflows = "workflows"
 
 
 log = logging.getLogger(__name__)
@@ -49,11 +50,15 @@ def get_collection_names():
         db.list_collection_names()
 
 
-def get_collection(collection):
+def get_collection(collection, include_deprecated=True, query=None):
     """Retrieve all documents from a collection"""
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
-        cursor = db[collection].find({})
+        if not query:
+            query = {}
+        if not include_deprecated:
+            query["deprecated"] = False
+        cursor = db[collection].find(query)
         return mongodb_utils.get_list_from_cursor(cursor)
 
 
@@ -75,6 +80,52 @@ def get_document_by_id(document_id, collection):
         db = client[ODTP_MONGO_DB]
         document = db[collection].find_one({"_id": ObjectId(document_id)})
     return document
+
+
+def get_default_parameters_for_version(version_id):
+    version = get_document_by_id(version_id, collection_versions)
+    default_parameters = mongodb_utils.get_default_parameters(version)
+    return default_parameters
+
+
+def get_default_parameters_for_workflow(version_ids):
+    default_parameters = []
+    for version_id in version_ids:
+        default_parameters.append(get_default_parameters_for_version(version_id))
+    return default_parameters
+
+
+def get_default_port_mappings_for_version(version_id):
+    version = get_document_by_id(version_id, collection_versions)
+    default_port_mappings = mongodb_utils.get_default_port_mappings(version)
+    return default_port_mappings
+
+
+def get_default_port_mappings_for_workflow(version_ids):
+    default_port_mappings = []
+    for version_id in version_ids:
+        default_port_mappings.append(get_default_port_mappings_for_version(version_id))
+    return default_port_mappings
+
+
+def deprecate_documents_by_ids_in_collection(document_ids, collection):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        result = db[collection].update_many(
+            {"_id": {"$in": [ObjectId(id) for id in document_ids]}},
+            {"$set": {"deprecated": True}}
+        )
+        return result.modified_count
+
+
+def activate_documents_by_ids_in_collection(document_ids, collection):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        result = db[collection].update_many(
+            {"_id": {"$in": [ObjectId(id) for id in document_ids]}},
+            {"$set": {"deprecated": False}}
+        )
+        return result.modified_count
 
 
 def get_document_by_ids_in_collection(document_ids, collection):
@@ -131,7 +182,10 @@ def delete_document_by_id(document_id, collection):
         log.debug(f"Document with ID {document_id} was deleted")
 
 
-def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort_by=None):
+def get_sub_collection_items(
+    collection, sub_collection, item_id, ref_name,
+    sort_by=None, include_deprecated=True
+):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         collection_item = db[collection].find_one({"_id": ObjectId(item_id)})
@@ -140,7 +194,16 @@ def get_sub_collection_items(collection, sub_collection, item_id, ref_name, sort
         sub_collection_ids = collection_item.get(ref_name)
         if not sub_collection_ids:
             return []
-        cursor = db[sub_collection].find({"_id": {"$in": sub_collection_ids}})
+        if include_deprecated:
+            query = {"_id": {"$in": sub_collection_ids}}
+        else:
+            query = {
+                "$and": [
+                    {"_id": {"$in": sub_collection_ids}},
+                    {"deprecated": False}
+                ]
+            }
+        cursor = db[sub_collection].find(query)
         if sort_by:
             cursor.sort(sort_by)
         documents = mongodb_utils.get_list_from_cursor(cursor)
@@ -155,7 +218,18 @@ def get_document_id_by_field_value(field_path, field_value, collection):
             return str(document["_id"])
         else:
             return None
-        
+
+def get_workflow_or_create_by_versions(name, versions):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        document = db[collection_workflows].find_one(
+            {"versions": versions})
+        if document:
+            return document
+        workflow_id = add_workflow(name, versions)
+        document = get_document_by_id(workflow_id, collection_workflows)
+        return document
+
 def get_component_version(component_name, version_tag):
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
@@ -186,7 +260,6 @@ def remove_value_from_list_in_field(collection, document_id, field_name, value):
         )
 
 
-
 def add_user(name, github, email):
     """add new user and return id"""
     user_data = {
@@ -195,6 +268,7 @@ def add_user(name, github, email):
         "github": github,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
+        "deprecated": False,
     }
     with MongoClient(ODTP_MONGO_SERVER) as client:
         user_id = (
@@ -204,32 +278,33 @@ def add_user(name, github, email):
     return user_id
 
 
-def add_component_version(
-    repo_info,
-    component_name,
-    component_version,
-    type,
-    ports,
-):
-    """add component and component version"""
-
-    # check first
-    try:
-        mongodb_utils.check_component_ports(ports)
-        mongodb_utils.check_component_type(type)
-        commit_hash = git_helpers.get_commit_of_component_version(
-            repo_info=repo_info,
-            component_version=component_version,
+def add_workflow(name, workflow):
+    """add new user and return id"""
+    workflow_data = {
+        "name": name,
+        "versions": workflow,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+        "deprecated": False,
+    }
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        workflow_id = (
+            client[ODTP_MONGO_DB][collection_workflows].insert_one(workflow_data).inserted_id
         )
-        repo_url = repo_info.get("html_url")
-        tagged_versions = repo_info.get("tagged_versions")
-        version_commit = [version["commit"] for version in tagged_versions
-                          if version["name"] == component_version]
-        if not version_commit:
-            raise Exception("Version does not exist in repo")
-    except Exception as e:
-        e.add_note("-> Component Version not valid: was not stored in mongodb")
-        raise (e)
+    log.info("Workflow added with ID {}".format(workflow_id))
+    return workflow_id
+
+
+def add_component_version(
+    repository,
+    component_version,
+):
+    """Add a component version: if the component does not exist, it is added as well."""
+    repo_info = git_helpers.get_github_repo_info(repository)
+    version_commit = git_helpers.get_commit_of_component_version(
+        repo_info, component_version)
+    metadata = git_helpers.get_metadata_from_github(repo_info, version_commit)
+    repo_url = repo_info.get("html_url")
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         component = db[collection_components].find_one({"repoLink": repo_url})
@@ -240,17 +315,17 @@ def add_component_version(
             )
         else:
             component_data = {
-                "author": "Test",
-                "componentName": component_name,
+                "author": metadata.get("component-author"),
+                "componentName": metadata["component-name"],
                 "repoLink": repo_url,
                 "status": "active",
-                "title": "Title for ComponentX",
-                "type": type,
-                "description": "Description for ComponentX",
-                "tags": ["tag1", "tag2"],
+                "type": metadata["component-type"],
+                "description": metadata["component-description"],
+                "tags": metadata.get("tags"),
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc),
                 "versions": [],
+                "deprecated": False,
             }
             component_id = (
                 db[collection_components].insert_one(component_data)
@@ -264,9 +339,6 @@ def add_component_version(
             }
         )
         if version:
-            log.info(
-                f"Version {component_version} already existed"
-            )
             raise mongodb_utils.OdtpDbMongoDBValidationException(
                 f"document for repository {repo_url} and version {component_version} already exists"
             )
@@ -277,25 +349,28 @@ def add_component_version(
                     "componentId": component_id,
                     "componentName": component.get("componentName"),
                     "repoLink": component.get("repoLink"),
-                    "type": component.get("type"),
+                    "type": metadata["component-type"],
                 },
                 "odtp_version": odtp_utils.get_odtp_version(),
+                "deprecated": False,
                 "component_version": component_version,
-                "commitHash": commit_hash,
-                "dockerHubLink": "",
-                "parameters": {},
-                "title": "Title for Version v1.0",
-                "description": "Description for Version v1.0",
-                "tags": ["tag1", "tag2"],
-                "ports": ports,
+                "commitHash": version_commit,
+                "imageLink": metadata.get("component_docker_image"),
+                "parameters": metadata.get("parameters", {}),
+                "description": metadata.get("description"),
+                "type": metadata["component-type"],
+                "tags": metadata.get("tags", []),
+                "tools": metadata.get("tools"),
+                "license": metadata.get("component-license"),
+                "ports": metadata.get("ports", []),
+                "secrets": metadata.get("secrets", []),
+                "devices": metadata.get("devices", []),
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc),
+                "data-inputs": metadata.get("data-inputs"),
+                "data-outputs": metadata.get("data-outputs"),
+                "build-args": metadata.get("build-args"),
             }
-            # set optional properties
-            if component_version:
-                version_data["component_version"] = component_version
-            if ports:
-                version_data["ports"] = ports
             version_id = db[collection_versions].insert_one(version_data).inserted_id
             log.info("Version added with ID {}".format(version_id))
             db[collection_components].update_one(
@@ -313,6 +388,7 @@ def add_digital_twin(userRef, name):
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
         "executions": [],
+        "deprecated": False,
     }
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
@@ -339,17 +415,42 @@ def set_document_timestamp(document_id, collection_name, timestamp_name):
         )
 
 
+def update_step(document_id, properties):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        db[collection_steps].update_one(
+            {"_id": ObjectId(document_id)},
+            {"$set": properties},
+        )
+
+
+def set_execution_path(execution_id, execution_path):
+    with MongoClient(ODTP_MONGO_SERVER) as client:
+        db = client[ODTP_MONGO_DB]
+        collection = db[collection_executions]
+        collection.update_one(
+            {"_id": ObjectId(execution_id)},
+            {"$set": {"execution_path": execution_path}},
+        )
+
+
 def add_execution(
     dt_id,
+    workflow_id,
     name,
-    versions,
     parameters,
     ports,
+    secret_files=None,
 ):
     """add and execution to the database"""
     with MongoClient(ODTP_MONGO_SERVER) as client:
         db = client[ODTP_MONGO_DB]
         try:
+            workflow = get_document_by_id(
+                workflow_id,
+                collection_workflows
+            )
+            versions = workflow["versions"]
             mongodb_utils.check_parameters_for_execution(parameters)
             mongodb_utils.check_port_mappings_for_execution(ports)
             check_document_ids_in_collection(
@@ -358,16 +459,18 @@ def add_execution(
             check_document_id_in_collection(
                 document_id=dt_id, collection=collection_digital_twins
             )
-            workflow = odtp_utils.get_workflow(versions)
+            schema_workflow = odtp_utils.get_workflow(versions)
             execution = {
                 "title": name,
                 "description": "Description for Execution",
-                "tags": ["tag1", "tag2"],
+                "deprecated": False,
+                "dt_id": dt_id,
+                "workflow_id": workflow_id,
                 "workflowSchema": {
                     "workflowExecutor": "odtpwf",
                     "workflowExecutorVersion": "0.2.0",
                     "component_versions": versions,
-                    "workflowExecutorSchema": workflow,
+                    "workflowExecutorSchema": schema_workflow,
                 },
                 "start_timestamp": None,
                 "end_timestamp": None,
@@ -378,6 +481,7 @@ def add_execution(
             }
             steps = []
             for i, version in enumerate(versions):
+                version_document = get_document_by_id(version, collection_versions)
                 step = {
                     "timestamp": datetime.now(timezone.utc),
                     "start_timestamp": None,
@@ -389,9 +493,13 @@ def add_execution(
                     "component_version": versions[i],
                     "parameters": parameters[i] or {},
                     "ports": ports[i],
+                    "secrets": False,
+                    "run_step": True,
                     "createdAt": datetime.now(timezone.utc),
                     "updatedAt": datetime.now(timezone.utc)
                 }
+                if secret_files:
+                    step["secrets"] = secret_files[i]
                 steps.append(step)
             execution_id = append_execution_to_digital_twin(db, dt_id, execution)
             log.info(f"Execution added with ID {execution_id}")
@@ -442,7 +550,7 @@ def get_all_outputs_s3_keys(execution_id):
 
 def delete_execution(execution_id, debug=True):
     # DB
-    # Delete execution, steps, output, logs, 
+    # Delete execution, steps, output, logs,
     # Update: remove id from results, remove execution from dt
     execution_doc = get_document_by_id(execution_id, collection_executions)
     digital_twin_id = execution_doc["digitalTwinRef"]

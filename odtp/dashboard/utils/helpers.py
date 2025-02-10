@@ -1,5 +1,6 @@
-import odtp.helpers.utils as odtp_utils
-import odtp.mongodb.db as db
+import os
+from odtp.helpers.settings import ODTP_SECRETS_DIR, ODTP_PASSWORD
+import odtp.helpers.secrets as odtp_secrets
 
 
 def get_workflow_mermaid(step_names, init="graph TB;"):
@@ -16,24 +17,6 @@ def get_workflow_mermaid(step_names, init="graph TB;"):
     return mermaid_graph
 
 
-def pd_lists_to_counts(items_list):
-    if not items_list:
-        return 0
-    return len([str(item) for item in items_list])
-
-
-def component_version_for_table(version):
-    component = version.get("component")
-    version_cleaned = {
-        "component": component.get("componentName"),
-        "version": version.get("component_version"),
-        "repository": component.get("repoLink"),
-        "commit": version.get("commitHash")[:8],
-        "type": component.get("type"),
-    }
-    return version_cleaned
-
-
 def get_execution_step_display_name(
     component_name,
     component_version,
@@ -42,74 +25,32 @@ def get_execution_step_display_name(
     return display_name
 
 
-def get_key_from_parameters(current_component_parameters, index):
-    if index >= len(current_component_parameters):
-        return ""
-    parameters_keys_as_list = list(current_component_parameters.keys())
-    return parameters_keys_as_list[index]
+def get_secrets_files(user_workdir):
+    file_names = get_secrets_file_names(user_workdir)
+    secrets_path = os.path.join(user_workdir, ODTP_SECRETS_DIR)
+    if file_names:
+        select_options = {}
+        for file_name in file_names:
+            file_path = os.path.join(secrets_path, file_name)
+            secret_keys = get_secrets_keys(file_path)
+            select_options[file_path] = f"{file_name}: {secret_keys}"
+        print(select_options)
+        return select_options
+    return None
 
 
-def get_value_from_parameters(current_component_parameters, index):
-    if index >= len(current_component_parameters):
-        return ""
-    parameters_values_as_list = list(current_component_parameters.values())
-    return parameters_values_as_list[index]
-
-
-def get_execution_select_options(digital_twin_id):
-    executions = db.get_sub_collection_items(
-        collection=db.collection_digital_twins,
-        sub_collection=db.collection_executions,
-        item_id=digital_twin_id,
-        ref_name=db.collection_executions,
-        sort_by=[("createdAt", db.DESCENDING)],
+def get_secrets_keys(secrets_file):
+    decrypted_content = odtp_secrets.decrypt_file_to_dict(
+        secrets_file,
+        ODTP_PASSWORD
     )
-    if not executions:
-        return {}
-    execution_options = {}
-    for execution in executions:
-        execution_options[str(execution["_id"])] = (
-            f"{execution['createdAt'].strftime('%d/%m/%y')} {execution.get('title')}"
-        )
-    return execution_options
+    secret_keys = [str(key) for key in decrypted_content]
+    return secret_keys
 
 
-def build_execution_with_steps(execution_id):
-    execution = db.get_document_by_id(
-        document_id=execution_id, collection=db.collection_executions
-    )
-    version_tags = odtp_utils.get_version_names_for_execution(
-        execution=execution,
-        naming_function=get_execution_step_display_name,
-    )
-    step_ids = [str(step_id) for step_id in execution["steps"]]
-    step_documents = db.get_document_by_ids_in_collection(
-        document_ids=step_ids, collection=db.collection_steps
-    )
-    step_dict = {}
-    for step_document in step_documents:
-        step_dict[str(step_document["_id"])] = step_document
-    ports = []
-    parameters = []
-    outputs = []
-    inputs = []
-    for step_id in step_ids:
-        parameters.append(step_dict[step_id].get("parameters", {}))
-        ports.append(step_dict[step_id].get("ports", []))
-        output = step_dict[step_id].get("output")
-        if output:
-            outputs.append(str(output))
-        inputs.append(step_dict[step_id].get("input", {}))
-    execution_with_steps = {
-        "execution_id": execution_id,
-        "title": execution.get("title"),
-        "createdAt": execution.get("createdAt").strftime("%m/%d/%Y, %H:%M:%S"),
-        "versions": execution["workflowSchema"]["component_versions"],
-        "version_tags": version_tags,
-        "steps": step_ids,
-        "ports": ports,
-        "parameters": parameters,
-        "outputs": outputs,
-        "inputs": inputs,
-    }
-    return execution_with_steps
+def get_secrets_file_names(user_workdir):
+    secrets_path = os.path.join(user_workdir, ODTP_SECRETS_DIR)
+    if os.path.exists(secrets_path) and os.path.isdir(secrets_path):
+        file_names = os.listdir(secrets_path)
+        return file_names
+    return None
